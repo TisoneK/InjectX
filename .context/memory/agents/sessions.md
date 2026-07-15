@@ -140,3 +140,12 @@ outcome:
 - **Outcome:** done — **Corrected the premise:** a full-pipeline probe shows EHI decodes 6/6 (scheme B2), not "only HC." So HC 13/13 + EHI 6/6 both work e2e. Fixed a real TLS base64-padding bug (`374c797`) that made TLS bail before the key loop with an empty trace. Researched TLS + ZIV against the authoritative public decryptors (HCDecryptor on GitLab; EstebanZxx/X-Tools) — InjectX already carries their exact keys/passwords, which MAC-fail because newer app builds rotated the secrets (confirmed by a 256-combo ZIV sweep). TLS/ZIV are therefore blocked on external key material, not wrong algorithms; DARK is proprietary. HAT (scheme E1) is fully implemented but has zero `.hat` samples → unverified. Removed a stray `universal-kickoff.md` from the HC samples dir. 41/41 tests pass.
 - **Open items:** N9 (EHI shows empty in UI — frontend, needs GUI), N10 (HAT unverified — needs a real `.hat` sample), N11 (TLS/ZIV blocked on rotated keys — no code fix). N1–N6, N8 unchanged.
 - **Report:** .context/memory/reviews/2026-07-15-review-5.md
+
+---
+## 2026-07-15 — Session 13
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** Continuation of Session 12. User: "So we do what is possible for now?" + side Q on WPA `.cap` 4-way handshake. Ship the achievable in-house-key-supply piece (no APKs needed): make extracted keys loadable at runtime.
+- **Commits:** 2 product/docs (`29628d9` feat, `+` changelog `docs`). Plus this Phase 5 context log (`chore(context):`) and review report (`docs(review):`).
+- **Outcome:** done — `feat(decrypt)` (`29628d9`): wired `INJECTX_KEYFILE` → `get_router()` → `KeyStore._load_keyfile()`, which was dead code (parse_config called `get_router()` with no path, so no runtime key supply existed). Extracted keys now drop in via a JSON keyfile merged over defaults; TLS + HAT fully keyfile-driven. Added `docs/key-extraction.md` (static jadx + dynamic Frida recipes + keyfile format). +2 tests (suite 41→43), ruff clean. Answered the `.cap` side question: it's WPA-PSK cracking (hashcat -m 22000), a separate 802.11/pcap domain, not part of the config decryptors — logged as a scope decision, not implemented.
+- **Open items:** N12 (new — route ZIV/HC-v27/EHI-v2 inline constants through KeyStore so the keyfile covers ZIVPN too). N9/N10/N11 unchanged from Session 12.
+- **Report:** .context/memory/reviews/2026-07-15-review-6.md
