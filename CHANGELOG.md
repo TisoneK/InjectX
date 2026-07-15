@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- You can now supply your own decryption keys at runtime without
+  rebuilding the app. Point the `INJECTX_KEYFILE` environment variable
+  at a JSON file of keys and they're used alongside the built-in ones.
+  This is how newly recovered keys get applied when an app changes the
+  secret it uses to lock its config files — for example, to bring TLS
+  Tunnel or HA Tunnel configs back to life once a current key is found.
+  A new guide, `docs/key-extraction.md`, walks through recovering those
+  keys.
+
 ### Fixed
 - TLS Tunnel (`.tls`) configs from newer app builds no longer fail to
   process before decryption is even attempted. These files drop the
