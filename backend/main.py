@@ -467,14 +467,16 @@ async def supported_formats():
     return {
         "ir_version": IR_VERSION,
         "formats": [
-            {"id": "ehi", "name": "HTTP Injector", "extensions": [".ehi"], "encrypted": False, "decryptable": True, "schemes": ["B1"], "description": "ZIP archive with JSON config (may be locked/obfuscated with 2-stage AES)"},
-            {"id": "hc", "name": "HTTP Custom", "extensions": [".hc"], "encrypted": True, "decryptable": True, "schemes": ["A1", "A2", "A3", "A4"], "description": "Encrypted HCUST format (XOR + AES-128-ECB, 76+ known keys)"},
+            {"id": "ehi", "name": "HTTP Injector", "extensions": [".ehi"], "encrypted": True, "decryptable": True, "schemes": ["B2", "B1"], "description": "ZIP/binary config; B2 = v6.3+ (Argon2id + ChaCha20-Poly1305 + XXTEA + 2-stage AES), B1 = legacy 2-stage AES"},
+            {"id": "hc", "name": "HTTP Custom", "extensions": [".hc"], "encrypted": True, "decryptable": True, "schemes": ["A5", "A1", "A2", "A3", "A4"], "description": "Encrypted HCUST format; A5 = v2.7+ (initial XOR + ChaCha20 + AES-ECB), A1-A4 = legacy XOR + AES-128-ECB (76+ known keys)"},
             {"id": "hat", "name": "HA Tunnel Plus", "extensions": [".hat", ".ha"], "encrypted": True, "decryptable": True, "schemes": ["E1"], "description": "AES-128-ECB encrypted JSON (2 known keys, profile/profilev4/configuration structures)"},
             {"id": "dark", "name": "DARK TUNNEL VPN", "extensions": [".dark", ".drak", ".dt"], "encrypted": True, "decryptable": False, "schemes": [], "description": "Proprietary encryption (no public decryptor)"},
-            {"id": "tls", "name": "TLS Tunnel", "extensions": [".tls"], "encrypted": True, "decryptable": True, "schemes": ["F1"], "description": "AES-256-GCM with build_number:base64_payload format"},
+            {"id": "tls", "name": "TLS Tunnel", "extensions": [".tls"], "encrypted": True, "decryptable": True, "schemes": ["F1"], "description": "AES-256-GCM with build_number:base64_payload format (keys rotated in newer builds)"},
             {"id": "npv", "name": "NapsternetV", "extensions": [".npv4", ".inpv", ".npv"], "encrypted": True, "decryptable": True, "schemes": ["C1"], "description": "Subtraction cipher (charCode subtraction with cycling key)"},
             {"id": "nsh", "name": "SocksHTTP", "extensions": [".nsh"], "encrypted": True, "decryptable": True, "schemes": ["D1"], "description": "AES-128-GCM + PBKDF2 with dot-separated salt.iv.ciphertext_mac format"},
             {"id": "vhd", "name": "V2Ray/NPV Tunnel", "extensions": [".vhd"], "encrypted": True, "decryptable": True, "schemes": ["G1"], "description": "AES-128-CBC with V2Ray/Xray outboundBean structure"},
+            {"id": "ziv", "name": "ZIVPN", "extensions": [".ziv"], "encrypted": True, "decryptable": True, "schemes": ["H1"], "description": "AES-256-GCM + PBKDF2-SHA256, dot-separated salt.iv.ciphertext_mac (keys rotated in newer builds)"},
+            {"id": "lnk", "name": "Renamed config (.lnk)", "extensions": [".lnk"], "encrypted": True, "decryptable": False, "schemes": [], "description": "Config renamed to .lnk so Windows treats it as a file, not a shortcut; algorithm not yet reversed"},
             {"id": "ovpn", "name": "OpenVPN", "extensions": [".ovpn"], "encrypted": False, "decryptable": False, "schemes": [], "description": "Plain text OpenVPN config (not yet implemented)"},
         ],
     }
