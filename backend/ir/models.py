@@ -19,7 +19,7 @@ import enum
 from datetime import datetime, timezone
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 # ── IR Version ────────────────────────────────────────────────────────────────
@@ -190,8 +190,17 @@ class DecryptedPayload(BaseModel):
 
     model_config = {
         "arbitrary_types_allowed": True,
-        "json_encoders": {bytes: lambda v: v.hex() if v else ""},
     }
+
+    @field_serializer("raw_bytes", when_used="json")
+    def _serialize_raw_bytes(self, v: Optional[bytes]) -> str:
+        """Render decrypted bytes as hex on JSON serialization.
+
+        Pydantic v2 replacement for the deprecated ``json_encoders`` config.
+        Scoped to ``when_used="json"`` so ``model_dump()`` (python mode) still
+        returns the raw ``bytes``, preserving the prior behaviour exactly.
+        """
+        return v.hex() if v else ""
 
     @field_validator("confidence")
     @classmethod
