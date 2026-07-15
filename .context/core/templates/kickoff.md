@@ -37,7 +37,7 @@ Generation rules for the bootstrapping agent:
 >   and follow it."* Add a target description in the same message if you
 >   have one.
 > - **Cloud/sandbox agent** (empty workspace): *"Clone
->   `https://github.com/TisoneK/InjectX.git`, read `.context/kickoff.md`, follow it."* If the
+>   `<PROJECT_REPO_URL>`, read `.context/kickoff.md`, follow it."* If the
 >   project repo is private — or the session will push (it will) — paste
 >   a PAT for **this project repo** in that same chat message. That is
 >   the only credential any session needs: the protocol is already in
@@ -47,14 +47,14 @@ Generation rules for the bootstrapping agent:
 
 ## Project Facts (generated — keep current)
 
-- **Project name:** InjectX
-- **Project repository URL:** https://github.com/TisoneK/InjectX.git
-- **Project repo privacy:** Public
-- **Default branch:** main
-- **Live application:** N/A
-- **Git identity:** Tisone Kironget `tisonkironget@gmail.com`
+- **Project name:** <PROJECT_NAME>
+- **Project repository URL:** <PROJECT_REPO_URL>
+- **Project repo privacy:** <Public / Private>
+- **Default branch:** <main>
+- **Live application:** <LIVE_URL or N/A>
+- **Git identity:** <GIT_NAME> `<GIT_EMAIL>`
 - **Protocol:** vendored at `.context/core/` (version: see `.context/core/VERSION`)
-- **Package upstream (core updates + flaw back-ports):** https://github.com/TisoneK/.context.git
+- **Package upstream (core updates + flaw back-ports):** <https://github.com/TisoneK/.context.git or fork/mirror URL>
 - **Edition routing:** local agents → `.context/core/rules/ai-engineering-protocol-local.md`; cloud/sandbox agents → `.context/core/rules/ai-engineering-protocol.md`
 
 ## Session Parameters
@@ -86,8 +86,9 @@ once, or record `unknown`.
   # If private: PAT from chat — strip it from .git/config right after.
   # A missing credential is a missing input: if the repo is private (or
   # you'll push, which you will) and no PAT arrived in chat, ask NOW.
-  git clone https://github.com/TisoneK/InjectX.git InjectX && cd InjectX
-  git config user.name "Tisone Kironget" && git config user.email "tisonkironget@gmail.com"
+  git clone <PROJECT_REPO_URL_WITH_TOKEN_IF_PRIVATE> <REPO> && cd <REPO>
+  git remote set-url origin <PROJECT_REPO_URL>
+  git config user.name "<GIT_NAME>" && git config user.email "<GIT_EMAIL>"
   ```
 
 There is **no package repo to find, clone, or authenticate against** —

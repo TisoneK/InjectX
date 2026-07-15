@@ -11,7 +11,7 @@ shared memory; this one is strictly per-machine.
 1. **Never commit a value.** The `.gitignore` here enforces it — never
    weaken it, never `git add -f` anything in this directory. Before
    writing a new secret file, prove it's ignored:
-   `git check-ignore .context/secrets/<file>` must succeed.
+   `git check-ignore .context/memory/secrets/<file>` must succeed.
 2. **Never echo a value** — not in chat output, not in logs, not in
    reports, not in commit messages, not in error output. Read it, use
    it, move on.
@@ -46,7 +46,7 @@ Read line 1 into an env var; never inline a value into a command —
 inlined values end up in shell history and process listings:
 
 ```bash
-export GIT_TOKEN="$(head -n1 .context/secrets/github-pat)"
+export GIT_TOKEN="$(head -n1 .context/memory/secrets/github-pat)"
 ```
 
 ## Trade-off to know
