@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- DARK Tunnel (`.dark`) configs are now readable. They were previously
+  written off as using "proprietary encryption," but the file is really
+  a wrapped, plainly-encoded package: the app type (VLESS/VMESS/Trojan),
+  the config name, and the transport are all readable, and for configs
+  the author did not lock, the full server details too. When the author
+  *locked* the config, those credentials stay sealed (that's the app's
+  intended protection) and the app now says so clearly instead of
+  showing nothing.
 - You can now supply your own decryption keys at runtime without
   rebuilding the app. Point the `INJECTX_KEYFILE` environment variable
   at a JSON file of keys and they're used alongside the built-in ones.
