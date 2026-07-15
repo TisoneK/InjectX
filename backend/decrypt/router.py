@@ -1,0 +1,214 @@
+"""
+InjectX — Scheme Router
+
+The scheme router decouples format detection from crypto logic.
+
+Flow:
+  parser → extract encrypted blob → router.dispatch(format, raw_bytes)
+         → router tries all applicable schemes → returns DecryptedPayload(max_confidence)
+
+This replaces the old pattern of:
+  hc_parser → hc_decrypt (hardcoded coupling)
+
+With:
+  hc_parser → router.dispatch("hc", raw_bytes) → DecryptedPayload
+
+Adding a new key or scheme never requires touching a parser.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import Optional
+
+from ir.models import (
+    DecryptedPayload,
+    DecryptAttempt,
+    DecryptStatusEnum,
+    DecryptTrace,
+    FormatEnum,
+    SchemeEnum,
+)
+from .keys import KeyStore
+from .hc_decrypt import decrypt_hc
+from .ehi_decrypt import decrypt_ehi
+from .npv_decrypt import decrypt_npv
+from .nsh_decrypt import decrypt_nsh
+from .hat_decrypt import decrypt_hat
+from .tls_decrypt import decrypt_tls
+from .vhd_decrypt import decrypt_vhd
+
+
+# ── Format → Applicable Schemes mapping ───────────────────────────────────────
+
+FORMAT_SCHEMES: dict[FormatEnum, list[SchemeEnum]] = {
+    FormatEnum.HC:  [SchemeEnum.A1, SchemeEnum.A2, SchemeEnum.A3, SchemeEnum.A4],
+    FormatEnum.EHI: [SchemeEnum.B1],
+    FormatEnum.NPV: [SchemeEnum.C1],
+    FormatEnum.NSH: [SchemeEnum.D1],
+    FormatEnum.HAT: [SchemeEnum.E1],
+    FormatEnum.TLS: [SchemeEnum.F1],
+    FormatEnum.VHD: [SchemeEnum.G1],
+    FormatEnum.DARK: [],           # No public decryptor
+    FormatEnum.DARKTUNNEL: [],     # In-app only
+    FormatEnum.OVPN: [],           # Plain text
+    FormatEnum.CONF: [],           # Plain text
+    FormatEnum.ENCRYPTED_UNKNOWN: [],
+    FormatEnum.UNKNOWN: [],
+}
+
+
+class SchemeRouter:
+    """
+    Crypto router: dispatches encrypted blobs to the correct decryptor(s)
+    and returns the highest-confidence result.
+
+    Architecture invariant:
+      - Parsers NEVER call decryptors directly
+      - Parsers call router.dispatch(format, raw_bytes)
+      - Router returns DecryptedPayload with confidence scoring
+    """
+
+    def __init__(self, key_store: Optional[KeyStore] = None):
+        self.keys = key_store or KeyStore()
+
+    def dispatch(
+        self,
+        format: FormatEnum,
+        raw: bytes,
+        filepath: str = "",
+        filename: str = "",
+    ) -> DecryptedPayload:
+        """
+        Try all applicable schemes for the given format.
+        Returns the DecryptedPayload with the highest confidence score.
+
+        If no schemes apply (plain text or no decryptor), returns
+        a DecryptedPayload with appropriate status.
+        """
+        schemes = FORMAT_SCHEMES.get(format, [])
+        trace = DecryptTrace(
+            filepath=filepath,
+            filename=filename,
+            format=format,
+        )
+
+        # No schemes → no decryptor or not encrypted
+        if not schemes:
+            if format in (FormatEnum.DARK, FormatEnum.ENCRYPTED_UNKNOWN):
+                return DecryptedPayload(
+                    scheme=SchemeEnum.UNSUPPORTED,
+                    confidence=0.0,
+                    status=DecryptStatusEnum.NO_DECRYPTOR,
+                    trace=trace,
+                )
+            return DecryptedPayload(
+                scheme=SchemeEnum.NONE,
+                confidence=1.0,
+                status=DecryptStatusEnum.NOT_ENCRYPTED,
+                trace=trace,
+            )
+
+        # Try all applicable schemes, collect results
+        candidates: list[DecryptedPayload] = []
+        total_start = time.monotonic()
+
+        for scheme in schemes:
+            payload = self._try_scheme(scheme, format, raw, filepath, filename, trace)
+            if payload.status == DecryptStatusEnum.SUCCESS and payload.confidence > 0.0:
+                candidates.append(payload)
+
+        total_elapsed = (time.monotonic() - total_start) * 1000
+        trace.total_elapsed_ms = total_elapsed
+
+        # Select best candidate by confidence
+        if candidates:
+            best = max(candidates, key=lambda p: p.confidence)
+            best.trace = trace
+            return best
+
+        # All schemes failed
+        return DecryptedPayload(
+            scheme=schemes[0] if schemes else SchemeEnum.UNSUPPORTED,
+            confidence=0.0,
+            status=DecryptStatusEnum.FAILED,
+            trace=trace,
+        )
+
+    def _try_scheme(
+        self,
+        scheme: SchemeEnum,
+        format: FormatEnum,
+        raw: bytes,
+        filepath: str,
+        filename: str,
+        trace: DecryptTrace,
+    ) -> DecryptedPayload:
+        """Dispatch to the correct decryptor function for the given scheme."""
+        start = time.monotonic()
+
+        try:
+            # A-series: HTTP Custom
+            if scheme in (SchemeEnum.A1, SchemeEnum.A2, SchemeEnum.A3, SchemeEnum.A4):
+                result = decrypt_hc(scheme, raw, self.keys, trace)
+
+            # B-series: HTTP Injector
+            elif scheme == SchemeEnum.B1:
+                result = decrypt_ehi(scheme, raw, self.keys, trace)
+
+            # C-series: NapsternetV
+            elif scheme == SchemeEnum.C1:
+                result = decrypt_npv(scheme, raw, self.keys, trace)
+
+            # D-series: SocksHTTP
+            elif scheme == SchemeEnum.D1:
+                result = decrypt_nsh(scheme, raw, self.keys, trace)
+
+            # E-series: HA Tunnel
+            elif scheme == SchemeEnum.E1:
+                result = decrypt_hat(scheme, raw, self.keys, trace)
+
+            # F-series: TLS Tunnel
+            elif scheme == SchemeEnum.F1:
+                result = decrypt_tls(scheme, raw, self.keys, trace)
+
+            # G-series: VHD
+            elif scheme == SchemeEnum.G1:
+                result = decrypt_vhd(scheme, raw, self.keys, trace)
+
+            else:
+                result = DecryptedPayload(
+                    scheme=scheme,
+                    confidence=0.0,
+                    status=DecryptStatusEnum.NO_DECRYPTOR,
+                )
+
+        except Exception as e:
+            elapsed = (time.monotonic() - start) * 1000
+            trace.add_attempt(DecryptAttempt(
+                scheme=scheme,
+                result="error",
+                confidence=0.0,
+                error_message=str(e),
+                elapsed_ms=elapsed,
+            ))
+            result = DecryptedPayload(
+                scheme=scheme,
+                confidence=0.0,
+                status=DecryptStatusEnum.FAILED,
+            )
+
+        return result
+
+
+# ── Singleton Router ──────────────────────────────────────────────────────────
+
+_router: Optional[SchemeRouter] = None
+
+
+def get_router(keyfile_path: Optional[str] = None) -> SchemeRouter:
+    """Get or create the singleton SchemeRouter instance."""
+    global _router
+    if _router is None:
+        _router = SchemeRouter(KeyStore(keyfile_path))
+    return _router

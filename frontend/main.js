@@ -1,0 +1,161 @@
+/**
+ * Electron Main Process for InjectX v0.4.0
+ * - Creates the application window
+ * - Spawns the Python FastAPI backend as a child process
+ * - Handles IPC between renderer and backend
+ */
+
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
+const os = require("os");
+const path = require("path");
+const { spawn } = require("child_process");
+const net = require("net");
+
+const BACKEND_PORT = 8742;
+const BACKEND_URL = `http://127.0.0.1:${BACKEND_PORT}`;
+
+let mainWindow = null;
+let backendProcess = null;
+
+// ── Backend Management ───────────────────────────────────────────────────────
+
+function getPythonPath() {
+  const venvPython = path.join(__dirname, "..", "backend", ".venv", "Scripts", "python.exe");
+  const venvPythonLinux = path.join(__dirname, "..", "backend", ".venv", "bin", "python");
+  const fs = require("fs");
+  if (fs.existsSync(venvPython)) return venvPython;
+  if (fs.existsSync(venvPythonLinux)) return venvPythonLinux;
+  return "python";
+}
+
+function startBackend() {
+  const pythonPath = getPythonPath();
+  const mainPy = path.join(__dirname, "..", "backend", "main.py");
+  console.log(`[Main] Starting backend: ${pythonPath} ${mainPy}`);
+
+  backendProcess = spawn(pythonPath, [mainPy], {
+    cwd: path.join(__dirname, "..", "backend"),
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+
+  backendProcess.stdout.on("data", (data) => console.log(`[Backend] ${data.toString().trim()}`));
+  backendProcess.stderr.on("data", (data) => console.error(`[Backend Error] ${data.toString().trim()}`));
+  backendProcess.on("close", (code) => { console.log(`[Backend] Process exited with code ${code}`); backendProcess = null; });
+}
+
+function stopBackend() {
+  if (backendProcess) { backendProcess.kill(); backendProcess = null; }
+}
+
+function waitForBackend(maxRetries = 20, interval = 500) {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    function check() {
+      const socket = new net.Socket();
+      socket.setTimeout(1000);
+      socket.on("connect", () => { socket.destroy(); resolve(true); });
+      socket.on("error", () => { socket.destroy(); attempts++; if (attempts >= maxRetries) reject(new Error("Backend did not start")); else setTimeout(check, interval); });
+      socket.on("timeout", () => { socket.destroy(); attempts++; if (attempts >= maxRetries) reject(new Error("Backend did not start")); else setTimeout(check, interval); });
+      socket.connect(BACKEND_PORT, "127.0.0.1");
+    }
+    check();
+  });
+}
+
+// ── Window Creation ───────────────────────────────────────────────────────────
+
+function createWindow() {
+  const isWindows = os.platform() === "win32";
+  const isMac = os.platform() === "darwin";
+
+  mainWindow = new BrowserWindow({
+    width: 1100, height: 750, minWidth: 800, minHeight: 600,
+    title: "InjectX",
+    frame: false,
+    titleBarStyle: isMac ? "hidden" : undefined,
+    trafficLightPosition: isMac ? { x: 12, y: 12 } : undefined,
+    icon: path.join(__dirname, "src", "assets", "icon.png"),
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true, nodeIntegration: false, sandbox: false,
+    },
+  });
+
+  mainWindow.loadFile(path.join(__dirname, "index.html"));
+  if (process.env.NODE_ENV === "development") mainWindow.webContents.openDevTools();
+  mainWindow.on("closed", () => { mainWindow = null; });
+
+  const menuTemplate = [
+    { label: "File", submenu: [
+      { label: "Open Config File", accelerator: "CmdOrCtrl+O", click: () => handleOpenFile() },
+      { type: "separator" }, { role: "quit" },
+    ]},
+    { label: "View", submenu: [
+      { role: "reload" }, { role: "forceReload" }, { role: "toggleDevTools" },
+      { type: "separator" }, { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" },
+    ]},
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
+}
+
+async function handleOpenFile() {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Select Config File",
+    filters: [
+      { name: "VPN Config Files", extensions: ["ehi", "hc", "hat", "ha", "dark", "drak", "dt", "darktunnel", "tls", "npv4", "inpv", "npv", "nsh", "vhd"] },
+      { name: "All Files", extensions: ["*"] },
+    ],
+    properties: ["openFile", "multiSelections"],
+  });
+  if (!result.canceled && result.filePaths.length > 0) mainWindow.webContents.send("files-selected", result.filePaths);
+}
+
+// ── IPC Handlers ──────────────────────────────────────────────────────────────
+
+function setupIPC() {
+  ipcMain.handle("open-file-dialog", async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: "Select Config File",
+      filters: [
+        { name: "VPN Config Files", extensions: ["ehi", "hc", "hat", "ha", "dark", "drak", "dt", "darktunnel", "tls", "npv4", "inpv", "npv", "nsh", "vhd"] },
+        { name: "All Files", extensions: ["*"] },
+      ],
+      properties: ["openFile", "multiSelections"],
+    });
+    return result.canceled ? { canceled: true, filePaths: [] } : { canceled: false, filePaths: result.filePaths };
+  });
+
+  const proxyGet = (endpoint) => async () => { try { return (await fetch(`${BACKEND_URL}${endpoint}`)).json(); } catch (err) { return { error: err.message }; } };
+
+  ipcMain.handle("parse-config", async (_e, filePath) => { try { return (await fetch(`${BACKEND_URL}/api/config/parse?filepath=${encodeURIComponent(filePath)}`)).json(); } catch (err) { return { error: err.message }; } });
+  ipcMain.handle("get-config", async (_e, configId) => { try { return (await fetch(`${BACKEND_URL}/api/config/${configId}`)).json(); } catch (err) { return { error: err.message }; } });
+  ipcMain.handle("list-configs", proxyGet("/api/configs"));
+  ipcMain.handle("delete-config", async (_e, configId) => { try { return (await fetch(`${BACKEND_URL}/api/config/${configId}`, { method: "DELETE" })).json(); } catch (err) { return { error: err.message }; } });
+  ipcMain.handle("export-config", async (_e, configId) => { try { return (await fetch(`${BACKEND_URL}/api/config/export?config_id=${configId}`)).json(); } catch (err) { return { error: err.message }; } });
+  ipcMain.handle("detect-format", async (_e, filePath) => { try { return (await fetch(`${BACKEND_URL}/api/config/detect?filepath=${encodeURIComponent(filePath)}`)).json(); } catch (err) { return { error: err.message }; } });
+  ipcMain.handle("get-formats", proxyGet("/api/formats"));
+  ipcMain.handle("check-health", proxyGet("/api/health"));
+  ipcMain.handle("get-decrypt-trace", async (_e, configId) => { try { return (await fetch(`${BACKEND_URL}/api/config/${configId}/trace`)).json(); } catch (err) { return { error: err.message }; } });
+
+  // ── Window Control IPC ─────────────────────────────────────────────────────
+  ipcMain.handle("window-minimize", () => { if (mainWindow) mainWindow.minimize(); });
+  ipcMain.handle("window-maximize", () => { if (mainWindow) { mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize(); } });
+  ipcMain.handle("window-close", () => { if (mainWindow) mainWindow.close(); });
+  ipcMain.handle("window-is-maximized", () => mainWindow ? mainWindow.isMaximized() : false);
+
+  mainWindow.on("maximize", () => { mainWindow.webContents.send("window-state-changed", "maximized"); });
+  mainWindow.on("unmaximize", () => { mainWindow.webContents.send("window-state-changed", "normal"); });
+}
+
+// ── App Lifecycle ─────────────────────────────────────────────────────────────
+
+app.whenReady().then(async () => {
+  startBackend();
+  try { await waitForBackend(); console.log("[Main] Backend is ready"); } catch (err) { console.error("[Main] Backend failed:", err.message); }
+  setupIPC();
+  createWindow();
+});
+
+app.on("window-all-closed", () => { stopBackend(); app.quit(); });
+app.on("before-quit", () => { stopBackend(); });
+app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
