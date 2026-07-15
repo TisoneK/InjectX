@@ -6,5 +6,5 @@ you find a stale in-progress entry here, a prior session died mid-task —
 check its session entry and backlog before starting.
 
 - **Session:** 2026-07-15 — Super Z / unknown (GLM family)
-- **Task:** General sweep — discover the InjectX codebase (Python backend + Electron frontend VPN tunnel config reader), review all focus areas (security, performance, UX, architecture, testing, docs), fix safe issues in-place, flag architectural ones for approval, push fixes to main, write report in `.context/reviews/`.
-- **Status:** in-progress
+- **Task:** General sweep — discover InjectX, review all focus areas, fix safe issues, flag architectural ones, push to main, write `.context/reviews/` report. **Done.**
+- **Status:** done — 8 commits pushed (`23ea9cf`..`c90fafb`), 7 fixes applied (1 critical security, 1 high security, 2 medium, 3 low), 7 nice-to-have items flagged in backlog. See `.context/reviews/2026-07-15-review.md` and `CHANGELOG.md`.
