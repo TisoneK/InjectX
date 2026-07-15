@@ -135,12 +135,22 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS — the backend binds to 127.0.0.1 only, but any local process can
+# still issue requests. Restrict origins to the ones the Electron renderer
+# actually uses: `file://` (the default Electron loadFile origin) and the
+# loopback origin. `allow_credentials=False` because no auth/cookies are
+# used; the wildcard origin + credentials combo is also invalid per CORS
+# spec (browsers reject it).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[
+        "http://127.0.0.1:8742",
+        "http://localhost:8742",
+        "file://",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type"],
 )
 
 
