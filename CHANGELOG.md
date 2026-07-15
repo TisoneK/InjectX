@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   supported set of extensions (`.ehi`, `.hc`, `.hat`, etc.) are now rejected
   before being read, closing a path-traversal issue that affected local API
   callers.
+- Closed a follow-up gap in that same extension check: a shortcut (symlink)
+  named like a supported config but pointing at an unrelated file is now
+  rejected based on where it actually points, not just its name.
 - Restricted the backend's CORS policy to the origins the desktop app
   actually uses (the Electron `file://` origin and the loopback), instead
   of allowing any origin.
@@ -31,7 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   prepares for Pydantic v3.
 - The backend now honors `INJECTX_HOST`, `INJECTX_PORT`, and
   `INJECTX_UPLOAD_DIR` for its runtime configuration, matching the
-  documented environment-variable contract.
+  documented environment-variable contract. When a custom port is set, the
+  allowed local origins now follow that port instead of the default.
+- Internal: replaced a deprecated Pydantic serialization setting with the
+  supported equivalent, removing warning noise and preparing for Pydantic v3.
 - Internal: the backend now uses the `logging` module for startup and
   shutdown messages instead of `print()`, with timestamps and severity
   levels.
