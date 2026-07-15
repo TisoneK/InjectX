@@ -80,6 +80,7 @@ const FORMAT_META = {
   npv:   { name: "NapsternetV",    color: "var(--c-npv)",   short: "NPV",   exts: [".npv4", ".inpv", ".npv"] },
   nsh:   { name: "SocksHTTP",      color: "var(--c-nsh)",   short: "NSH",   exts: [".nsh"] },
   vhd:   { name: "V2Ray Tunnel",   color: "var(--c-vhd)",   short: "VHD",   exts: [".vhd"] },
+  ziv:   { name: "ZIVPN",          color: "var(--c-vhd)",   short: "ZIV",   exts: [".ziv"] },
   ovpn:  { name: "OpenVPN",        color: "var(--c-ovpn)",  short: "OVPN",  exts: [".ovpn"] },
   unknown: { name: "Unknown",      color: "var(--c-unk)",   short: "UNK",   exts: [] },
 };
@@ -895,13 +896,14 @@ function renderArsenalView() {
   grid.innerHTML = "";
 
   const formats = [
-    { id: "ehi",  desc: "HTTP Injector configuration archive. Plain JSON inside a ZIP wrapper; may be locked with an obfuscation layer." },
-    { id: "hc",   desc: "HTTP Custom encrypted format. Widely-used in mobile proxy configs. Supported via known-key dictionary." },
+    { id: "ehi",  desc: "HTTP Injector configuration. Multi-layer encryption (AES-256-CBC + AES-128-CBC + XXTEA + Argon2id + ChaCha20-Poly1305) for v6.3+ files; legacy ZIP+JSON for older versions." },
+    { id: "hc",   desc: "HTTP Custom encrypted format. v2.7+ uses ChaCha20 + RST AES + per-field JKL/Braille/z3a decryption. Legacy versions use XOR + AES-128-ECB with ePro keys." },
     { id: "hat",  desc: "HA Tunnel Plus configuration. Encrypted JSON envelope; multiple profile structures supported." },
-    { id: "tls",  desc: "TLS Tunnel configuration file. Modern authenticated-encryption envelope with versioned build metadata." },
+    { id: "tls",  desc: "TLS Tunnel configuration file. AES-256-GCM with versioned build metadata. Key may be rotated in newer builds." },
     { id: "npv",  desc: "NapsternetV configuration file. Lightweight encoding wrapping V2Ray/VLess/VMess configurations." },
     { id: "nsh",  desc: "SocksHTTP configuration file. Password-derived encryption with salted key derivation." },
     { id: "vhd",  desc: "V2Ray / Xray tunnel configuration. Encrypted envelope around an outboundBean JSON structure." },
+    { id: "ziv",  desc: "ZIVPN configuration file. AES-256-GCM with PBKDF2-SHA256 key derivation. Dot-separated salt.iv.ciphertext_mac format." },
     { id: "dark", desc: "DARK TUNNEL VPN proprietary configuration. Encryption envelope is closed-source; payload cannot be extracted." },
     { id: "ovpn", desc: "OpenVPN plain-text configuration file. No encryption envelope; parser support is limited." },
   ];

@@ -38,7 +38,7 @@ let backendProcess = null;
 // accepts them. Now one constant feeds both call sites.
 const CONFIG_EXTENSIONS = [
   "ehi", "hc", "hat", "ha", "dark", "drak", "dt", "darktunnel",
-  "tls", "npv4", "inpv", "npv", "nsh", "vhd", "ovpn", "conf",
+  "tls", "npv4", "inpv", "npv", "nsh", "vhd", "ovpn", "conf", "ziv",
 ];
 
 function configOpenDialogOptions() {
@@ -99,6 +99,23 @@ function waitForBackend(maxRetries = 20, interval = 500) {
 
 // ── Window Creation ───────────────────────────────────────────────────────────
 
+// Resolve the app icon path. The icon lives at assets/icons/icon.png
+// (and icon.ico for Windows). We resolve relative to the project root
+// (two levels up from frontend/main.js: frontend/ → project root).
+const PROJECT_ROOT = path.join(__dirname, "..");
+const ICON_PNG = path.join(PROJECT_ROOT, "assets", "icons", "icon.png");
+const ICON_ICO = path.join(PROJECT_ROOT, "assets", "icons", "icon.ico");
+
+function getIconPath() {
+  // Windows prefers .ico; macOS/Linux prefer .png
+  const isWindows = os.platform() === "win32";
+  if (isWindows) {
+    const fs = require("fs");
+    if (fs.existsSync(ICON_ICO)) return ICON_ICO;
+  }
+  return ICON_PNG;
+}
+
 function createWindow() {
   const isWindows = os.platform() === "win32";
   const isMac = os.platform() === "darwin";
@@ -109,7 +126,7 @@ function createWindow() {
     frame: false,
     titleBarStyle: isMac ? "hidden" : undefined,
     trafficLightPosition: isMac ? { x: 12, y: 12 } : undefined,
-    icon: path.join(__dirname, "src", "assets", "icon.png"),
+    icon: getIconPath(),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true, nodeIntegration: false, sandbox: false,
@@ -119,6 +136,12 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, "index.html"));
   if (process.env.NODE_ENV === "development") mainWindow.webContents.openDevTools();
   mainWindow.on("closed", () => { mainWindow = null; });
+
+  // Set the dock/taskbar icon (macOS dock, Linux taskbar).
+  // On Windows the BrowserWindow `icon` option above handles this.
+  if (isMac && app.dock) {
+    try { app.dock.setIcon(ICON_PNG); } catch (e) { /* ignore */ }
+  }
 
   const menuTemplate = [
     { label: "File", submenu: [

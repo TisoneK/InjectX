@@ -148,6 +148,8 @@ def _normalize_by_format(fmt: FormatEnum, data: dict) -> NormalizedConfig:
         return _normalize_nsh(data)
     elif fmt == FormatEnum.VHD:
         return _normalize_vhd(data)
+    elif fmt == FormatEnum.ZIV:
+        return _normalize_ziv(data)
     else:
         # Generic fallback
         return NormalizedConfig(
@@ -296,8 +298,14 @@ def _parse_payload(payload: str) -> list[dict]:
 # ── Format-Specific Normalizers ───────────────────────────────────────────────
 
 def _normalize_ehi(data: dict) -> NormalizedConfig:
-    """Normalize HTTP Injector config data."""
-    mapped = _apply_field_map(data)
+    """Normalize HTTP Injector config data.
+
+    Handles two shapes:
+      1. Legacy B1: flat dict with fields like payload, sshServer, etc.
+      2. v2 B2: dict already normalized by ehi_v2_decrypt._build_normalized_dict
+         with fields: payload, ssh_server, ssh_port, ssh_user, ssh_pass,
+         proxy_host, sni, notes, v2ray, protocol, _all_fields
+    """
     config = NormalizedConfig(
         filepath="", filename="",
         format=FormatEnum.EHI,
@@ -305,16 +313,44 @@ def _normalize_ehi(data: dict) -> NormalizedConfig:
         decryption_status=DecryptStatusEnum.SUCCESS,
     )
 
-    for key, value in mapped.items():
-        if hasattr(config, key) and getattr(config, key) is None:
-            setattr(config, key, value)
+    # v2 B2: data is already normalized — assign directly
+    v2_fields = [
+        "host", "port", "ssh_server", "ssh_port", "ssh_user", "ssh_pass",
+        "proxy_host", "proxy_port", "sni", "payload", "notes", "v2ray",
+        "dns", "remote_dns", "protocol",
+    ]
+    has_v2_keys = any(k in data for k in v2_fields)
+    if has_v2_keys:
+        for f in v2_fields:
+            if f in data and hasattr(config, f) and getattr(config, f) is None:
+                val = data[f]
+                # Convert protocol string to ProtocolEnum if needed
+                if f == "protocol" and isinstance(val, str):
+                    try:
+                        val = ProtocolEnum(val)
+                    except ValueError:
+                        val = ProtocolEnum.UNKNOWN
+                setattr(config, f, val)
 
-    config.protocol = _detect_protocol(data) if config.protocol is None else config.protocol
+        # Stash v2 extras
+        extras = {}
+        for k in ["_all_fields", "overwrite_server", "v2ray_raw"]:
+            if k in data:
+                extras[k] = data[k]
+        if extras:
+            config.raw_data = extras
+    else:
+        # Legacy B1: apply universal field map
+        mapped = _apply_field_map(data)
+        for key, value in mapped.items():
+            if hasattr(config, key) and getattr(config, key) is None:
+                setattr(config, key, value)
+        config.protocol = _detect_protocol(data) if config.protocol is None else config.protocol
 
-    # Extract V2Ray nested config
-    v2ray_fields = {k: v for k, v in data.items() if any(vk in k.lower() for vk in ["v2ray", "vless", "vmess"])}
-    if v2ray_fields:
-        config.v2ray = v2ray_fields
+        # Extract V2Ray nested config
+        v2ray_fields = {k: v for k, v in data.items() if any(vk in k.lower() for vk in ["v2ray", "vless", "vmess"])}
+        if v2ray_fields:
+            config.v2ray = v2ray_fields
 
     if config.payload:
         config.payload_parsed = _parse_payload(config.payload)
@@ -594,5 +630,48 @@ def _normalize_vhd(data: dict) -> NormalizedConfig:
         config.warnings.append("Config is HWID-locked")
     if data.get("passwordLock"):
         config.warnings.append("Config is password-locked")
+
+    return config
+
+
+def _normalize_ziv(data: dict) -> NormalizedConfig:
+    """Normalize ZIVPN config data (post-decryption).
+
+    The ziv_decrypt._parse_ziv_xml already maps the XML <entry> fields to
+    IR field names, so we just assign them directly.
+    """
+    config = NormalizedConfig(
+        filepath="", filename="",
+        format=FormatEnum.ZIV,
+        is_encrypted=True,
+        decryption_status=DecryptStatusEnum.SUCCESS,
+    )
+
+    ziv_fields = [
+        "host", "port", "ssh_server", "ssh_port", "ssh_user", "ssh_pass",
+        "proxy_host", "proxy_port", "sni", "bug_host", "payload",
+        "dns", "remote_dns", "notes",
+    ]
+    for f in ziv_fields:
+        if f in data and hasattr(config, f) and getattr(config, f) is None:
+            setattr(config, f, data[f])
+
+    # Protocol
+    if "protocol" in data:
+        try:
+            config.protocol = ProtocolEnum(data["protocol"])
+        except ValueError:
+            config.protocol = ProtocolEnum.SSH if config.ssh_server else ProtocolEnum.UNKNOWN
+    elif config.ssh_server:
+        config.protocol = ProtocolEnum.SSH
+    else:
+        config.protocol = ProtocolEnum.UNKNOWN
+
+    # Stash all fields for raw view
+    if "_all_fields" in data:
+        config.raw_data = {"_all_fields": data["_all_fields"]}
+
+    if config.payload:
+        config.payload_parsed = _parse_payload(config.payload)
 
     return config

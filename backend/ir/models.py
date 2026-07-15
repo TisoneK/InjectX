@@ -42,6 +42,7 @@ class FormatEnum(str, enum.Enum):
     VHD = "vhd"
     OVPN = "ovpn"
     CONF = "conf"
+    ZIV = "ziv"
     ENCRYPTED_UNKNOWN = "encrypted_unknown"
     UNKNOWN = "unknown"
 
@@ -98,6 +99,7 @@ class SchemeEnum(str, enum.Enum):
 
     # B-series: HTTP Injector
     B1 = "B1"   # EHI AES-256-CBC → AES-128-CBC + configSalt XOR + custom base64
+    B2 = "B2"   # EHI v2 (v6.3+): L1 AES-256-CBC + L2 AES-128-CBC + XXTEA + Argon2id + ChaCha20-Poly1305
 
     # C-series: NapsternetV
     C1 = "C1"   # NPV4 subtraction cipher (charCode subtraction with cycling key)
@@ -113,6 +115,9 @@ class SchemeEnum(str, enum.Enum):
 
     # G-series: VHD
     G1 = "G1"   # VHD AES-128-CBC (raw ASCII key + IV)
+
+    # H-series: ZIVPN
+    H1 = "H1"   # ZIV AES-256-GCM + PBKDF2-SHA256 (dot-separated salt.iv.ciphertext_mac)
 
     # Special
     NONE = "none"             # No decryption needed (plain text / ZIP + JSON)

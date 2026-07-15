@@ -142,21 +142,29 @@ def decrypt_tls(
             status=DecryptStatusEnum.FAILED,
         )
 
-    # Parse format: "build_number:base64_payload"
-    if ":" not in content:
-        return DecryptedPayload(
-            scheme=SchemeEnum.F1,
-            confidence=0.0,
-            status=DecryptStatusEnum.FAILED,
-        )
+    # Parse format: "build_number:base64_payload" (legacy) OR
+    # "base64_payload:::::" (newer — no build number, trailing colons)
+    # OR pure base64 (newest — no colon at all)
+    build_number = 0
+    b64_payload = content
 
-    colon_idx = content.index(":")
-    try:
-        build_number = int(content[:colon_idx])
-    except ValueError:
-        build_number = 0
+    if ":" in content:
+        colon_idx = content.index(":")
+        prefix = content[:colon_idx]
+        # If the prefix is a valid integer, it's the build number
+        try:
+            build_number = int(prefix)
+            b64_payload = content[colon_idx + 1:]
+        except ValueError:
+            # Prefix is not a number — the whole thing before trailing colons
+            # is the base64 payload. Strip trailing colons.
+            b64_payload = content.rstrip(":")
+    else:
+        # Pure base64, no colon
+        b64_payload = content
 
-    b64_payload = content[colon_idx + 1:]
+    # Strip any remaining trailing colons / whitespace
+    b64_payload = b64_payload.strip().rstrip(":").strip()
 
     try:
         payload_bytes = base64.b64decode(b64_payload)

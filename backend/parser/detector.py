@@ -48,6 +48,7 @@ EXTENSION_MAP: dict[str, FormatEnum] = {
     ".vhd": FormatEnum.VHD,
     ".ovpn": FormatEnum.OVPN,
     ".conf": FormatEnum.CONF,
+    ".ziv": FormatEnum.ZIV,
 }
 
 
@@ -211,11 +212,20 @@ def _validate_format(path: Path, format_hint: FormatEnum) -> bool:
     """Validate that file content matches the expected format."""
     try:
         if format_hint == FormatEnum.EHI:
-            return zipfile.is_zipfile(path)
+            # EHI files can be either:
+            #   1. ZIP archives (legacy format)
+            #   2. Custom binary format starting with \x00\x03ehi (v2/v6.3+)
+            if zipfile.is_zipfile(path):
+                return True
+            raw = path.read_bytes()
+            # Check for EHI binary magic: \x00\x03ehi (2-byte length prefix + "ehi")
+            if len(raw) >= 5 and raw[:5] == b"\x00\x03ehi":
+                return True
+            return False
 
         elif format_hint in (FormatEnum.HC, FormatEnum.HAT, FormatEnum.DARK,
                              FormatEnum.TLS, FormatEnum.NPV, FormatEnum.NSH,
-                             FormatEnum.VHD):
+                             FormatEnum.VHD, FormatEnum.ZIV):
             return path.exists() and path.stat().st_size > 0
 
         elif format_hint == FormatEnum.DARKTUNNEL:

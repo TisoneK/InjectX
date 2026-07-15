@@ -7,7 +7,8 @@
     "start": "electron .",
     "start:dev": "NODE_ENV=development electron .",
     "backend": "cd backend && python main.py",
-    "install:backend": "cd backend && pip install -r requirements.txt"
+    "install:backend": "cd backend && pip install -r requirements.txt",
+    "dist": "electron-builder"
   },
   "keywords": [
     "vpn",
@@ -26,9 +27,37 @@
     "http-custom",
     "dark-tunnel"
   ],
-  "author": "",
+  "author": "Tisone Kironget <tisonkironget@gmail.com>",
   "license": "MIT",
+  "build": {
+    "appId": "com.tisonek.injectx",
+    "productName": "InjectX",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "frontend/**/*",
+      "backend/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "assets/icons/icon.ico",
+      "target": "nsis"
+    },
+    "mac": {
+      "icon": "assets/icons/icon.png",
+      "target": "dmg",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "icon": "assets/icons/icon.png",
+      "target": "AppImage",
+      "category": "Network"
+    }
+  },
   "devDependencies": {
-    "electron": "^43.1.1"
+    "electron": "^43.1.1",
+    "electron-builder": "^25.1.8"
   }
 }

@@ -33,11 +33,13 @@ from .keys import KeyStore
 from .hc_decrypt import decrypt_hc
 from .hc_v27_decrypt import decrypt_hc_v27
 from .ehi_decrypt import decrypt_ehi
+from .ehi_v2_decrypt import decrypt_ehi_v2
 from .npv_decrypt import decrypt_npv
 from .nsh_decrypt import decrypt_nsh
 from .hat_decrypt import decrypt_hat
 from .tls_decrypt import decrypt_tls
 from .vhd_decrypt import decrypt_vhd
+from .ziv_decrypt import decrypt_ziv
 
 
 # ── Format → Applicable Schemes mapping ───────────────────────────────────────
@@ -45,12 +47,14 @@ from .vhd_decrypt import decrypt_vhd
 FORMAT_SCHEMES: dict[FormatEnum, list[SchemeEnum]] = {
     # HC: try newest scheme first (v2.7+ ChaCha20), then legacy A1-A4
     FormatEnum.HC:  [SchemeEnum.A5, SchemeEnum.A1, SchemeEnum.A2, SchemeEnum.A3, SchemeEnum.A4],
-    FormatEnum.EHI: [SchemeEnum.B1],
+    # EHI: try newest scheme first (v2 Argon2+ChaCha20), then legacy B1
+    FormatEnum.EHI: [SchemeEnum.B2, SchemeEnum.B1],
     FormatEnum.NPV: [SchemeEnum.C1],
     FormatEnum.NSH: [SchemeEnum.D1],
     FormatEnum.HAT: [SchemeEnum.E1],
     FormatEnum.TLS: [SchemeEnum.F1],
     FormatEnum.VHD: [SchemeEnum.G1],
+    FormatEnum.ZIV: [SchemeEnum.H1],
     FormatEnum.DARK: [],           # No public decryptor
     FormatEnum.DARKTUNNEL: [],     # In-app only
     FormatEnum.OVPN: [],           # Plain text
@@ -159,6 +163,10 @@ class SchemeRouter:
                 result = decrypt_hc(scheme, raw, self.keys, trace)
 
             # B-series: HTTP Injector
+            elif scheme == SchemeEnum.B2:
+                # v2 (v6.3+) Argon2 + ChaCha20 — no keys needed
+                from audit.live_log import get_live_log
+                result = decrypt_ehi_v2(scheme, raw, trace, live_log=get_live_log())
             elif scheme == SchemeEnum.B1:
                 result = decrypt_ehi(scheme, raw, self.keys, trace)
 
@@ -181,6 +189,11 @@ class SchemeRouter:
             # G-series: VHD
             elif scheme == SchemeEnum.G1:
                 result = decrypt_vhd(scheme, raw, self.keys, trace)
+
+            # H-series: ZIVPN
+            elif scheme == SchemeEnum.H1:
+                from audit.live_log import get_live_log
+                result = decrypt_ziv(scheme, raw, trace, live_log=get_live_log())
 
             else:
                 result = DecryptedPayload(

@@ -155,8 +155,13 @@ svg { display: block; }
 }
 .titlebar-drag { display: flex; align-items: center; gap: var(--gap-sm); -webkit-app-region: drag; height: 100%; }
 .titlebar-mark {
-  width: 18px; height: 18px; color: var(--c-matrix);
-  filter: drop-shadow(0 0 4px var(--bd-glow));
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.titlebar-icon-img {
+  width: 20px; height: 20px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 3px var(--bd-glow));
 }
 .titlebar-title {
   font-size: 12px; font-weight: 700; letter-spacing: 0.15em;
@@ -202,12 +207,19 @@ svg { display: block; }
   border-bottom: 1px solid var(--bd-line);
 }
 .sb-logo {
-  width: 36px; height: 36px;
+  width: 40px; height: 40px;
   border: 1px solid var(--c-matrix-dim);
   display: flex; align-items: center; justify-content: center;
   background: var(--bg-inset);
   box-shadow: inset 0 0 8px rgba(0,255,156,0.1), 0 0 6px rgba(0,255,156,0.15);
+  overflow: hidden;
 }
+.sb-logo-img {
+  width: 34px; height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px var(--bd-glow));
+}
+/* Legacy animated grid logo (kept for reference, no longer used) */
 .logo-grid {
   display: grid; grid-template-columns: repeat(3, 4px); gap: 2px;
 }

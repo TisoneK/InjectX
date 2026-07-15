@@ -16,6 +16,7 @@ assets/configs/
 ├── nsh/     ← SocksHTTP (.nsh)
 ├── vhd/     ← V2Ray/NPV Tunnel (.vhd)
 ├── dark/    ← DARK TUNNEL VPN (.dark, .drak, .dt)
+├── ziv/     ← ZIVPN (.ziv)
 └── ovpn/    ← OpenVPN (.ovpn)
 ```
 
