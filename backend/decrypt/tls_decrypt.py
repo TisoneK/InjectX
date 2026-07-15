@@ -166,6 +166,16 @@ def decrypt_tls(
     # Strip any remaining trailing colons / whitespace
     b64_payload = b64_payload.strip().rstrip(":").strip()
 
+    # Newer TLS Tunnel builds emit "<base64>:::::" and strip the '='
+    # base64 padding, so the surviving payload length is often not a
+    # multiple of 4. Re-pad before decoding — without this, b64decode
+    # raises "Incorrect padding" and the function bails out before it
+    # ever reaches the key loop (an empty decrypt trace, no attempts
+    # recorded). Pad to the next multiple of 4.
+    pad = (-len(b64_payload)) % 4
+    if pad:
+        b64_payload += "=" * pad
+
     try:
         payload_bytes = base64.b64decode(b64_payload)
     except Exception:
