@@ -23,8 +23,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The "Open Config File" dialog now lists OpenVPN (`.ovpn`) and
   generic `.conf` files under the "VPN Config Files" filter, matching
   what the backend accepts.
+- The `/api/formats` capability list is accurate again. It had fallen
+  behind the code: it still claimed HTTP Custom could only decrypt the
+  legacy schemes (missing the v2.7+ decryptor), listed HTTP Injector as
+  unencrypted with only the old decryptor (missing the v6.3+ one), and
+  omitted the ZIVPN and `.lnk` formats entirely.
 
 ### Changed
+- Internal: added automated parsing tests over every bundled sample
+  config (32 files across HTTP Custom, HTTP Injector, ZIVPN, DARK
+  Tunnel, and TLS Tunnel), so parser changes are caught by the test
+  suite instead of only by manual spot-checks.
 - Internal: the file-backed audit log serialization now uses the
   Pydantic v2 `model_dump_json()` method, completing the v2 migration
   that had already handled `model_dump()`.
