@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- The desktop app's main process now respects a custom `INJECTX_PORT`
+  (or `INJECTX_HOST`) when spawning and proxying to the Python backend.
+  Previously a custom port silently broke every renderer call — the
+  backend bound to the new port but the proxy kept targeting the
+  default. Default-port users were unaffected.
+- The decrypt-audit log can now actually persist to disk. The
+  persistence path called a deprecated serialization method that
+  raised an error on Pydantic v2; the error was silently swallowed,
+  so opt-in file-backed logging produced no files. The in-memory path
+  was unaffected. No caller currently opts in.
+- Configs whose protocol cannot be identified from their fields now
+  show "unknown" in the UI instead of being mislabeled as SSH.
+- The "Open Config File" dialog now lists OpenVPN (`.ovpn`) and
+  generic `.conf` files under the "VPN Config Files" filter, matching
+  what the backend accepts.
+
+### Changed
+- Internal: the file-backed audit log serialization now uses the
+  Pydantic v2 `model_dump_json()` method, completing the v2 migration
+  that had already handled `model_dump()`.
+- Internal: removed a few unused variables and a duplicate dictionary
+  key in the backend (decryptor + parser). No behavior change.
+- Internal: added a `pyproject.toml` for the backend, configuring
+  pytest (test discovery + strict markers), ruff (style + bug rules,
+  passing clean today), and mypy (type checks, informational at this
+  point). Sets up the project for future CI.
+
+### Docs
+- Corrected the README's API table (parse / detect / export are `GET`,
+  not `POST`) and added the missing `/api/config/{id}/trace` endpoint.
+- Corrected the README's "Supported Formats" table: HAT and TLS do
+  have working decryptors in InjectX (only DARK is unsupported).
+  Added the missing VHD row.
+- Refreshed the README's "Next Steps" to reflect what's actually
+  done vs pending.
+
 ### Security
 - Tightened input validation on the config-parsing API. Files outside the
   supported set of extensions (`.ehi`, `.hc`, `.hat`, etc.) are now rejected
