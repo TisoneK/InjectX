@@ -4,33 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
-  <title>InjectX</title>
+  <title>InjectX // CIPHER OPS</title>
   <link rel="stylesheet" href="src/styles/main.css">
 </head>
 <body>
-  <!-- Custom Title Bar (frameless window) -->
+
+  <!-- ═══ Boot Overlay ═══════════════════════════════════════════════════════ -->
+  <div id="boot-overlay" class="boot-overlay">
+    <div class="boot-log" id="boot-log"></div>
+    <div class="boot-bar"><div class="boot-bar-fill" id="boot-bar-fill"></div></div>
+    <div class="boot-hint" id="boot-hint">INITIALIZING CIPHER OPS...</div>
+  </div>
+
+  <!-- ═══ Scanline / Noise Overlays ═════════════════════════════════════════ -->
+  <div class="fx-scanlines" aria-hidden="true"></div>
+  <div class="fx-vignette" aria-hidden="true"></div>
+
+  <!-- ═══ Custom Title Bar ═══════════════════════════════════════════════════ -->
   <div id="titlebar" class="titlebar">
     <div class="titlebar-drag">
-      <div class="titlebar-icon">
+      <div class="titlebar-mark">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
         </svg>
       </div>
-      <span class="titlebar-title">InjectX</span>
+      <span class="titlebar-title">InjectX<span class="titlebar-sub">// CIPHER_OPS</span></span>
+      <span class="titlebar-sep">·</span>
+      <span class="titlebar-session" id="titlebar-session">SESSION_<span id="session-id">--------</span></span>
     </div>
     <div class="titlebar-controls">
-      <button id="btn-minimize" class="titlebar-btn titlebar-btn-minimize" title="Minimize">
-        <svg width="10" height="10" viewBox="0 0 10 10">
-          <line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1"/>
-        </svg>
+      <button id="btn-minimize" class="titlebar-btn" title="Minimize">
+        <svg width="10" height="10" viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1"/></svg>
       </button>
-      <button id="btn-maximize" class="titlebar-btn titlebar-btn-maximize" title="Maximize">
-        <svg id="icon-maximize" width="10" height="10" viewBox="0 0 10 10">
-          <rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1"/>
-        </svg>
+      <button id="btn-maximize" class="titlebar-btn" title="Maximize">
+        <svg id="icon-maximize" width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1"/></svg>
         <svg id="icon-restore" width="10" height="10" viewBox="0 0 10 10" style="display:none">
           <rect x="2" y="0" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1"/>
-          <rect x="0" y="2" width="8" height="8" fill="var(--bg-surface)" stroke="currentColor" stroke-width="1"/>
+          <rect x="0" y="2" width="8" height="8" fill="var(--bg-base)" stroke="currentColor" stroke-width="1"/>
         </svg>
       </button>
       <button id="btn-close" class="titlebar-btn titlebar-btn-close" title="Close">
@@ -42,250 +53,269 @@
     </div>
   </div>
 
-  <!-- App Body (sidebar + main) -->
-  <div class="app-body">
-    <!-- Sidebar -->
+  <!-- ═══ App Shell ═══════════════════════════════════════════════════════════ -->
+  <div class="app-shell">
+
+    <!-- ── Sidebar ───────────────────────────────────────────────────────── -->
     <nav class="sidebar">
-      <div class="sidebar-header">
-        <div class="app-logo">
-          <div class="logo-mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
-          <div class="logo-text">
-            <span class="app-title">InjectX</span>
-            <span class="app-version">v0.4.0</span>
+      <div class="sb-brand">
+        <div class="sb-logo">
+          <div class="logo-grid">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
           </div>
         </div>
-        <div id="backend-status" class="backend-status disconnected">
-          <span class="status-dot"></span>
-          <span class="status-text">Backend Offline</span>
+        <div class="sb-brand-text">
+          <div class="sb-brand-name">InjectX</div>
+          <div class="sb-brand-tag">CIPHER_OPS</div>
         </div>
       </div>
 
-      <div class="sidebar-nav">
-        <div class="nav-section-label">Main</div>
-        <ul class="nav-list">
-          <li class="nav-item active" data-view="home">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-            <span class="nav-label">Configs</span>
-            <span id="config-count-badge" class="nav-badge hidden">0</span>
+      <div class="sb-status">
+        <div class="sb-status-row">
+          <span class="sb-status-dot" id="sb-status-dot"></span>
+          <span class="sb-status-text" id="sb-status-text">LINK · ESTABLISHING</span>
+        </div>
+        <div class="sb-status-meta">
+          <span>NODE</span><span id="sb-node-id">--</span>
+        </div>
+        <div class="sb-status-meta">
+          <span>UPLINK</span><span id="sb-uplink">--ms</span>
+        </div>
+      </div>
+
+      <div class="sb-nav">
+        <div class="sb-nav-label">// MODULES</div>
+        <ul class="sb-nav-list">
+          <li class="sb-nav-item active" data-view="targets">
+            <span class="sb-nav-idx">01</span>
+            <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+            <span class="sb-nav-label">Targets</span>
+            <span class="sb-nav-badge hidden" id="target-count">0</span>
           </li>
-          <li class="nav-item" data-view="formats">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="7" height="7"/>
-              <rect x="14" y="3" width="7" height="7"/>
-              <rect x="14" y="14" width="7" height="7"/>
-              <rect x="3" y="14" width="7" height="7"/>
-            </svg>
-            <span class="nav-label">Formats</span>
+          <li class="sb-nav-item" data-view="arsenal">
+            <span class="sb-nav-idx">02</span>
+            <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4l6 6-10 10H4v-6z"/><path d="M13 5l6 6"/></svg>
+            <span class="sb-nav-label">Arsenal</span>
           </li>
-          <li class="nav-item" data-view="settings">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            <span class="nav-label">Settings</span>
+          <li class="sb-nav-item" data-view="archive">
+            <span class="sb-nav-idx">03</span>
+            <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4"/><path d="M5 8v12h14V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            <span class="sb-nav-label">Archive</span>
+          </li>
+          <li class="sb-nav-item" data-view="system">
+            <span class="sb-nav-idx">04</span>
+            <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+            <span class="sb-nav-label">System</span>
           </li>
         </ul>
       </div>
 
-      <div class="sidebar-footer">
-        <button id="btn-open-config" class="btn btn-primary btn-full">
-          <svg class="btn-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          Open Config
+      <div class="sb-footer">
+        <button id="btn-open-config" class="inject-btn">
+          <span class="inject-btn-pulse"></span>
+          <span class="inject-btn-text">ACQUIRE TARGET</span>
+          <span class="inject-btn-arrow">▶</span>
         </button>
-        <div class="sidebar-meta">
-          <span>IR v1.0</span>
-          <span class="meta-dot"></span>
-          <span>8 Formats</span>
+        <div class="sb-meta-row">
+          <span class="sb-meta-pip"></span>
+          <span class="sb-meta-text">READY · AWAITING INPUT</span>
         </div>
       </div>
     </nav>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-      <!-- Home View -->
-      <div id="view-home" class="view active">
-        <div class="view-header">
-          <div class="view-title-group">
-            <h2>Config Files</h2>
-            <p class="view-subtitle">Import and inspect VPN tunnel configuration files with crypto analysis</p>
+    <!-- ── Main Column (Header + Viewport + Console) ─────────────────────── -->
+    <div class="main-col">
+
+      <!-- Status Header -->
+      <header class="status-header">
+        <div class="sh-left">
+          <div class="sh-cell">
+            <span class="sh-cell-label">UTC</span>
+            <span class="sh-cell-value" id="sh-clock">--:--:--</span>
           </div>
-          <div class="view-actions">
-            <button id="btn-clear-all" class="btn btn-ghost btn-sm" title="Clear all configs">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-sm">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-              Clear
-            </button>
+          <div class="sh-cell">
+            <span class="sh-cell-label">OP</span>
+            <span class="sh-cell-value" id="sh-op">CIPHER_OPS</span>
+          </div>
+          <div class="sh-cell">
+            <span class="sh-cell-label">CHANNEL</span>
+            <span class="sh-cell-value">LOCAL · 127.0.0.1</span>
           </div>
         </div>
+        <div class="sh-center">
+          <div class="sh-marquee">
+            <span class="sh-marquee-text" id="sh-marquee">SYSTEM ONLINE · THREAT LEVEL NOMINAL · CIPHER OPS ENGAGED · AWAITING TARGETS · </span>
+          </div>
+        </div>
+        <div class="sh-right">
+          <div class="sh-cell sh-cell-end">
+            <span class="sh-cell-label">SIG</span>
+            <span class="sh-signal">
+              <span></span><span></span><span></span><span></span><span></span>
+            </span>
+          </div>
+          <div class="sh-cell sh-cell-end">
+            <span class="sh-cell-label">STATUS</span>
+            <span class="sh-status-pill" id="sh-status-pill">
+              <span class="pill-dot"></span><span id="sh-status-text">STANDBY</span>
+            </span>
+          </div>
+        </div>
+      </header>
 
-        <!-- Drop Zone / Config List -->
-        <div id="drop-zone" class="drop-zone">
-          <div id="config-list" class="config-list">
-            <div class="empty-state">
-              <div class="empty-visual">
-                <div class="empty-shield">
-                  <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M24 4L6 12v12c0 11.1 7.7 21.5 18 24 10.3-2.5 18-12.9 18-24V12L24 4z"/>
-                    <path d="M18 24l4 4 8-8" stroke-width="2"/>
-                  </svg>
-                </div>
+      <!-- Viewport -->
+      <main class="viewport">
+
+        <!-- ─── Targets View (home) ─────────────────────────────────────── -->
+        <section id="view-targets" class="view active">
+          <div class="view-toolbar">
+            <div class="vt-left">
+              <h2 class="vt-title">TARGET ACQUISITION</h2>
+              <span class="vt-sub" id="vt-sub">Drag-drop or ACQUIRE TARGET to import VPN config files</span>
+            </div>
+            <div class="vt-right">
+              <div class="vt-filter">
+                <span class="vt-filter-label">FILTER</span>
+                <button class="filter-pill active" data-filter="all">ALL</button>
+                <button class="filter-pill" data-filter="decoded">DECODED</button>
+                <button class="filter-pill" data-filter="locked">LOCKED</button>
+                <button class="filter-pill" data-filter="unknown">UNKNOWN</button>
               </div>
-              <p class="empty-title">No configs loaded yet</p>
-              <p class="empty-hint">Click <strong>Open Config</strong> or drag and drop VPN config files here</p>
-              <div class="empty-formats">
-                <span class="ef-chip">.hc</span>
-                <span class="ef-chip">.ehi</span>
-                <span class="ef-chip">.hat</span>
-                <span class="ef-chip">.tls</span>
-                <span class="ef-chip">.npv4</span>
-                <span class="ef-chip">.nsh</span>
-                <span class="ef-chip">.vhd</span>
-                <span class="ef-chip">.dark</span>
+              <button id="btn-clear-all" class="vt-btn" title="Purge all targets">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                PURGE
+              </button>
+            </div>
+          </div>
+
+          <div class="drop-zone" id="drop-zone">
+            <div class="dz-frame">
+              <span class="dz-corner dz-tl"></span>
+              <span class="dz-corner dz-tr"></span>
+              <span class="dz-corner dz-bl"></span>
+              <span class="dz-corner dz-br"></span>
+              <div class="target-grid" id="target-grid">
+                <!-- Empty state injected by renderer -->
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Quick Stats Bar -->
-        <div class="stats-bar">
-          <div class="stat-item">
-            <div class="stat-icon stat-icon-formats">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          <div class="telemetry-strip">
+            <div class="ts-cell">
+              <span class="ts-label">TARGETS</span>
+              <span class="ts-value" id="ts-total">0</span>
+              <div class="ts-bar"><div class="ts-bar-fill" id="ts-bar-total"></div></div>
             </div>
-            <div class="stat-info">
-              <span class="stat-value">8</span>
-              <span class="stat-label">Formats</span>
+            <div class="ts-cell">
+              <span class="ts-label">DECODED</span>
+              <span class="ts-value ts-ok" id="ts-decoded">0</span>
+              <div class="ts-bar"><div class="ts-bar-fill ts-bar-ok" id="ts-bar-decoded"></div></div>
             </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon stat-icon-keys">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            <div class="ts-cell">
+              <span class="ts-label">LOCKED</span>
+              <span class="ts-value ts-warn" id="ts-locked">0</span>
+              <div class="ts-bar"><div class="ts-bar-fill ts-bar-warn" id="ts-bar-locked"></div></div>
             </div>
-            <div class="stat-info">
-              <span class="stat-value">76+</span>
-              <span class="stat-label">Keys</span>
+            <div class="ts-cell">
+              <span class="ts-label">UNKNOWN</span>
+              <span class="ts-value ts-err" id="ts-unknown">0</span>
+              <div class="ts-bar"><div class="ts-bar-fill ts-bar-err" id="ts-bar-unknown"></div></div>
             </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon stat-icon-schemes">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">8</span>
-              <span class="stat-label">Schemes</span>
+            <div class="ts-cell ts-cell-wide">
+              <span class="ts-label">FORMAT BREAKDOWN</span>
+              <div class="ts-formats" id="ts-formats"></div>
             </div>
           </div>
-          <div class="stat-item">
-            <div class="stat-icon stat-icon-decrypt">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">7</span>
-              <span class="stat-label">Decryptable</span>
-            </div>
-          </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- Config Detail View -->
-      <div id="view-config-detail" class="view">
-        <div id="config-detail-content" class="detail-content"></div>
-      </div>
+        <!-- ─── Target Detail View ──────────────────────────────────────── -->
+        <section id="view-target-detail" class="view">
+          <div id="target-detail-content" class="detail-content"></div>
+        </section>
 
-      <!-- Formats View -->
-      <div id="view-formats" class="view">
-        <div class="view-header">
-          <h2>Supported Formats</h2>
-          <p class="view-subtitle">Complete taxonomy of supported VPN tunnel config file formats and their encryption schemes</p>
-        </div>
-        <div id="formats-grid" class="formats-grid"></div>
-      </div>
+        <!-- ─── Arsenal View ─────────────────────────────────────────────── -->
+        <section id="view-arsenal" class="view">
+          <div class="view-toolbar">
+            <div class="vt-left">
+              <h2 class="vt-title">ARSENAL</h2>
+              <span class="vt-sub">Supported format coverage and decryption capability matrix</span>
+            </div>
+          </div>
+          <div id="arsenal-grid" class="arsenal-grid"></div>
+        </section>
 
-      <!-- Settings View -->
-      <div id="view-settings" class="view">
-        <div class="view-header">
-          <h2>Settings</h2>
-          <p class="view-subtitle">Configure InjectX behavior and view system information</p>
+        <!-- ─── Archive View ─────────────────────────────────────────────── -->
+        <section id="view-archive" class="view">
+          <div class="view-toolbar">
+            <div class="vt-left">
+              <h2 class="vt-title">ARCHIVE</h2>
+              <span class="vt-sub">Recent operations log</span>
+            </div>
+            <div class="vt-right">
+              <button id="btn-clear-archive" class="vt-btn">CLEAR LOG</button>
+            </div>
+          </div>
+          <div class="archive-list" id="archive-list"></div>
+        </section>
+
+        <!-- ─── System View ──────────────────────────────────────────────── -->
+        <section id="view-system" class="view">
+          <div class="view-toolbar">
+            <div class="vt-left">
+              <h2 class="vt-title">SYSTEM</h2>
+              <span class="vt-sub">InjectX environment status</span>
+            </div>
+          </div>
+          <div class="system-grid">
+            <div class="sys-card">
+              <div class="sys-card-header">
+                <span class="sys-card-pip sys-pip-ok"></span>
+                <h3>SYSTEM STATUS</h3>
+              </div>
+              <div class="sys-rows" id="sys-rows-status"></div>
+            </div>
+            <div class="sys-card">
+              <div class="sys-card-header">
+                <span class="sys-card-pip sys-pip-info"></span>
+                <h3>OPERATIONAL STATS</h3>
+              </div>
+              <div class="sys-rows" id="sys-rows-stats"></div>
+            </div>
+            <div class="sys-card">
+              <div class="sys-card-header">
+                <span class="sys-card-pip sys-pip-warn"></span>
+                <h3>ABOUT</h3>
+              </div>
+              <div class="sys-rows" id="sys-rows-about"></div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Activity Console -->
+      <footer class="console">
+        <div class="console-header">
+          <span class="console-tab active">// ACTIVITY_LOG</span>
+          <span class="console-meta">
+            <span class="console-pip"></span>
+            <span id="console-line-count">0 EVENTS</span>
+          </span>
+          <button id="btn-clear-console" class="console-clear">FLUSH</button>
         </div>
-        <div class="settings-panel">
-          <div class="setting-group">
-            <h3>Backend Connection</h3>
-            <div class="setting-item">
-              <label>Python Backend URL</label>
-              <input type="text" value="http://127.0.0.1:8742" disabled class="setting-input">
-              <span class="setting-hint">Auto-configured</span>
-            </div>
-            <div class="setting-item">
-              <label>Backend Status</label>
-              <span id="settings-backend-status" class="status-badge status-checking">Checking</span>
-            </div>
-          </div>
-          <div class="setting-group">
-            <h3>Config Storage</h3>
-            <div class="setting-item">
-              <label>Upload Directory</label>
-              <input type="text" value="~/.injectx/configs" disabled class="setting-input">
-              <span class="setting-hint">Auto-managed</span>
-            </div>
-          </div>
-          <div class="setting-group">
-            <h3>Decryption Tools Reference</h3>
-            <div class="setting-item setting-item-vertical">
-              <label>HCDecryptor <span class="badge-hc">HC only</span></label>
-              <p class="setting-description">Decrypts HTTP Custom (.hc) config files using 76+ known ePro keys with XOR + AES-128-ECB. Does not support .hat, .dark, or .tls formats.</p>
-            </div>
-            <div class="setting-item">
-              <label>Source</label>
-              <span class="setting-value-mono">HCTools/hcdecryptor</span>
-            </div>
-            <div class="setting-item setting-item-vertical">
-              <label>Pancho7532 HCDecryptor <span class="badge-multi">Multi-format</span></label>
-              <p class="setting-description">Supports HTTP Custom (.hc), HTTP Injector (.ehi), NapsternetV (.npv4), SocksHTTP (.nsh), HA Tunnel (.hat), TLS Tunnel (.tls), VHD (.vhd), and eProxy. Primary research source for InjectX decryption algorithms.</p>
-            </div>
-            <div class="setting-item">
-              <label>Source</label>
-              <span class="setting-value-mono">PANCHO7532/HCDecryptor</span>
-            </div>
-          </div>
-          <div class="setting-group">
-            <h3>About InjectX</h3>
-            <div class="setting-item">
-              <label>Version</label>
-              <span class="setting-value">0.4.0</span>
-            </div>
-            <div class="setting-item">
-              <label>IR Version</label>
-              <span class="setting-value">1.0</span>
-            </div>
-            <div class="setting-item">
-              <label>Architecture</label>
-              <span class="setting-value">Detector &rarr; Scheme Router &rarr; Decryptor &rarr; Parser &rarr; IR</span>
-            </div>
-            <div class="setting-item">
-              <label>Supported Formats</label>
-              <span class="setting-value">EHI, HC, HAT, DARK, TLS, NPV4, NSH, VHD</span>
-            </div>
-            <div class="setting-item">
-              <label>Decryption Schemes</label>
-              <span class="setting-value">A1-A4, B1, C1, D1, E1, F1, G1</span>
-            </div>
-          </div>
+        <div class="console-body" id="console-body">
+          <div class="console-line"><span class="cl-time">--:--:--</span><span class="cl-tag cl-tag-info">SYS</span><span class="cl-msg">Console initialized · awaiting events</span></div>
         </div>
-      </div>
-    </main>
+        <div class="console-input">
+          <span class="ci-prompt">&gt;</span>
+          <input type="text" id="console-input" placeholder="type 'help' for commands" autocomplete="off" spellcheck="false" />
+          <span class="ci-cursor"></span>
+        </div>
+      </footer>
+
+    </div>
   </div>
 
   <!-- Toast Container -->
