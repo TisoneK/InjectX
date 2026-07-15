@@ -18,6 +18,7 @@ Adding a new key or scheme never requires touching a parser.
 
 from __future__ import annotations
 
+import os
 import time
 from typing import Optional
 
@@ -227,8 +228,19 @@ _router: Optional[SchemeRouter] = None
 
 
 def get_router(keyfile_path: Optional[str] = None) -> SchemeRouter:
-    """Get or create the singleton SchemeRouter instance."""
+    """Get or create the singleton SchemeRouter instance.
+
+    If no keyfile path is passed explicitly, fall back to the
+    ``INJECTX_KEYFILE`` environment variable. This is how freshly
+    extracted keys reach the decryptors without a code change: point
+    ``INJECTX_KEYFILE`` at a JSON file whose top-level keys match the
+    KeyStore categories (e.g. ``{"tls": ["<base64-key>"], "aot": [...]}``)
+    and they are merged over the built-in defaults. When the app authors
+    rotate a key, drop the new one in that file — no rebuild needed.
+    """
     global _router
     if _router is None:
+        if keyfile_path is None:
+            keyfile_path = os.environ.get("INJECTX_KEYFILE") or None
         _router = SchemeRouter(KeyStore(keyfile_path))
     return _router
