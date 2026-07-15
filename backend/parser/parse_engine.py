@@ -14,7 +14,7 @@ Parsers NEVER call decryptors directly. The Scheme Router handles all crypto.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from .detector import detect_format, detect_with_features
 from ir.models import (
@@ -89,10 +89,15 @@ def _normalize(
             scheme_used=decrypt_payload.scheme,
         )
 
-        # For EHI (ZIP), try extracting JSON directly (non-encrypted)
+        # For EHI (ZIP), try extracting JSON directly (non-encrypted).
+        # NOTE: the common-metadata block below unconditionally reassigns
+        # `normalized.decryption_status = decrypt_payload.status`, so we do
+        # NOT set it here — the prior assignment was dead (overwritten before
+        # being read) and misleading. For unencrypted EHI the decrypt
+        # pipeline returns status=NOT_ENCRYPTED, which is what lands on the
+        # final IR either way.
         if fmt == FormatEnum.EHI:
             normalized = _normalize_ehi_unencrypted(detect_result.filepath, raw)
-            normalized.decryption_status = DecryptStatusEnum.NOT_ENCRYPTED
 
         # For DARK — no decryptor available
         if fmt == FormatEnum.DARK:
@@ -203,8 +208,8 @@ _UNIVERSAL_FIELD_MAP: dict[str, str] = {
 def _apply_field_map(raw: dict, field_map: dict[str, str] | None = None) -> dict:
     """Apply universal field mapping to normalize key names."""
     mapping = field_map or _UNIVERSAL_FIELD_MAP
-    result: dict[str, any] = {}
-    custom_headers: dict[str, any] = {}
+    result: dict[str, Any] = {}
+    custom_headers: dict[str, Any] = {}
 
     for raw_key, value in raw.items():
         key_lower = raw_key.lower().replace("-", "_").replace(" ", "_")
