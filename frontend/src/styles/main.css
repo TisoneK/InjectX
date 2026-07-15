@@ -716,8 +716,12 @@ svg { display: block; }
 }
 
 /* ═══ TARGET DETAIL VIEW ═══════════════════════════════════════════════════ */
+/* min-height: 0 is critical — without it, flex children with overflow-y:auto
+   don't scroll because the flexbox gives them infinite height. This is the
+   #1 reason "my scrollable flex child doesn't scroll" bugs happen. */
 .detail-content {
   flex: 1; overflow-y: auto;
+  min-height: 0;
   padding: var(--gap-lg);
   display: flex; flex-direction: column; gap: var(--gap-md);
 }
@@ -836,9 +840,9 @@ svg { display: block; }
   padding: var(--gap-md);
   font-size: 11px; color: var(--c-ice);
   white-space: pre-wrap; word-break: break-all;
-  max-height: 320px; overflow-y: auto;
+  max-height: 480px; overflow-y: auto;
   font-family: var(--font-mono);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 .payload-block::-webkit-scrollbar { width: 8px; height: 8px; }
 .payload-block::-webkit-scrollbar-track { background: var(--bg-inset); }
@@ -853,8 +857,19 @@ svg { display: block; }
   padding: 0 3px; border-radius: 2px;
   text-shadow: 0 0 4px rgba(0,255,156,0.4);
 }
-.payload-highlighted .pl-mark-crlf { color: var(--c-violet); background: rgba(180,139,255,0.1); text-shadow: 0 0 4px rgba(180,139,255,0.4); }
-.payload-highlighted .pl-mark-split { color: var(--c-amber); background: rgba(255,176,0,0.12); text-shadow: 0 0 4px rgba(255,176,0,0.4); }
+.payload-highlighted .pl-mark-crlf {
+  color: var(--c-violet); background: rgba(180,139,255,0.12);
+  text-shadow: 0 0 4px rgba(180,139,255,0.4);
+  font-size: 10px; padding: 0 2px;
+}
+.payload-highlighted .pl-mark-split {
+  color: var(--c-amber); background: rgba(255,176,0,0.12);
+  text-shadow: 0 0 4px rgba(255,176,0,0.4);
+  display: inline-block; width: 100%; text-align: center;
+  padding: 2px 0; margin: 4px 0; font-size: 10px; letter-spacing: 0.2em;
+  border-top: 1px dashed rgba(255,176,0,0.3);
+  border-bottom: 1px dashed rgba(255,176,0,0.3);
+}
 .payload-highlighted .pl-mark-proxy,
 .payload-highlighted .pl-mark-ua,
 .payload-highlighted .pl-mark-host { color: var(--c-ice); background: rgba(0,217,255,0.1); }
@@ -875,9 +890,10 @@ svg { display: block; }
 .notes-sandbox-wrap {
   border: 1px solid var(--bd-line);
   background: var(--bg-inset);
+  overflow: hidden;
 }
 .notes-sandbox {
-  width: 100%; min-height: 200px; max-height: 400px;
+  width: 100%; min-height: 120px;
   border: none; display: block;
   background: var(--bg-inset);
 }

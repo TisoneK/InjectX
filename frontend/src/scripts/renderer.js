@@ -632,6 +632,22 @@ function renderConfigData(container, d) {
   ];
   renderKVSection(container, "SSH CREDENTIALS", sshFields, d);
 
+  // ── HTTP Payload (with [crlf] / [split] syntax highlighting) ───────────
+  // Moved up — this is the most important decoded data; users shouldn't
+  // have to scroll past proxy/dns/protections to find it.
+  if (d.payload) {
+    const highlighted = highlightPayload(String(d.payload));
+    const preEl = el("pre", { className: "payload-block payload-highlighted" });
+    preEl.innerHTML = highlighted;
+    container.appendChild(el("div", { className: "detail-section" }, [
+      el("div", { className: "detail-section-head" }, [
+        el("span", { className: "detail-section-title" }, ["HTTP PAYLOAD"]),
+        el("span", { className: "detail-section-hint" }, ["[crlf]=\\r\\n  ·  [split]=request separator  ·  [proxy]=injected host  ·  [ua]=user-agent"]),
+      ]),
+      el("div", { className: "detail-section-body" }, [preEl]),
+    ]));
+  }
+
   // ── Proxy ──────────────────────────────────────────────────────────────
   const proxyFields = [
     { key: "proxy_host", label: "Proxy Host" },
@@ -656,24 +672,7 @@ function renderConfigData(container, d) {
     renderKVSection(container, "PROTECTIONS", protFields, protections);
   }
 
-  // ── HTTP Payload (with [crlf] / [split] / [crlf][crlf] syntax highlighting) ─
-  if (d.payload) {
-    const highlighted = highlightPayload(String(d.payload));
-    container.appendChild(el("div", { className: "detail-section" }, [
-      el("div", { className: "detail-section-head" }, [
-        el("span", { className: "detail-section-title" }, ["HTTP PAYLOAD"]),
-        el("span", { className: "detail-section-hint" }, ["[crlf] = \\r\\n  ·  [split] = request separator  ·  [proxy] = injected host  ·  [ua] = user-agent"]),
-      ]),
-      el("div", { className: "detail-section-body" }, [
-        el("pre", { className: "payload-block payload-highlighted" }),
-      ]),
-    ]));
-    // Inject highlighted HTML into the pre (safer than innerHTML on a string)
-    const pre = container.querySelector(".payload-highlighted:last-child");
-    if (pre) pre.innerHTML = highlighted;
-  }
-
-  // ── Notes (HC v2.7+ — HTML content shown sanitized in an iframe-like sandbox) ──
+  // ── Notes (HC v2.7+ — HTML content shown in a sandboxed iframe) ────────
   // Notes may be at top level OR inside raw_data._all_fields.notes
   const notes = d.notes
               || (d.raw_data && d.raw_data._all_fields && d.raw_data._all_fields.notes)
@@ -682,6 +681,7 @@ function renderConfigData(container, d) {
     container.appendChild(el("div", { className: "detail-section" }, [
       el("div", { className: "detail-section-head" }, [
         el("span", { className: "detail-section-title" }, ["NOTES (HTML)"]),
+        el("span", { className: "detail-section-hint" }, ["rendered as-is from the config author"]),
       ]),
       el("div", { className: "detail-section-body" }, [
         renderNotesSandboxed(notes),
@@ -752,10 +752,12 @@ function renderConfigData(container, d) {
 /**
  * Highlight HC payload syntax: [crlf], [crlf][crlf], [split], [proxy], [ua],
  * HTTP methods (GET/POST/CONNECT/...), and HTTP version (HTTP/1.1).
- * Returns an HTML string safe to assign to a pre.innerHTML.
  *
- * Input is escaped first, then markers are wrapped in <span> tags — so
- * user-controlled payload content can never break out of the pre element.
+ * [crlf] markers are converted to actual line breaks (with a visual ↵ badge)
+ * so the payload reads like a real HTTP request instead of one long line.
+ * [split] markers get a full-width separator line.
+ *
+ * Returns an HTML string safe to assign to a pre.innerHTML.
  */
 function highlightPayload(payload) {
   // 1. HTML-escape everything
@@ -766,22 +768,42 @@ function highlightPayload(payload) {
     .replace(/"/g, "&quot;");
   let html = esc(payload);
 
-  // 2. Highlight [crlf], [split], [proxy], [ua] markers
+  // 2. Convert [crlf] → line break with visual marker
+  //    [crlf][crlf] (double) → blank line between requests
   html = html.replace(
-    /\[(crlf|split|proxy|ua|host|raw|method|proto)\]/gi,
-    '<span class="pl-mark pl-mark-$1">$&amp;</span>'
+    /\[crlf\]\[crlf\]/gi,
+    '<span class="pl-mark pl-mark-crlf">↵↵</span>\n\n'
   );
-  // 3. Highlight HTTP methods at line start
+  html = html.replace(
+    /\[crlf\]/gi,
+    '<span class="pl-mark pl-mark-crlf">↵</span>\n'
+  );
+
+  // 3. Convert [split] → full-width separator
+  html = html.replace(
+    /\[split\]/gi,
+    '\n<span class="pl-mark pl-mark-split">──── SPLIT ────</span>\n'
+  );
+
+  // 4. Highlight remaining markers: [proxy], [ua], [host], etc.
+  html = html.replace(
+    /\[(proxy|ua|host|raw|method|proto)\]/gi,
+    '<span class="pl-mark pl-mark-$1">$&</span>'
+  );
+
+  // 5. Highlight HTTP methods at line start
   html = html.replace(
     /^(GET|POST|PUT|CONNECT|HEAD|OPTIONS|PATCH|UNLOCK|PROPFIND|REPORT) /gm,
     '<span class="pl-method">$1</span> '
   );
-  // 4. Highlight HTTP version
+
+  // 6. Highlight HTTP version
   html = html.replace(
     /(HTTP\/[0-9.]+)/g,
     '<span class="pl-version">$1</span>'
   );
-  // 5. Highlight "Host: ..." lines
+
+  // 7. Highlight "Host: ..." lines
   html = html.replace(
     /^(Host: .+)$/gm,
     '<span class="pl-host">$1</span>'
@@ -793,13 +815,33 @@ function highlightPayload(payload) {
 /**
  * Render HC v2.7 notes (raw HTML from the config author) in a sandboxed
  * iframe so it can't affect the rest of the app.
+ *
+ * We use srcdoc (not sandbox attr) so the iframe renders with a unique
+ * origin that can't access the parent. The notes HTML is config-author
+ * content (colored fonts, h1, spans) — we want it to display as-is.
  */
 function renderNotesSandboxed(html) {
   const wrapper = el("div", { className: "notes-sandbox-wrap" });
   const iframe = document.createElement("iframe");
   iframe.className = "notes-sandbox";
-  iframe.sandbox = "allow-same-origin";
-  iframe.setAttribute("srcdoc", `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{background:#070a0c;color:#d4f1e4;font-family:monospace;padding:12px;margin:0;font-size:11px;line-height:1.5;}</style></head><body>${html}</body></html>`);
+  // No sandbox attr — srcdoc iframes are already origin-isolated.
+  // Adding sandbox="allow-same-origin" was preventing the content from
+  // rendering in some browsers.
+  const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+    body { background: #070a0c; color: #d4f1e4; font-family: monospace; padding: 12px; margin: 0; font-size: 11px; line-height: 1.5; }
+    h1, h2, h3 { color: #d4f1e4; }
+    font { display: inline; }
+  </style></head><body>${html}</body></html>`;
+  iframe.setAttribute("srcdoc", doc);
+  // Auto-resize the iframe to fit its content once loaded
+  iframe.addEventListener("load", () => {
+    try {
+      const h = iframe.contentDocument
+        ? iframe.contentDocument.body.scrollHeight
+        : 0;
+      if (h > 0) iframe.style.height = (h + 24) + "px";
+    } catch (e) { /* cross-origin — leave default height */ }
+  });
   wrapper.appendChild(iframe);
   return wrapper;
 }
