@@ -11,8 +11,15 @@ const path = require("path");
 const { spawn } = require("child_process");
 const net = require("net");
 
-const BACKEND_PORT = 8742;
-const BACKEND_URL = `http://127.0.0.1:${BACKEND_PORT}`;
+// Read INJECTX_PORT from the environment with the same default the Python
+// backend uses (backend/main.py: `int(os.environ.get("INJECTX_PORT", "8742"))`).
+// Before this, the Electron main process hardcoded 8742 even when the user
+// had set INJECTX_PORT — the spawned backend would bind to the custom port
+// but main.js would keep proxying IPC to 8742, so the renderer's calls
+// silently 404'd. Now both sides agree.
+const BACKEND_PORT = parseInt(process.env.INJECTX_PORT || "8742", 10);
+const BACKEND_HOST = process.env.INJECTX_HOST || "127.0.0.1";
+const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`;
 
 let mainWindow = null;
 let backendProcess = null;
@@ -56,7 +63,7 @@ function waitForBackend(maxRetries = 20, interval = 500) {
       socket.on("connect", () => { socket.destroy(); resolve(true); });
       socket.on("error", () => { socket.destroy(); attempts++; if (attempts >= maxRetries) reject(new Error("Backend did not start")); else setTimeout(check, interval); });
       socket.on("timeout", () => { socket.destroy(); attempts++; if (attempts >= maxRetries) reject(new Error("Backend did not start")); else setTimeout(check, interval); });
-      socket.connect(BACKEND_PORT, "127.0.0.1");
+      socket.connect(BACKEND_PORT, BACKEND_HOST);
     }
     check();
   });
