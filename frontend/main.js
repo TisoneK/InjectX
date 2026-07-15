@@ -24,6 +24,34 @@ const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`;
 let mainWindow = null;
 let backendProcess = null;
 
+// ── File Dialog Filter ────────────────────────────────────────────────────────
+//
+// Single source of truth for the config file extensions shown in the open-file
+// dialog. MUST stay in sync with ALLOWED_EXTENSIONS in backend/main.py — the
+// dialog is the user-facing filter; the backend's allowlist is the security
+// boundary. Both lists must accept the same extensions or a user who picks a
+// file from the dialog could still get a 400 from /parse.
+//
+// Earlier versions had this list duplicated inline in two places (handleOpenFile
+// and the ipcMain.handle("open-file-dialog") handler) and were missing .ovpn
+// and .conf — the dialog would hide OpenVPN/CONF files even though the backend
+// accepts them. Now one constant feeds both call sites.
+const CONFIG_EXTENSIONS = [
+  "ehi", "hc", "hat", "ha", "dark", "drak", "dt", "darktunnel",
+  "tls", "npv4", "inpv", "npv", "nsh", "vhd", "ovpn", "conf",
+];
+
+function configOpenDialogOptions() {
+  return {
+    title: "Select Config File",
+    filters: [
+      { name: "VPN Config Files", extensions: CONFIG_EXTENSIONS },
+      { name: "All Files", extensions: ["*"] },
+    ],
+    properties: ["openFile", "multiSelections"],
+  };
+}
+
 // ── Backend Management ───────────────────────────────────────────────────────
 
 function getPythonPath() {
@@ -106,14 +134,7 @@ function createWindow() {
 }
 
 async function handleOpenFile() {
-  const result = await dialog.showOpenDialog(mainWindow, {
-    title: "Select Config File",
-    filters: [
-      { name: "VPN Config Files", extensions: ["ehi", "hc", "hat", "ha", "dark", "drak", "dt", "darktunnel", "tls", "npv4", "inpv", "npv", "nsh", "vhd"] },
-      { name: "All Files", extensions: ["*"] },
-    ],
-    properties: ["openFile", "multiSelections"],
-  });
+  const result = await dialog.showOpenDialog(mainWindow, configOpenDialogOptions());
   if (!result.canceled && result.filePaths.length > 0) mainWindow.webContents.send("files-selected", result.filePaths);
 }
 
@@ -121,14 +142,7 @@ async function handleOpenFile() {
 
 function setupIPC() {
   ipcMain.handle("open-file-dialog", async () => {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      title: "Select Config File",
-      filters: [
-        { name: "VPN Config Files", extensions: ["ehi", "hc", "hat", "ha", "dark", "drak", "dt", "darktunnel", "tls", "npv4", "inpv", "npv", "nsh", "vhd"] },
-        { name: "All Files", extensions: ["*"] },
-      ],
-      properties: ["openFile", "multiSelections"],
-    });
+    const result = await dialog.showOpenDialog(mainWindow, configOpenDialogOptions());
     return result.canceled ? { canceled: true, filePaths: [] } : { canceled: false, filePaths: result.filePaths };
   });
 
