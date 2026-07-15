@@ -229,7 +229,15 @@ def _apply_field_map(raw: dict, field_map: dict[str, str] | None = None) -> dict
 
 
 def _detect_protocol(data: dict) -> ProtocolEnum:
-    """Detect protocol from field names."""
+    """Detect protocol from field names.
+
+    Returns ProtocolEnum.UNKNOWN when no protocol indicator is present,
+    rather than silently defaulting to SSH — the prior default mislabeled
+    configs whose fields didn't match any known protocol indicator, which
+    made the UI show "SSH" for configs that were genuinely unidentifiable.
+    The SSH branch above still returns SSH for configs that DO carry an
+    ssh_* field; only the no-match fallback changes.
+    """
     keys_lower = {k.lower() for k in data.keys()}
 
     if any("v2ray" in k for k in keys_lower) or any("vless" in k for k in keys_lower):
@@ -250,7 +258,7 @@ def _detect_protocol(data: dict) -> ProtocolEnum:
         return ProtocolEnum.SSL
     if any("ssh" in k for k in keys_lower):
         return ProtocolEnum.SSH
-    return ProtocolEnum.SSH  # Default
+    return ProtocolEnum.UNKNOWN  # No indicator matched — don't guess.
 
 
 def _parse_payload(payload: str) -> list[dict]:
