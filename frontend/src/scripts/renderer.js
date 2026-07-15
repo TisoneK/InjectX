@@ -851,19 +851,27 @@ function highlightPayload(payload) {
 }
 
 /**
- * Render HC v2.7 notes (raw HTML from the config author) in a sandboxed
- * iframe so it can't affect the rest of the app.
+ * Render HC v2.7 notes (raw HTML from an untrusted config author) in an
+ * iframe. The notes HTML is config-author content (colored fonts, h1,
+ * spans) — we want it to display as-is.
  *
- * We use srcdoc (not sandbox attr) so the iframe renders with a unique
- * origin that can't access the parent. The notes HTML is config-author
- * content (colored fonts, h1, spans) — we want it to display as-is.
+ * SECURITY: a srcdoc iframe is NOT origin-isolated on its own — it inherits
+ * the embedder's origin (file://) AND its Content-Security-Policy. What
+ * actually stops a malicious notes payload from running script or
+ * exfiltrating the decrypted config is the parent CSP in index.html
+ * (`script-src 'self'` with no 'unsafe-inline' blocks inline <script> and
+ * onerror= handlers; `img-src`/`connect-src` restrict network to loopback),
+ * which the srcdoc frame inherits. A `sandbox="allow-same-origin"` attribute
+ * (scripts disabled, same-origin kept for the auto-resize read below) would
+ * add belt-and-suspenders isolation — see backlog N8; it needs a run in the
+ * real Electron app to confirm it doesn't regress rendering before shipping.
  */
 function renderNotesSandboxed(html) {
   const wrapper = el("div", { className: "notes-sandbox-wrap" });
   const iframe = document.createElement("iframe");
   iframe.className = "notes-sandbox";
-  // No sandbox attr — srcdoc iframes are already origin-isolated.
-  // Adding sandbox="allow-same-origin" was preventing the content from
+  // No sandbox attr for now — see the SECURITY note above (N8).
+  // Adding sandbox="allow-same-origin" was reported to prevent the content from
   // rendering in some browsers.
   const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
     body { background: #070a0c; color: #d4f1e4; font-family: monospace; padding: 12px; margin: 0; font-size: 11px; line-height: 1.5; }
