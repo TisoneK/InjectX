@@ -292,6 +292,48 @@ async def parse_config_file(filepath: str = Query(..., description="Absolute pat
     return _ir_to_response(config_id, normalized)
 
 
+@app.get("/api/config/detect")
+async def detect_config_format(filepath: str = Query(..., description="Path to config file")):
+    """Detect format with multi-feature classification vector.
+
+    Same path validation as /parse — the endpoint must not be a file-read
+    oracle for arbitrary paths. Changed from POST to GET to match the
+    frontend's actual usage (`fetch(url)` defaults to GET); detection is
+    idempotent so GET is the correct semantic.
+
+    Route ordering: must be registered BEFORE /api/config/{config_id} or
+    the parameterized route shadows it (config_id='detect').
+    """
+    path = _validate_config_path(filepath)
+    result = detect_with_features(str(path))
+    return result.model_dump()
+
+
+@app.get("/api/config/export")
+async def export_normalized_config(config_id: str = Query(...), format: str = Query("json", description="Export format: json")):
+    """Export a parsed config in normalized JSON format.
+
+    Changed from POST to GET to match the frontend's actual usage
+    (`fetch(url)` defaults to GET); export is idempotent so GET is the
+    correct semantic.
+
+    Route ordering: must be registered BEFORE /api/config/{config_id} or
+    the parameterized route shadows it (config_id='export') and the
+    renderer's Export button silently 404s.
+    """
+    if config_id not in config_store:
+        raise HTTPException(status_code=404, detail=f"Config not found: {config_id}")
+
+    data = config_store[config_id]
+    normalized = NormalizedConfig(**data)
+
+    # Export: exclude raw_data and decrypt_trace (too verbose)
+    export = {k: v for k, v in normalized.model_dump().items()
+              if k not in ("raw_data", "decrypt_trace") and v is not None}
+
+    return {"config_id": config_id, "ir_version": IR_VERSION, "export_format": format, "data": export}
+
+
 @app.get("/api/config/{config_id}", response_model=ConfigInfo)
 async def get_config(config_id: str):
     """Retrieve a previously parsed config by ID."""
@@ -329,20 +371,6 @@ async def delete_config(config_id: str):
     return {"status": "deleted", "id": config_id}
 
 
-@app.get("/api/config/detect")
-async def detect_config_format(filepath: str = Query(..., description="Path to config file")):
-    """Detect format with multi-feature classification vector.
-
-    Same path validation as /parse — the endpoint must not be a file-read
-    oracle for arbitrary paths. Changed from POST to GET to match the
-    frontend's actual usage (`fetch(url)` defaults to GET); detection is
-    idempotent so GET is the correct semantic.
-    """
-    path = _validate_config_path(filepath)
-    result = detect_with_features(str(path))
-    return result.model_dump()
-
-
 @app.get("/api/formats")
 async def supported_formats():
     """List all supported config file formats."""
@@ -360,22 +388,6 @@ async def supported_formats():
             {"id": "ovpn", "name": "OpenVPN", "extensions": [".ovpn"], "encrypted": False, "decryptable": False, "schemes": [], "description": "Plain text OpenVPN config (not yet implemented)"},
         ],
     }
-
-
-@app.post("/api/config/export")
-async def export_normalized_config(config_id: str = Query(...), format: str = Query("json", description="Export format: json")):
-    """Export a parsed config in normalized JSON format."""
-    if config_id not in config_store:
-        raise HTTPException(status_code=404, detail=f"Config not found: {config_id}")
-
-    data = config_store[config_id]
-    normalized = NormalizedConfig(**data)
-
-    # Export: exclude raw_data and decrypt_trace (too verbose)
-    export = {k: v for k, v in normalized.model_dump().items()
-              if k not in ("raw_data", "decrypt_trace") and v is not None}
-
-    return {"config_id": config_id, "ir_version": IR_VERSION, "export_format": format, "data": export}
 
 
 @app.get("/api/config/{config_id}/trace")
