@@ -149,3 +149,12 @@ outcome:
 - **Outcome:** done — `feat(decrypt)` (`29628d9`): wired `INJECTX_KEYFILE` → `get_router()` → `KeyStore._load_keyfile()`, which was dead code (parse_config called `get_router()` with no path, so no runtime key supply existed). Extracted keys now drop in via a JSON keyfile merged over defaults; TLS + HAT fully keyfile-driven. Added `docs/key-extraction.md` (static jadx + dynamic Frida recipes + keyfile format). +2 tests (suite 41→43), ruff clean. Answered the `.cap` side question: it's WPA-PSK cracking (hashcat -m 22000), a separate 802.11/pcap domain, not part of the config decryptors — logged as a scope decision, not implemented.
 - **Open items:** N12 (new — route ZIV/HC-v27/EHI-v2 inline constants through KeyStore so the keyfile covers ZIVPN too). N9/N10/N11 unchanged from Session 12.
 - **Report:** .context/memory/reviews/2026-07-15-review-6.md
+
+---
+## 2026-07-15 — Session 14
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** User: "Our focus is getting algorithms for all the files." Systematic per-format algorithm audit; fill the real gaps.
+- **Commits:** 2 product/docs (`ac2eed1` feat, `+` changelog `docs`). Plus this Phase 5 context log (`chore(context):`) and review report (`docs(review):`).
+- **Outcome:** done — **Cracked DARK Tunnel**, which every prior session wrongly called "proprietary encryption, no decryptor." A `.dark` file is `darktunnel://base64(JSON)`: type/name/transport are plaintext, only the optional `encryptedLockedConfig` (author DRM lock) is sealed. Shipped scheme **I1** (`decrypt/dark_decrypt.py`) — tolerant base64→JSON, PARTIAL+warning when locked, SUCCESS when not; wired router/normalizer/`/api/formats`; fixed the router to keep PARTIAL payloads; removed the orphaned never-imported `dark_parser.py`. 4/4 DARK samples now decode (protocol+name+transport). +5 tests (43→48). Produced a full per-format algorithm inventory (review-7): works now = HC/EHI/DARK; algorithm-present-but-key-rotated = TLS/ZIV; algorithm-present-but-no-sample = HAT/NPV/NSH/VHD; unknown = LNK.
+- **Open items:** N13 (new — samples for NPV/NSH/VHD/HAT + identify LNK). N9/N10/N11/N12 unchanged. Remaining formats are blocked on inputs I don't have (real samples, or current TLS/ZIV keys), not on missing algorithms.
+- **Report:** .context/memory/reviews/2026-07-15-review-7.md
