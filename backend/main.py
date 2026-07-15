@@ -166,8 +166,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://127.0.0.1:8742",
-        "http://localhost:8742",
+        f"http://127.0.0.1:{PORT}",
+        f"http://localhost:{PORT}",
         "file://",
     ],
     allow_credentials=False,
