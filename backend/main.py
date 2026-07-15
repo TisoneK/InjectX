@@ -43,8 +43,78 @@ from ir.models import (
 UPLOAD_DIR = Path.home() / ".injectx" / "configs"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+# Cap on uploaded file size — 50 MiB. Config files for the supported formats
+# are kilobyte-scale; anything larger is almost certainly not a config file.
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+
+# Extensions accepted by the path-based endpoints (`/parse`, `/detect`) and
+# the upload endpoint. Anything else is rejected at the API boundary —
+# /etc/passwd, ~/.ssh/id_rsa, and similar targets have no .ehi extension and
+# must not be parseable through InjectX.
+ALLOWED_EXTENSIONS: frozenset[str] = frozenset({
+    ".ehi", ".hc", ".hat", ".ha", ".dark", ".drak", ".dt", ".darktunnel",
+    ".tls", ".npv4", ".inpv", ".npv", ".nsh", ".vhd", ".ovpn", ".conf",
+})
+
 # In-memory config store (keyed by ID → NormalizedConfig dict)
 config_store: dict[str, dict] = {}
+
+
+def _validate_config_path(filepath: str) -> Path:
+    """
+    Validate a user-supplied filepath for the /parse and /detect endpoints.
+
+    Returns the resolved Path on success. Raises HTTPException on rejection.
+
+    Checks (in order):
+      1. Path is non-empty and absolute (no implicit cwd resolution).
+      2. Extension is in the allowlist (blocks /etc/passwd, id_rsa, etc.).
+      3. Path resolves to a real file (no broken symlinks, no missing).
+      4. File is under MAX_UPLOAD_BYTES (caps work on hostile inputs).
+
+    Note: the desktop app's file dialog already filters by extension, but the
+    HTTP endpoint is reachable by any local process. The extension check is
+    the primary defence; the size check is a backstop.
+    """
+    if not filepath or not filepath.strip():
+        raise HTTPException(status_code=400, detail="No filepath provided")
+
+    raw = Path(filepath)
+    if not raw.is_absolute():
+        raise HTTPException(status_code=400, detail=f"Path must be absolute: {filepath}")
+
+    ext = raw.suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file extension '{ext}'. Allowed: {sorted(ALLOWED_EXTENSIONS)}",
+        )
+
+    # Resolve symlinks/`..` segments to detect traversal attempts. `strict=True`
+    # raises if the path doesn't exist on disk.
+    try:
+        resolved = raw.resolve(strict=True)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid path: {e}")
+
+    if not resolved.is_file():
+        raise HTTPException(status_code=400, detail=f"Not a file: {filepath}")
+
+    try:
+        size = resolved.stat().st_size
+    except OSError:
+        raise HTTPException(status_code=500, detail=f"Could not stat file: {filepath}")
+    if size > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large ({size} bytes); max {MAX_UPLOAD_BYTES} bytes",
+        )
+    if size == 0:
+        raise HTTPException(status_code=400, detail=f"File is empty: {filepath}")
+
+    return resolved
 
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
@@ -174,16 +244,17 @@ async def upload_config(file: UploadFile = File(...)):
 
 @app.get("/api/config/parse", response_model=ConfigInfo)
 async def parse_config_file(filepath: str = Query(..., description="Absolute path to config file")):
-    """Parse a config file from a local file path."""
-    path = Path(filepath)
-    if not path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
-    if not path.is_file():
-        raise HTTPException(status_code=400, detail=f"Not a file: {filepath}")
+    """Parse a config file from a local file path.
+
+    Validates the path against an extension allowlist + size cap before
+    reading — the endpoint is reachable by any local process, not just the
+    Electron renderer, so /etc/passwd and similar targets must be rejected.
+    """
+    path = _validate_config_path(filepath)
 
     config_id = str(uuid.uuid4())[:8]
     normalized = parse_config(str(path))
-    config_store[config_id] = normalized.dict()
+    config_store[config_id] = normalized.model_dump()
 
     return _ir_to_response(config_id, normalized)
 
@@ -225,15 +296,18 @@ async def delete_config(config_id: str):
     return {"status": "deleted", "id": config_id}
 
 
-@app.post("/api/config/detect")
+@app.get("/api/config/detect")
 async def detect_config_format(filepath: str = Query(..., description="Path to config file")):
-    """Detect format with multi-feature classification vector."""
-    path = Path(filepath)
-    if not path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
+    """Detect format with multi-feature classification vector.
 
-    result = detect_with_features(filepath)
-    return result.dict()
+    Same path validation as /parse — the endpoint must not be a file-read
+    oracle for arbitrary paths. Changed from POST to GET to match the
+    frontend's actual usage (`fetch(url)` defaults to GET); detection is
+    idempotent so GET is the correct semantic.
+    """
+    path = _validate_config_path(filepath)
+    result = detect_with_features(str(path))
+    return result.model_dump()
 
 
 @app.get("/api/formats")
