@@ -6,4 +6,4 @@ you find a stale in-progress entry here, a prior session died mid-task —
 check its session entry and backlog before starting.
 
 - **Session:** idle — no task in progress.
-- **Last session:** 2026-07-15 Session 9 (Super Z, Z.ai cloud sandbox) — **done.** App icon wired (Electron + sidebar + titlebar + dock). EHI v2 decryptor (B2) added — 6/6 .ehi files decode. EHI detector fixed (was rejecting v2 binary format). ZIV format (H1) added — 6 .ziv files recognized. TLS parser fixed for newer format. Test results: HC 13/13 ✅, EHI 6/6 ✅, DARK 0/4, TLS 0/2 (key rotated), ZIV 0/6 (password rotated). All 9 tests pass. See `.context/memory/agents/sessions.md` Session 9 entry.
+- **Last session:** 2026-07-15 Session 10 (Super Z, Z.ai cloud sandbox) — **done.** Per-format icons on target cards + detail view + Arsenal view. Added .lnk format (FormatEnum.LNK, no decryptor). Deleted test screenshots. Verified: 29/29 icons load, 31 target cards, all 9 tests pass. See `.context/memory/agents/sessions.md` Session 10 entry.
