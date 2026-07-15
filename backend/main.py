@@ -109,6 +109,18 @@ def _validate_config_path(filepath: str) -> Path:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid path: {e}")
 
+    # Re-check the extension of the RESOLVED target, not just the path the
+    # caller supplied. A symlink named `x.ehi` -> `/etc/passwd` passes the
+    # first extension check (the link ends in .ehi) but resolves to a file
+    # with a disallowed extension. Without this second check the allowlist is
+    # bypassable and the endpoint becomes an arbitrary-file-read oracle again.
+    resolved_ext = resolved.suffix.lower()
+    if resolved_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Symlink target has unsupported extension '{resolved_ext}'",
+        )
+
     if not resolved.is_file():
         raise HTTPException(status_code=400, detail=f"Not a file: {filepath}")
 
