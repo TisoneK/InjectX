@@ -14,6 +14,7 @@ Key changes from v0.3:
 import os
 import sys
 import uuid
+import logging
 from pathlib import Path
 from typing import Optional
 from contextlib import asynccontextmanager
@@ -35,6 +36,13 @@ from ir.models import (
     NormalizedConfig,
     FormatEnum,
     DecryptStatusEnum,
+)
+
+logger = logging.getLogger("injectx")
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 
@@ -121,10 +129,10 @@ def _validate_config_path(filepath: str) -> Path:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(f"[InjectX] Backend v0.4 starting (IR version {IR_VERSION})...")
-    print(f"[InjectX] Config upload directory: {UPLOAD_DIR}")
+    logger.info("Backend v0.4 starting (IR version %s)...", IR_VERSION)
+    logger.info("Config upload directory: %s", UPLOAD_DIR)
     yield
-    print("[InjectX] Backend shutting down...")
+    logger.info("Backend shutting down...")
 
 
 # ── App Setup ─────────────────────────────────────────────────────────────────
