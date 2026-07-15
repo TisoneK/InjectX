@@ -33,7 +33,7 @@ def _subtraction_decrypt(text: str, key: str) -> str:
     """
     result = []
     b = 0
-    for i, ch in enumerate(text):
+    for ch in text:
         result.append(chr(ord(ch) - ord(key[b])))
         b += 1
         if b >= len(key):

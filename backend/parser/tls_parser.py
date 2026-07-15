@@ -116,7 +116,6 @@ def _normalize_tls(raw: dict, normalized: dict) -> dict:
         "remotedns": "remote_dns", "remote_dns": "remote_dns",
         "tlsversion": "tls_version", "tls_version": "tls_version",
         "internalip": "internal_ip", "internal_ip": "internal_ip",
-        "internal_ip": "internal_ip",
         "reconnect": "reconnect",
     }
 

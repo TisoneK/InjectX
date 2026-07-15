@@ -176,9 +176,12 @@ def decrypt_ehi(
     offset = 41 if is_lite else 40
     payload_data = raw[offset:]
 
-    # Stage 1: AES-256-CBC — try all key × IV combinations
+    # Stage 1: AES-256-CBC — try all key × IV combinations.
+    # best_stage1_result tracks the first key×IV that produced a base64-like
+    # last segment; we don't need a separate confidence tracker here because
+    # each successful attempt is already recorded with confidence=0.3 in the
+    # trace, and the router selects the overall best.
     best_stage1_result: Optional[tuple[bytes, str, str]] = None
-    best_stage1_confidence = 0.0
 
     for key_b64 in aes256_keys:
         for iv_str in ivs:
@@ -204,7 +207,9 @@ def decrypt_ehi(
                         ))
                         if best_stage1_result is None:
                             best_stage1_result = (last_segment.encode("utf-8"), key_b64, iv_str)
-                            best_stage1_confidence = 0.3
+                            # No need to track best_stage1_confidence separately —
+                            # the trace.add_attempt above already recorded 0.3 and
+                            # the router picks the overall best by confidence.
                         continue
             except Exception:
                 pass

@@ -173,19 +173,16 @@ def _try_hc_decrypt(raw: bytes) -> Optional[bytes]:
 
         offset = 5
 
-        # Try to read version byte
+        # Advance past the version byte. We don't use the value here —
+        # this is a placeholder for the legacy HC decryptor; the real
+        # implementation lives in the scheme-router path (decrypt_hc).
         if offset >= len(raw):
             return None
-        version = raw[offset]
         offset += 1
 
-        # The decryptor uses a hardcoded key derived from the app
-        # Different versions use different keys
-        # This is a placeholder — the actual key derivation is in hcdecryptor
-        key_material = b"httpcustom"
-
-        # For now, we can't decrypt without the full algorithm
-        # Return None to indicate we need the external tool
+        # The full algorithm requires the external hcdecryptor toolchain.
+        # Return None to indicate this legacy path is unimplemented; the
+        # router's A-series schemes handle HC decryption instead.
         return None
 
     except Exception:
