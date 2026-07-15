@@ -349,11 +349,20 @@ def _normalize_ehi_unencrypted(filepath: str, raw: bytes) -> NormalizedConfig:
 
 
 def _normalize_hc(data: dict) -> NormalizedConfig:
-    """Normalize HTTP Custom config data (post-decryption)."""
+    """Normalize HTTP Custom config data (post-decryption).
+
+    Handles two shapes:
+      1. Legacy A1-A4: dict with `_raw_delimited` (splitConfig parts) or
+         flat fields like payload, sshServer, sniValue, etc.
+      2. v2.7+ A5: dict already normalized by hc_v27_decrypt with fields:
+         payload, proxy_host, proxy_port, sni, ssh_server, ssh_port,
+         ssh_user, ssh_pass, host, port, notes, openvpn_config, v2ray,
+         protections, _all_fields (raw token map)
+    """
     mapped = _apply_field_map(data)
     config = NormalizedConfig(filepath="", filename="", format=FormatEnum.HC, is_encrypted=True, decryption_status=DecryptStatusEnum.SUCCESS)
 
-    # Handle delimited format ([splitConfig] or [pisahConk])
+    # Handle delimited format ([splitConfig] or [pisahConk]) — legacy A1-A4
     if "_raw_delimited" in data:
         raw_text = data["_raw_delimited"]
         delimiter = data.get("_delimiter", "[splitConfig]")
@@ -379,10 +388,47 @@ def _normalize_hc(data: dict) -> NormalizedConfig:
         config.protocol = ProtocolEnum.SSH
 
     else:
+        # v2.7+ A5: data is already normalized by hc_v27_decrypt._build_normalized_dict
+        # Apply universal field map for any remaining legacy keys, then set
+        # v2.7-specific fields directly.
         for key, value in mapped.items():
             if hasattr(config, key) and getattr(config, key) is None:
                 setattr(config, key, value)
-        config.protocol = _detect_protocol(data) if config.protocol is None else config.protocol
+
+        # Direct assignment of v2.7 fields (these may not be in _UNIVERSAL_FIELD_MAP)
+        v27_fields = [
+            "host", "port", "ssh_server", "ssh_port", "ssh_user", "ssh_pass",
+            "proxy_host", "proxy_port", "sni", "payload", "notes",
+            "openvpn_config", "v2ray", "connection_type", "dns",
+        ]
+        for f in v27_fields:
+            if f in data and hasattr(config, f) and getattr(config, f) is None:
+                setattr(config, f, data[f])
+
+        # Protocol detection
+        if config.protocol is None:
+            config.protocol = _detect_protocol(data)
+            # If still unknown but we have a payload, infer from payload content
+            if config.protocol == ProtocolEnum.UNKNOWN and config.payload:
+                p_lower = config.payload.lower()
+                if "websocket" in p_lower or "upgrade: websocket" in p_lower:
+                    config.protocol = ProtocolEnum.WEBSOCKET
+                elif "ssl" in p_lower or "tls" in p_lower:
+                    config.protocol = ProtocolEnum.SSL
+                elif config.ssh_server:
+                    config.protocol = ProtocolEnum.SSH
+                else:
+                    config.protocol = ProtocolEnum.UNKNOWN
+
+        # Stash v2.7 extras in raw_data for the UI to render
+        extras = {}
+        for k in ["protections", "config_name", "hc_version", "expiry",
+                   "blocks_root", "blocks_hwid", "blocks_password", "locked",
+                   "psiphon", "slowdns_server", "_all_fields"]:
+            if k in data:
+                extras[k] = data[k]
+        if extras:
+            config.raw_data = extras
 
     if config.payload:
         config.payload_parsed = _parse_payload(config.payload)

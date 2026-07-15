@@ -157,6 +157,7 @@ function setupIPC() {
   ipcMain.handle("get-formats", proxyGet("/api/formats"));
   ipcMain.handle("check-health", proxyGet("/api/health"));
   ipcMain.handle("get-decrypt-trace", async (_e, configId) => { try { return (await fetch(`${BACKEND_URL}/api/config/${configId}/trace`)).json(); } catch (err) { return { error: err.message }; } });
+  ipcMain.handle("get-logs", async (_e, since = 0) => { try { return (await fetch(`${BACKEND_URL}/api/logs?since=${since}`)).json(); } catch (err) { return { error: err.message }; } });
 
   // ── Window Control IPC ─────────────────────────────────────────────────────
   ipcMain.handle("window-minimize", () => { if (mainWindow) mainWindow.minimize(); });

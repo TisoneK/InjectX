@@ -94,6 +94,7 @@ class SchemeEnum(str, enum.Enum):
     A2 = "A2"   # HC raw AES-128-ECB (no XOR, SHA1 key derivation)
     A3 = "A3"   # HC v233 double-encryption (XOR + plain key + SHA1 key)
     A4 = "A4"   # eProxy raw AES-128-ECB (pisahConk delimiter)
+    A5 = "A5"   # HC v2.7+ multi-layer (initial XOR + ChaCha20 + RST AES-ECB + per-field ChaCha20/JKL)
 
     # B-series: HTTP Injector
     B1 = "B1"   # EHI AES-256-CBC → AES-128-CBC + configSalt XOR + custom base64

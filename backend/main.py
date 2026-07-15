@@ -37,6 +37,7 @@ from ir.models import (
     FormatEnum,
     DecryptStatusEnum,
 )
+from audit.live_log import get_live_log
 
 logger = logging.getLogger("injectx")
 logging.basicConfig(
@@ -163,12 +164,17 @@ app = FastAPI(
 # loopback origin. `allow_credentials=False` because no auth/cookies are
 # used; the wildcard origin + credentials combo is also invalid per CORS
 # spec (browsers reject it).
+#
+# Note: `file://` pages send `Origin: null` per the Fetch spec, so we
+# include the string "null" in the allowlist. This is safe because the
+# backend binds to 127.0.0.1 only — no remote origin can reach it.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         f"http://127.0.0.1:{PORT}",
         f"http://localhost:{PORT}",
         "file://",
+        "null",
     ],
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE"],
@@ -209,11 +215,14 @@ def _ir_to_response(config_id: str, normalized: NormalizedConfig) -> ConfigInfo:
                          if k not in ("filepath", "filename", "format", "ir_version",
                                       "is_encrypted", "decryption_status", "scheme_used",
                                       "errors", "warnings", "raw_data", "decrypt_trace")):
-        # Include only non-None, non-metadata fields
+        # Include only non-None, non-metadata fields.
+        # We DO include raw_data here because format-specific extras (HC v2.7
+        # notes/protections/_all_fields, HAT protextras, etc.) live there —
+        # the UI needs them to render the full config.
         config_dict = {}
         exclude_keys = {"filepath", "filename", "format", "ir_version", "is_encrypted",
                        "decryption_status", "scheme_used", "errors", "warnings",
-                       "raw_data", "decrypt_trace", "payload_parsed"}
+                       "decrypt_trace", "payload_parsed"}
         for k, v in normalized.model_dump().items():
             if k not in exclude_keys and v is not None:
                 config_dict[k] = v
@@ -425,6 +434,16 @@ async def get_decrypt_trace(config_id: str):
         return {"config_id": config_id, "trace": None, "message": "No decrypt trace available"}
 
     return {"config_id": config_id, "trace": trace}
+
+
+@app.get("/api/logs")
+async def get_logs(since: int = Query(0, description="Return entries with id > since")):
+    """Live log buffer — frontend polls this during decryption to stream
+    per-step progress (initial XOR, ChaCha20 outer, RST AES, per-field
+    extraction, etc.) into the activity console in real time.
+    """
+    log = get_live_log()
+    return {"entries": log.since(since), "count": log.count}
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

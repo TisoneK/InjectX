@@ -19,6 +19,7 @@ const API = {
   getFormats() { return window.vpnAPI.getFormats(); },
   checkHealth() { return window.vpnAPI.checkHealth(); },
   getDecryptTrace(configId) { return window.vpnAPI.getDecryptTrace(configId); },
+  getLogs(since = 0) { return window.vpnAPI.getLogs(since); },
   onFilesSelected(callback) { window.vpnAPI.onFilesSelected(callback); },
 
   // Window controls for CustomTitleBar

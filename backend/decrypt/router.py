@@ -31,6 +31,7 @@ from ir.models import (
 )
 from .keys import KeyStore
 from .hc_decrypt import decrypt_hc
+from .hc_v27_decrypt import decrypt_hc_v27
 from .ehi_decrypt import decrypt_ehi
 from .npv_decrypt import decrypt_npv
 from .nsh_decrypt import decrypt_nsh
@@ -42,7 +43,8 @@ from .vhd_decrypt import decrypt_vhd
 # ── Format → Applicable Schemes mapping ───────────────────────────────────────
 
 FORMAT_SCHEMES: dict[FormatEnum, list[SchemeEnum]] = {
-    FormatEnum.HC:  [SchemeEnum.A1, SchemeEnum.A2, SchemeEnum.A3, SchemeEnum.A4],
+    # HC: try newest scheme first (v2.7+ ChaCha20), then legacy A1-A4
+    FormatEnum.HC:  [SchemeEnum.A5, SchemeEnum.A1, SchemeEnum.A2, SchemeEnum.A3, SchemeEnum.A4],
     FormatEnum.EHI: [SchemeEnum.B1],
     FormatEnum.NPV: [SchemeEnum.C1],
     FormatEnum.NSH: [SchemeEnum.D1],
@@ -149,7 +151,11 @@ class SchemeRouter:
 
         try:
             # A-series: HTTP Custom
-            if scheme in (SchemeEnum.A1, SchemeEnum.A2, SchemeEnum.A3, SchemeEnum.A4):
+            if scheme == SchemeEnum.A5:
+                # v2.7+ multi-layer — no keys needed (constants baked in)
+                from audit.live_log import get_live_log
+                result = decrypt_hc_v27(scheme, raw, trace, live_log=get_live_log())
+            elif scheme in (SchemeEnum.A1, SchemeEnum.A2, SchemeEnum.A3, SchemeEnum.A4):
                 result = decrypt_hc(scheme, raw, self.keys, trace)
 
             # B-series: HTTP Injector

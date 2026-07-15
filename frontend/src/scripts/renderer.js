@@ -20,6 +20,8 @@ const state = {
   archive: [],
   consoleLines: 0,
   sessionStart: Date.now(),
+  liveLogSince: 0,        // last seen log id from backend
+  liveLogPolling: null,   // interval id for /api/logs polling
 };
 
 // Persisted archive (in-memory only; cleared on restart)
@@ -138,6 +140,57 @@ function pushArchive(tag, msg, type) {
   state.archive.unshift({ time: new Date().toISOString(), tag, msg, type });
   if (state.archive.length > 100) state.archive.length = 100;
   renderArchive();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//   LIVE LOG STREAMING (real backend decrypt steps)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Start polling /api/logs every 250ms. New entries from the backend
+ * (real decryption steps: "Applying initial XOR layer", "ChaCha20 outer
+ * envelope decrypt", "Main block decrypted · 32 fields", etc.) are
+ * streamed into the activity console in real time.
+ *
+ * The polling auto-stops after `maxMs` (default 30s) as a safety net.
+ */
+function startLiveLogPolling(maxMs = 30000) {
+  stopLiveLogPolling();
+  const startedAt = Date.now();
+
+  const poll = async () => {
+    if (Date.now() - startedAt > maxMs) {
+      stopLiveLogPolling();
+      return;
+    }
+    try {
+      const result = await API.getLogs(state.liveLogSince);
+      if (result && result.entries && result.entries.length > 0) {
+        for (const e of result.entries) {
+          // Map backend type → console tag type
+          let type = "info";
+          if (e.type === "warn" || e.type === "error") type = e.type;
+          else if (e.tag === "OK") type = "ok";
+          else if (e.tag === "ERR") type = "err";
+          else if (e.tag === "SYS") type = "sys";
+          logEvent(e.tag, e.msg, type);
+          state.liveLogSince = Math.max(state.liveLogSince, e.id);
+        }
+      }
+    } catch (err) {
+      // Backend might be briefly unreachable during startup — ignore
+    }
+  };
+  // Poll immediately, then every 250ms
+  poll();
+  state.liveLogPolling = setInterval(poll, 250);
+}
+
+function stopLiveLogPolling() {
+  if (state.liveLogPolling) {
+    clearInterval(state.liveLogPolling);
+    state.liveLogPolling = null;
+  }
 }
 
 function renderArchive() {
@@ -427,7 +480,7 @@ function updateTelemetryStrip() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function showConfigDetail(configId) {
-  logEvent("SCAN", `Opening target TGT_${shortId(configId)} for analysis...`, "info");
+  logEvent("SCAN", `Opening target TGT_${shortId(configId)} for inspection...`, "info");
 
   try {
     const result = await API.getConfig(configId);
@@ -437,38 +490,22 @@ async function showConfigDetail(configId) {
       return;
     }
     state.selectedConfig = result;
-
-    // Simulated analysis sequence (visual flavor — no real telemetry leaked)
-    await simulateAnalysisSequence(result);
-
     renderConfigDetail(result);
     showView("target-detail");
+
+    // Log the outcome with REAL field count from the backend
+    const status = classifyStatus(result);
+    const fieldCount = result.config ? Object.keys(result.config).length : 0;
+    if (status === "decoded") {
+      logEvent("OK", `Target decoded · ${fieldCount} fields extracted`, "ok");
+    } else if (status === "locked") {
+      logEvent("LOCK", `Target locked · proprietary encryption, no decryptor`, "warn");
+    } else {
+      logEvent("FAIL", `Target resisted decryption · envelope unbroken`, "err");
+    }
   } catch (err) {
     logEvent("ERR", `Failed to load target: ${err.message}`, "err");
     showToast("Failed to load target", "error");
-  }
-}
-
-async function simulateAnalysisSequence(config) {
-  const meta = formatMeta(config.format);
-  const steps = [
-    { delay: 80,  tag: "PROBE", msg: `Identifying format signature... → ${meta.name}`, type: "info" },
-    { delay: 120, tag: "SCAN",  msg: `Probing encryption envelope...`, type: "info" },
-  ];
-
-  const status = classifyStatus(config);
-  if (status === "decoded") {
-    steps.push({ delay: 150, tag: "CRACK", msg: `Testing known keys against envelope...`, type: "info" });
-    steps.push({ delay: 180, tag: "OK",    msg: `Envelope compromised · payload extracted`, type: "ok" });
-  } else if (status === "locked") {
-    steps.push({ delay: 200, tag: "LOCK",  msg: `Envelope uses proprietary encryption · access denied`, type: "warn" });
-  } else {
-    steps.push({ delay: 200, tag: "FAIL",  msg: `All known approaches exhausted · envelope resisted`, type: "err" });
-  }
-
-  for (const step of steps) {
-    await new Promise((r) => setTimeout(r, step.delay));
-    logEvent(step.tag, step.msg, step.type);
   }
 }
 
@@ -609,14 +646,45 @@ function renderConfigData(container, d) {
   ];
   renderKVSection(container, "DNS", dnsFields, d);
 
-  // ── HTTP Payload ───────────────────────────────────────────────────────
+  // ── Protections (HC v2.7+ — hwid/area/password/provider locks) ─────────
+  // Protections may be at top level OR inside raw_data
+  const protections = d.protections || (d.raw_data && d.raw_data.protections);
+  if (protections && Object.keys(protections).length > 0) {
+    const protFields = Object.entries(protections).map(([k, v]) => ({
+      key: k, label: k.toUpperCase(), value: v,
+    }));
+    renderKVSection(container, "PROTECTIONS", protFields, protections);
+  }
+
+  // ── HTTP Payload (with [crlf] / [split] / [crlf][crlf] syntax highlighting) ─
   if (d.payload) {
+    const highlighted = highlightPayload(String(d.payload));
     container.appendChild(el("div", { className: "detail-section" }, [
       el("div", { className: "detail-section-head" }, [
         el("span", { className: "detail-section-title" }, ["HTTP PAYLOAD"]),
+        el("span", { className: "detail-section-hint" }, ["[crlf] = \\r\\n  ·  [split] = request separator  ·  [proxy] = injected host  ·  [ua] = user-agent"]),
       ]),
       el("div", { className: "detail-section-body" }, [
-        el("pre", { className: "payload-block" }, [String(d.payload)]),
+        el("pre", { className: "payload-block payload-highlighted" }),
+      ]),
+    ]));
+    // Inject highlighted HTML into the pre (safer than innerHTML on a string)
+    const pre = container.querySelector(".payload-highlighted:last-child");
+    if (pre) pre.innerHTML = highlighted;
+  }
+
+  // ── Notes (HC v2.7+ — HTML content shown sanitized in an iframe-like sandbox) ──
+  // Notes may be at top level OR inside raw_data._all_fields.notes
+  const notes = d.notes
+              || (d.raw_data && d.raw_data._all_fields && d.raw_data._all_fields.notes)
+              || (d.raw_data && d.raw_data.notes);
+  if (notes && typeof notes === "string" && notes.trim()) {
+    container.appendChild(el("div", { className: "detail-section" }, [
+      el("div", { className: "detail-section-head" }, [
+        el("span", { className: "detail-section-title" }, ["NOTES (HTML)"]),
+      ]),
+      el("div", { className: "detail-section-body" }, [
+        renderNotesSandboxed(notes),
       ]),
     ]));
   }
@@ -643,6 +711,7 @@ function renderConfigData(container, d) {
     { key: "hysteria",    label: "HYSTERIA CONFIG" },
     { key: "shadowsocks", label: "SHADOWSOCKS CONFIG" },
     { key: "wireguard",   label: "WIREGUARD CONFIG" },
+    { key: "openvpn_config", label: "OPENVPN CONFIG" },
   ];
   for (const { key, label } of protoBlocks) {
     if (d[key] && typeof d[key] === "object" && Object.keys(d[key]).length > 0) {
@@ -652,6 +721,15 @@ function renderConfigData(container, d) {
         ]),
         el("div", { className: "detail-section-body" }, [
           el("pre", { className: "payload-block" }, [JSON.stringify(d[key], null, 2)]),
+        ]),
+      ]));
+    } else if (d[key] && typeof d[key] === "string" && d[key].trim()) {
+      container.appendChild(el("div", { className: "detail-section" }, [
+        el("div", { className: "detail-section-head" }, [
+          el("span", { className: "detail-section-title" }, [label]),
+        ]),
+        el("div", { className: "detail-section-body" }, [
+          el("pre", { className: "payload-block" }, [String(d[key])]),
         ]),
       ]));
     }
@@ -669,6 +747,61 @@ function renderConfigData(container, d) {
     ]),
     rawBlock,
   ]));
+}
+
+/**
+ * Highlight HC payload syntax: [crlf], [crlf][crlf], [split], [proxy], [ua],
+ * HTTP methods (GET/POST/CONNECT/...), and HTTP version (HTTP/1.1).
+ * Returns an HTML string safe to assign to a pre.innerHTML.
+ *
+ * Input is escaped first, then markers are wrapped in <span> tags — so
+ * user-controlled payload content can never break out of the pre element.
+ */
+function highlightPayload(payload) {
+  // 1. HTML-escape everything
+  const esc = (s) => s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+  let html = esc(payload);
+
+  // 2. Highlight [crlf], [split], [proxy], [ua] markers
+  html = html.replace(
+    /\[(crlf|split|proxy|ua|host|raw|method|proto)\]/gi,
+    '<span class="pl-mark pl-mark-$1">$&amp;</span>'
+  );
+  // 3. Highlight HTTP methods at line start
+  html = html.replace(
+    /^(GET|POST|PUT|CONNECT|HEAD|OPTIONS|PATCH|UNLOCK|PROPFIND|REPORT) /gm,
+    '<span class="pl-method">$1</span> '
+  );
+  // 4. Highlight HTTP version
+  html = html.replace(
+    /(HTTP\/[0-9.]+)/g,
+    '<span class="pl-version">$1</span>'
+  );
+  // 5. Highlight "Host: ..." lines
+  html = html.replace(
+    /^(Host: .+)$/gm,
+    '<span class="pl-host">$1</span>'
+  );
+
+  return html;
+}
+
+/**
+ * Render HC v2.7 notes (raw HTML from the config author) in a sandboxed
+ * iframe so it can't affect the rest of the app.
+ */
+function renderNotesSandboxed(html) {
+  const wrapper = el("div", { className: "notes-sandbox-wrap" });
+  const iframe = document.createElement("iframe");
+  iframe.className = "notes-sandbox";
+  iframe.sandbox = "allow-same-origin";
+  iframe.setAttribute("srcdoc", `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{background:#070a0c;color:#d4f1e4;font-family:monospace;padding:12px;margin:0;font-size:11px;line-height:1.5;}</style></head><body>${html}</body></html>`);
+  wrapper.appendChild(iframe);
+  return wrapper;
 }
 
 function renderKVSection(container, title, fields, d) {
@@ -851,6 +984,11 @@ async function openConfig() {
       logEvent("INFO", "File picker canceled", "info");
       return;
     }
+
+    // Start live log polling BEFORE we kick off decryption, so the user
+    // sees real-time decrypt steps as they happen on the backend.
+    startLiveLogPolling(30000);
+
     for (const filePath of filePaths) {
       const fname = filePath.split(/[\\/]/).pop();
       logEvent("ACQUIRE", `Importing target: ${fname}`, "info");
@@ -861,14 +999,29 @@ async function openConfig() {
       } else {
         const status = classifyStatus(result);
         const meta = formatMeta(result.format);
-        logEvent("OK", `Target acquired · ${meta.short} · ${fname} · ${STATUS_LABEL[status]}`, "ok");
+        const fields = result.config ? Object.keys(result.config).length : 0;
+        logEvent("OK", `Target acquired · ${meta.short} · ${fname} · ${STATUS_LABEL[status]} · ${fields} fields`, "ok");
         showToast(`Acquired: ${fname} (${meta.short})`, "success");
       }
     }
+    stopLiveLogPolling();
+    // Drain any final log entries that arrived after parseConfig returned
+    try {
+      const tail = await API.getLogs(state.liveLogSince);
+      if (tail && tail.entries) {
+        for (const e of tail.entries) {
+          const type = (e.tag === "OK") ? "ok" : (e.tag === "ERR") ? "err" : "info";
+          logEvent(e.tag, e.msg, type);
+          state.liveLogSince = Math.max(state.liveLogSince, e.id);
+        }
+      }
+    } catch (e) { /* ignore */ }
+
     await loadConfigs();
   } catch (err) {
     logEvent("ERR", `Acquire failed: ${err.message}`, "err");
     showToast("Failed to acquire target", "error");
+    stopLiveLogPolling();
   }
 }
 
