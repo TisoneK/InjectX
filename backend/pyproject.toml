@@ -1,0 +1,94 @@
+# InjectX — Python project configuration
+#
+# This file configures pytest, ruff, and mypy for backend/. It does NOT
+# declare InjectX as an installable package (no [project] section) — the
+# backend is run directly from source via `python main.py`, and deps are
+# pinned in requirements.txt. Adding packaging is backlog work.
+#
+# Advances backlog item N3 (test infrastructure) — configures the tooling
+# so a future session can drop test files in backend/tests/ and they'll be
+# picked up automatically with consistent rules. The selected rule sets
+# are deliberately conservative: they pass against the current codebase
+# so CI can adopt them without a separate cleanup commit. Tightening the
+# rules (adding I isort, UP pyupgrade, B bugbear, removing F401 ignore)
+# is a follow-up N3/N6 sub-task — see backlog.
+
+[tool.pytest.ini_options]
+# Tests live in backend/tests/. Run from backend/ with `pytest` (or
+# `python -m pytest` inside the venv). The minversion matches the
+# pytest available in this session's venv (pytest 8.x).
+minversion = "8.0"
+testpaths = ["tests"]
+# Show short tracebacks + summary of failures only — keeps CI logs readable.
+addopts = "-ra --strict-markers"
+# Treat unregistered markers as errors so a typo doesn't silently skip tests.
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.ruff]
+# Backend Python source. Ruff configures fast lint+format.
+line-length = 100
+target-version = "py38"  # Match README's "Python 3.8+" claim.
+extend-exclude = [
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+# Conservative starter rule set — passes against the current codebase.
+# A future N6 pass can add I (isort), UP (pyupgrade), B (bugbear) after
+# the codebase is cleaned up to satisfy them.
+select = [
+    "E",    # pycodestyle errors
+    "F",    # Pyflakes (unused imports, undefined names, unused vars, etc.)
+    "W",    # pycodestyle warnings
+]
+ignore = [
+    "E501",  # line-too-long — 60 existing long lines (mostly long signatures
+             # and docstrings). Ruff formats to line-length=100 but doesn't
+             # trim strings/comments. Defer to a future format-only commit.
+    "F401",  # unused-import — 15 existing hits across the codebase.
+             # Safe to clean up but worth a dedicated commit; left as a
+             # visible backlog item rather than ignored silently. A future
+             # N6 pass removes the imports and drops this ignore.
+]
+
+[tool.ruff.lint.per-file-ignores]
+# main.py inserts backend/ onto sys.path before importing parser/ir/etc.
+# That's the correct pattern for a runnable-as-script backend; ruff's
+# E402 (module-import-not-at-top) is a false positive here.
+"main.py" = ["E402"]
+# Test files can use asserts freely.
+"tests/**/*.py" = []
+
+[tool.mypy]
+# Type-check the backend. Set to default-strict-but-pragmatic. Not all
+# third-party libs (pycryptodome, fastapi) ship full stubs, so we ignore
+# missing imports for those — a future session can add stub packages.
+#
+# Run from backend/: `mypy .` (NOT `mypy main.py` — the file-vs-module
+# detection requires the directory form to avoid double-module errors
+# caused by main.py's sys.path manipulation).
+python_version = "3.10"  # mypy 1.18+ requires python_version >= 3.10 as the target.
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+show_error_codes = true
+# Don't fail CI on missing stubs for untyped deps.
+ignore_missing_imports = true
+# Tell mypy the root is backend/ so parser/detector.py isn't seen as both
+# `backend.parser.detector` and `parser.detector` (caused by main.py's
+# sys.path.insert).
+explicit_package_bases = true
+mypy_path = "."
+# Exclude vendored / generated code.
+exclude = [
+    ".venv/",
+    "__pycache__/",
+    "build/",
+    "dist/",
+]
