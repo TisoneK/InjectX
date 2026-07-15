@@ -122,3 +122,12 @@ outcome:
 - **Outcome:** done — (1) Pulled user's per-format icons (dark.png, ehi.jpg, ha.jpg, hc.png, lnk.jpg, npv.png, ziv.png). Copied to frontend/src/assets/ for CSP-safe loading. Added createFormatIcon() helper that shows <img> with onerror fallback to text badge. Icons now appear on target cards (28px), detail view header (40px), and Arsenal cards (36px). (2) Added .lnk format: FormatEnum.LNK, detector extension map, ALLOWED_EXTENSIONS, CONFIG_EXTENSIONS, router (no schemes — NO_DECRYPTOR like DARK), assets/configs/lnk/ directory. (3) Deleted all test screenshots from download/. Verified: 31 target cards, 29 format icons load successfully (TLS has no icon), all 9 tests pass, no page errors.
 - **Open items:** .lnk decryption algorithm not yet researched (format recognized, shows as LOCKED). TLS and ZIV keys still rotated.
 - **Report:** this session entry.
+
+---
+## 2026-07-15 — Session 11
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6, Node v24.17.0 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** General sweep (standing default) — first local-agent review since Session 2 (Sessions 3–10 were all cloud). Re-verify security fixes, review the accumulated un-locally-reviewed surface (UI redesign, HC v2.7/EHI v2/ZIV decryptors, assets tree, .lnk/icons), fix safe issues, push to main, write report.
+- **Commits:** 5 (`653e5bf`..`db1c736`) — 3 product (1 test, 1 fix(api), 1 docs(ui) comment) + 1 review report (`docs(review):`) + 1 changelog (`docs:`). Plus this Phase 5 context log (`chore(context):`).
+- **Outcome:** done — no new Critical/High. (1) Added per-format parser smoke tests over all 32 bundled samples → suite 9→41 (advances N3). (2) Fixed stale `/api/formats` (missing A5/B2 schemes + ziv/lnk formats), verified live. (3) Corrected a factually-wrong notes-iframe security comment (srcdoc is NOT auto-isolated; the inherited CSP is the real protection). Re-verified ADR-1/ADR-5 path-traversal guard + ADR-2 CORS intact; dangerous-pattern scan of backend clean. Synced local venv (was missing argon2-cffi since Session 9).
+- **Open items:** N1, N2, N4, N5, N6 (unchanged); N3 substantially advanced (parser tests done; decryptor asserts + F401/mypy remain); **N8 new** (notes-iframe sandbox attr — blocked on Electron GUI verification, as is the Session 4 `webPreferences sandbox:true` note). See `tasks/backlog.md`.
+- **Report:** .context/memory/reviews/2026-07-15-review-4.md

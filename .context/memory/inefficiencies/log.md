@@ -112,3 +112,21 @@ if literally nothing slowed you down.
 - **Cause:** I read the first ruff error, jumped to the cited line, removed the assignment there, and re-ran without checking whether the variable was referenced anywhere else. The init at line 181 was a few lines above the cited location and didn't appear in the error's context window.
 - **Workaround / fix:** Removed the init too. Final state: the variable is gone entirely; the explanatory comment now says "we don't need a separate confidence tracker here because each successful attempt is already recorded with confidence=0.3 in the trace, and the router selects the overall best."
 - **Prevent next time:** When a linter reports an unused variable, grep for ALL occurrences of that variable name in the file before editing — the cited line is one site, but the variable may be initialized, assigned, or referenced elsewhere. `grep -n <varname> <file>` is the cheapest pre-check.
+
+---
+## 2026-07-15 — Claude Code / claude-fable-5 (Session 11)
+
+- **Problem:** The in-app Chromium browser tool (`mcp__Claude_Browser__preview_start`) timed out after 300s trying to open a local `file://` test page, then again on a second attempt. I wanted it to verify iframe `sandbox="allow-same-origin"` rendering/scripting behavior (for the notes-iframe hardening) without launching the full Electron app.
+- **Cost:** ~6 minutes (two 300s timeouts) + had to abandon the verification path and defer the sandbox-attr change to a backlog item (N8) instead of shipping it this session.
+- **Cause:** Unknown — the preview/browser backend was unresponsive this session (CDP/extension stuck). Not project-specific.
+- **Workaround / fix:** Reasoned from the well-specified `sandbox` semantics + the fact that the parent CSP already closes the actual hole, and deferred the runtime change to a session that can drive the real Electron GUI. Corrected the misleading comment (no runtime change) instead.
+- **Prevent next time:** For quick DOM/iframe-behavior checks, don't assume the in-app browser is available — it can hang. A headless check via `node`/jsdom, or accepting that Electron-specific rendering needs the real app, is more reliable. Electron GUI verification on this machine (file dialogs, IPC, DevTools, iframe rendering) remains the gap blocking N8 and the `webPreferences sandbox:true` change — neither was runnable this session.
+
+---
+## 2026-07-15 — Claude Code / claude-fable-5 (Session 11)
+
+- **Problem:** The local `backend/.venv` predated Session 9 and was missing `argon2-cffi` (added to `requirements.txt` that session for the EHI v2 / scheme B2 decryptor). `import argon2` failed. Also `ruff`/`mypy` weren't in the venv, so the lint baseline couldn't run until installed.
+- **Cost:** ~2 minutes to notice and re-sync.
+- **Cause:** A venv created in an earlier session isn't auto-updated when a later (cloud) session adds a dependency to `requirements.txt`. The local and cloud agents don't share the venv.
+- **Workaround / fix:** `pip install -r requirements.txt` (picks up argon2-cffi 25.1.0) + `pip install ruff mypy` at session start.
+- **Prevent next time:** At Step 4 (install deps), always run `pip install -r requirements.txt` against the existing venv rather than assuming it's current — a prior session's venv can be stale if a later session added deps. Cheap to run; catches silent import failures in the decrypt path before they surface as a mysterious test/parse error.

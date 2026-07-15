@@ -6,4 +6,4 @@ you find a stale in-progress entry here, a prior session died mid-task —
 check its session entry and backlog before starting.
 
 - **Session:** idle — no task in progress.
-- **Last session:** 2026-07-15 Session 10 (Super Z, Z.ai cloud sandbox) — **done.** Per-format icons on target cards + detail view + Arsenal view. Added .lnk format (FormatEnum.LNK, no decryptor). Deleted test screenshots. Verified: 29/29 icons load, 31 target cards, all 9 tests pass. See `.context/memory/agents/sessions.md` Session 10 entry.
+- **Last session:** 2026-07-15 Session 11 (Claude Fable 5, local macOS) — **done.** General sweep. Added per-format parser smoke tests over all 32 bundled samples (suite 9→41, advances N3); fixed stale `/api/formats` (missing A5/B2 schemes + ziv/lnk formats, verified live); corrected a factually-wrong notes-iframe security comment. Re-verified ADR-1/5 path guard + ADR-2 CORS intact; backend dangerous-pattern scan clean. New backlog N8 (notes-iframe sandbox attr, blocked on Electron GUI verification). See `.context/memory/agents/sessions.md` Session 11 + `reviews/2026-07-15-review-4.md`.
