@@ -67,3 +67,21 @@ if literally nothing slowed you down.
 - **Cause:** Executed Phase 1 but treated the git-identity sub-step of Step 1 as skippable. The local protocol explicitly says: "If git identity is not configured (`git config user.name` returns empty), set it using the Pre-Flight values." I never ran that check. Local agents don't handle PATs, so I under-weighted the identity step as "not my concern" — but identity ≠ credentials; the local agent still owns setting the authoring identity.
 - **Workaround / fix:** Re-authored to Tisone Kironget and force-pushed (new SHAs `636463c`..`3a97003`, replacing `3d12269`..`8f916d4`). Set repo-local identity so future commits are correct. Recorded the identity requirement in `system/environments.md` (this machine's block).
 - **Prevent next time:** Step 1's identity check is now flagged in bold in this machine's `environments.md` block. Rule of thumb: **run `git config --local user.name` as the very first thing after confirming the repo, before any commit** — an unset identity on a shared repo produces mis-attributed history that costs a force-push to fix. This is the machine-account-vs-project-owner trap (Pitfall #43 territory: `.context/` recorded the right identity; the machine didn't have it, and I didn't bridge the gap).
+
+---
+## 2026-07-15 — Super Z / unknown (Session 3 — migration)
+
+- **Problem:** When the workspace is restored between sessions (e.g., the user comes back the next day), many files show as "modified" in `git status` even though their content is byte-identical to HEAD. Root cause: file mode bits drifted from `100644` (non-executable) to `100755` (executable) — likely from a filesystem sync that doesn't preserve mode bits (zip transfer, Windows intermediary, etc.).
+- **Cost:** ~3 minutes diagnosing; first instinct was "someone else committed changes I don't have" before checking `git diff --summary` and seeing only `mode change` lines.
+- **Cause:** Cross-filesystem sync (probably the sandbox restoring from a snapshot) doesn't preserve Unix mode bits.
+- **Workaround / fix:** `git diff --summary` reveals only `mode change 100644 => 100755` lines (no content changes). Safe to `git reset --hard HEAD` to restore the recorded mode bits — no work is lost because content is identical. Always run `git diff --stat` first to confirm 0 insertions / 0 deletions before resetting.
+- **Prevent next time:** Documented in `system/environments.md` "Quirks" — at session start, if `git status` shows many unexpected modifications, run `git diff --stat` first; if all show `0 insertions, 0 deletions`, it's mode-bit drift, reset with `git reset --hard HEAD`.
+
+---
+## 2026-07-15 — Super Z / unknown (Session 3 — migration)
+
+- **Problem:** Git's rename detection during the 0.2.0 migration initially confused two sets of identical-content files: the renamed data files (`.context/secrets/.gitignore` → `.context/memory/secrets/.gitignore`) and the freshly-vendored template files (`.context/core/templates/memory/secrets/.gitignore`). Without `--find-renames`, git matched the old data file to the template file instead of to the renamed data file, making it look like the data file was deleted and a separate new file was created.
+- **Cost:** ~5 minutes verifying that history was actually preserved.
+- **Cause:** Git's default rename detection picks the highest-similarity new file for each deleted file. When two new files have identical content (the data file's rename target AND the template), git may pick the wrong one.
+- **Workaround / fix:** Use `git status --find-renames=50` (or `git diff --cached -M`) to see rename detection with explicit threshold. In this case, both targets were 100% similar so git picked one consistently; the actual file content at `.context/memory/secrets/.gitignore` is correct regardless of which path git reports as the rename source. `git log --follow --find-renames` tracks history through either path.
+- **Prevent next time:** When migrating a layout where data files have identical-content template siblings, verify the actual file contents at the destination paths rather than trusting git's rename display. Content correctness is what matters; rename display is cosmetic.

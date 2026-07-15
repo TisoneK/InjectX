@@ -43,3 +43,13 @@ outcome:
 - **Outcome:** done — Found & fixed a **High-severity symlink bypass** that reopened Session 1's C1 path-traversal fix (`_validate_config_path` checked the link's extension but not the resolved target's; `evil.ehi -> /etc/passwd` read arbitrary files). Fix `3d12269` + 8 regression tests. Also: CORS loopback origins now track `INJECTX_PORT` (`b08043b`), Pydantic `json_encoders` → `field_serializer` (`5665cd7`). All Session 1 fixes re-verified live on macOS/Py3.9. N7 confirmed done; N3 partially advanced (tests/ now has 9 tests).
 - **Open items:** N1, N2, N3 (partial), N4, N5, N6 in `tasks/backlog.md`. New ADR-5 (resolved-extension re-check). Recommended next: finish N3 (per-format parser/decryptor tests + pytest/ruff/mypy config), then N4 (CI).
 - **Report:** .context/reviews/2026-07-15-review-2.md
+
+---
+## 2026-07-15 — Session 3 (migration to core 0.2.0)
+
+- **Agent:** Super Z | **Model:** unknown (GLM family) | **Platform:** Z.ai cloud sandbox — Debian 13 trixie, Python 3.12.13, Node v24.18.0 | **Role:** engineer
+- **Task:** User reported "Context repo has been updated, pull and syncronize" — pulled the `TisoneK/.context` package repo (8 new commits, the 0.2.0 vendored-core release) and migrated InjectX's `.context/` from the 0.1.x flat layout to the 0.2.0 two-zone layout (vendored `core/` + `memory/`).
+- **Commits:** 1 (`53838d0`) — `chore(context): migrate to core 0.2.0 two-zone layout`
+- **Outcome:** done — zero data loss (every memory file moved via `git mv`, history preserved); `context-sync verify` passes; `memory/core.lock` records `version=0.2.0`. After this commit, future sessions need no package repo access — the protocol is vendored inside this repo at `.context/core/`.
+- **Open items:** none new. Backlog N1-N7 still open from prior sessions.
+- **Report:** no separate review report (migration session, not a code-review session). Migration details are in the commit message of `53838d0`.
