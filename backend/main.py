@@ -221,23 +221,46 @@ async def health_check():
 
 @app.post("/api/config/upload", response_model=ConfigInfo)
 async def upload_config(file: UploadFile = File(...)):
-    """Upload a config file, detect format, decrypt, and parse."""
+    """Upload a config file, detect format, decrypt, and parse.
+
+    Validates filename extension against the same allowlist as /parse and
+    /detect, and caps uploaded size at MAX_UPLOAD_BYTES. Rejects before
+    touching disk so a hostile upload can't pollute UPLOAD_DIR.
+    """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
 
+    ext = Path(file.filename).suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file extension '{ext}'. Allowed: {sorted(ALLOWED_EXTENSIONS)}",
+        )
+
     config_id = str(uuid.uuid4())[:8]
-    ext = Path(file.filename).suffix
     save_path = UPLOAD_DIR / f"{config_id}{ext}"
 
     try:
         content = await file.read()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read upload: {str(e)}")
+
+    if len(content) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Uploaded file too large ({len(content)} bytes); max {MAX_UPLOAD_BYTES} bytes",
+        )
+
+    try:
         save_path.write_bytes(content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
     # Full pipeline: detect → decrypt → parse → normalize
     normalized = parse_config(str(save_path))
-    config_store[config_id] = normalized.dict()
+    config_store[config_id] = normalized.model_dump()
 
     return _ir_to_response(config_id, normalized)
 
