@@ -130,3 +130,21 @@ if literally nothing slowed you down.
 - **Cause:** A venv created in an earlier session isn't auto-updated when a later (cloud) session adds a dependency to `requirements.txt`. The local and cloud agents don't share the venv.
 - **Workaround / fix:** `pip install -r requirements.txt` (picks up argon2-cffi 25.1.0) + `pip install ruff mypy` at session start.
 - **Prevent next time:** At Step 4 (install deps), always run `pip install -r requirements.txt` against the existing venv rather than assuming it's current — a prior session's venv can be stale if a later session added deps. Cheap to run; catches silent import failures in the decrypt path before they surface as a mysterious test/parse error.
+
+---
+## 2026-07-15 — Claude Code / claude-fable-5 (Session 12)
+
+- **Problem:** The session logs disagreed with reality on per-format decode status. Session 9 claimed "EHI 6/6 ✅" but the user reported "only hc works e2e," and I couldn't tell from the logs alone which was true (session entries record decode status but it can drift as samples/keys change). I had to write a full-pipeline probe (`parse_config` over every sample, dumping `decryption_status` + extracted fields) to get ground truth: EHI does decode 6/6, but yields `proxy_host`/`payload`/`sni` and NO top-level `host`, which is why a `host`-keyed UI (and my first probe) made it look empty.
+- **Cost:** ~10 minutes writing/running the probe and dumping full NormalizedConfigs before I could trust any format's status.
+- **Cause:** Decode status is scattered across prose session entries and isn't machine-checkable; a probe is the only reliable source of truth, and a naive probe keyed only on `host` under-reports formats that use `proxy_host` (EHI).
+- **Workaround / fix:** Wrote a probe that parses all samples and prints status + several possible host fields; then dumped the FULL model for one sample per suspicious format. Kept it in scratchpad. Recommend a committed `scripts/decode_status.py` (or a test) that prints a per-format decode matrix so the next agent gets ground truth in one command instead of re-deriving it.
+- **Prevent next time:** Don't trust prose "N/N decode" claims in session logs — run a pipeline probe. And when judging whether a format "works," dump ALL extracted fields, not just `host` (EHI/proxy-based formats populate `proxy_host`, not `host`).
+
+---
+## 2026-07-15 — Claude Code / claude-fable-5 (Session 12)
+
+- **Problem:** Raw GitHub `raw.githubusercontent.com` fetches for the reference decryptors mostly 404'd until I found the right org/repo/branch — the TLS/ZIV algorithm comments in the code cited "Pancho7532/HCDecryptor" and "EstebanZxx/X-Tools" but the actual TLS decryptor lives on **GitLab** under `PANCHO7532/HCDecryptor` (the GitHub mirror is `PANCHO7532B/HCDecryptor`), and X-Tools's crypto is in `Main.py` reached via a Node shim (`X/ZIV.js`), not an obvious path.
+- **Cost:** ~8 minutes probing candidate raw URLs and using the GitLab/GitHub tree APIs to locate the real files.
+- **Cause:** Code comments named the research source loosely (wrong host, no path); the canonical repo moved to GitLab.
+- **Workaround / fix:** Used `https://gitlab.com/api/v4/projects/<url-encoded-path>/repository/tree?recursive=true` and `https://api.github.com/repos/<owner>/<repo>/git/trees/<branch>?recursive=1` to list the tree, then fetched `-/raw/master/<path>` (GitLab) / `raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>` (GitHub). Recorded the exact paths in `reviews/2026-07-15-review-5.md` so the next agent doesn't re-hunt.
+- **Prevent next time:** The decryptor module docstrings should cite the exact repo host + path + branch of their reference (e.g. `gitlab.com/PANCHO7532/HCDecryptor lib/methods/tlsDecryptor.lib.js @ master`). Fold into a future N6-style cleanup.
