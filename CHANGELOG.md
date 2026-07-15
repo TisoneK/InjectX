@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- TLS Tunnel (`.tls`) configs from newer app builds no longer fail to
+  process before decryption is even attempted. These files drop the
+  trailing padding on their encoded payload, which made the app give up
+  early and report the file as unreadable rather than as key-protected.
+  The bundled TLS samples still can't be decoded because newer TLS
+  Tunnel builds changed their secret key and no public key for them
+  exists yet — but the app now handles the file correctly and reports
+  the real reason.
 - The desktop app's main process now respects a custom `INJECTX_PORT`
   (or `INJECTX_HOST`) when spawning and proxying to the Python backend.
   Previously a custom port silently broke every renderer call — the
