@@ -9,10 +9,26 @@
     "backend": "cd backend && python main.py",
     "install:backend": "cd backend && pip install -r requirements.txt"
   },
-  "keywords": ["vpn", "config", "ehi", "hc", "hat", "dark", "tls", "npv4", "nsh", "http-injector", "ha-tunnel", "napsternetv", "sockshttp", "http-custom", "dark-tunnel"],
+  "keywords": [
+    "vpn",
+    "config",
+    "ehi",
+    "hc",
+    "hat",
+    "dark",
+    "tls",
+    "npv4",
+    "nsh",
+    "http-injector",
+    "ha-tunnel",
+    "napsternetv",
+    "sockshttp",
+    "http-custom",
+    "dark-tunnel"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^28.0.0"
+    "electron": "^43.1.1"
   }
 }

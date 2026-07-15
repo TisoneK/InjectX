@@ -173,8 +173,8 @@ function setupIPC() {
 app.whenReady().then(async () => {
   startBackend();
   try { await waitForBackend(); console.log("[Main] Backend is ready"); } catch (err) { console.error("[Main] Backend failed:", err.message); }
-  setupIPC();
   createWindow();
+  setupIPC();
 });
 
 app.on("window-all-closed", () => { stopBackend(); app.quit(); });
