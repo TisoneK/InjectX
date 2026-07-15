@@ -29,16 +29,26 @@ block (and its "last verified" date) every time you run on it again.
   - `git clone <url>` works for public repos and PAT-authenticated private repos (with `x-access-token:${TOKEN}@` URL form; strip via `git remote set-url origin <clean-url>` immediately after).
   - `curl -s -H "Authorization: Bearer <fine-grained-PAT>" https://api.github.com/user` validates GitHub fine-grained PATs.
   - Backend deps: `cd backend && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt` — installs `fastapi 0.139.0, uvicorn 0.51.0, python-multipart 0.0.32, pycryptodome 3.23.0, pydantic 2.13.4` cleanly.
+  - Dev deps (added Session 4): `pip install pytest ruff mypy` — adds `pytest 8.x`, `ruff 0.x`, `mypy 1.18+` (mypy 1.18+ requires python_version target >= 3.10).
   - Frontend deps: `npm install --no-audit --no-fund` at project root — 70 packages, ~17s, electron postinstall skipped by allow-scripts but binary installs.
   - Backend start: `cd backend && source .venv/bin/activate && python main.py` — binds to `127.0.0.1:8742`, lifespan logs via `logging` module.
   - Backend smoke: `curl http://127.0.0.1:8742/api/health` → `{"status":"ok","version":"0.4.0","ir_version":"1.0"}`.
-  - Git push (cloud/sandbox workflow): re-add token via `git remote set-url origin "https://x-access-token:${GIT_TOKEN}@github.com/..."`, `git pull --ff-only`, `git push origin main`, then `git remote set-url origin https://github.com/...` to strip. Run for every push.
+  - Tests: `cd backend && source .venv/bin/activate && python -m pytest` → 9 passed.
+  - Lint: `cd backend && source .venv/bin/activate && ruff check .` → "All checks passed!" (after Session 4's pyproject.toml + dead-code cleanup).
+  - Type check: `cd backend && source .venv/bin/activate && mypy .` → 62 pre-existing errors (informational, no CI gate).
+  - Frontend syntax check (Electron itself can't run here): `node --check frontend/main.js` → OK.
+  - **Git push — improved workflow (Session 4):** instead of re-adding the token to .git/config before each push and stripping it after (the Session 1 dance), configure a git `credential.helper` once at session start that reads the PAT from `.context/memory/secrets/github-pat` on demand:
+    ```
+    git config credential.helper '!f() { test -r .context/memory/secrets/github-pat && echo "username=TisoneK" && echo "password=$(head -n1 .context/memory/secrets/github-pat)"; }; f'
+    ```
+    Then `git push origin main` works directly without any URL manipulation. The PAT stays out of `.git/config` permanently — verified by `git remote get-url origin` showing the clean HTTPS URL after every push.
 - **Quirks:**
-  - **Env vars do NOT persist across separate Bash tool calls** in this sandbox. Each Bash invocation starts a fresh shell — re-`export` `GIT_TOKEN` (and any other needed env var) inline at the start of every command that uses it. Never write the token to a tracked file.
+  - **Env vars do NOT persist across separate Bash tool calls** in this sandbox. Each Bash invocation starts a fresh shell — re-`export` `GIT_TOKEN` (and any other needed env var) inline at the start of every command that uses it. Never write the token to a tracked file. **Session 4 workaround:** use a git `credential.helper` (see "Git push — improved workflow" above) instead of env vars for the PAT — the helper reads the file fresh on each push, so cross-call persistence isn't needed.
   - The Bash tool description says "persistent shell session" but in practice env vars set in one call are empty in the next — verified empirically 2026-07-15.
-  - `GIT_TOKEN` may be stored at `.context/memory/secrets/github-pat` (0600 perms, gitignored — verified via `git check-ignore`) for convenience within a session. Read it back inline at the start of each push command: `GIT_TOKEN=$(head -1 .context/memory/secrets/github-pat)`.
+  - `GIT_TOKEN` may be stored at `.context/memory/secrets/github-pat` (0600 perms, gitignored — verified via `git check-ignore`) for convenience within a session. Read it back inline at the start of each push command: `GIT_TOKEN=$(head -1 .context/memory/secrets/github-pat)`. Or — preferred as of Session 4 — wire a `credential.helper` to it once and forget about it.
   - Workspace has predefined subdirs: `scripts/`, `download/`, `upload/`, `skills/`, `tool-results/`. Project repos should clone directly into `/home/z/my-project/<REPO>` (sibling to those), not into a subdir.
-  - **Electron cannot launch in this sandbox** (no display server). `npm start` will fail. Test the backend in isolation with `python main.py` + `curl`; test frontend logic by reading the JS, not by running the app.
+  - **Electron cannot launch in this sandbox** (no display server). `npm start` will fail. Test the backend in isolation with `python main.py` + `curl`; test frontend logic by reading the JS, not by running the app. For frontend code changes, `node --check frontend/main.js` validates syntax.
+  - **`mypy 1.18+` requires `python_version >= 3.10`** as the target. Even though the project claims Python 3.8+ in the README, the mypy `python_version` setting in `pyproject.toml` must be `3.10` or higher (mypy will refuse to run otherwise). The runtime target stays 3.8+ — mypy's `python_version` is the version it assumes for type-checking semantics, not the runtime requirement.
 
 ---
 ## Local macOS dev machine (last verified 2026-07-15)

@@ -85,3 +85,30 @@ if literally nothing slowed you down.
 - **Cause:** Git's default rename detection picks the highest-similarity new file for each deleted file. When two new files have identical content (the data file's rename target AND the template), git may pick the wrong one.
 - **Workaround / fix:** Use `git status --find-renames=50` (or `git diff --cached -M`) to see rename detection with explicit threshold. In this case, both targets were 100% similar so git picked one consistently; the actual file content at `.context/memory/secrets/.gitignore` is correct regardless of which path git reports as the rename source. `git log --follow --find-renames` tracks history through either path.
 - **Prevent next time:** When migrating a layout where data files have identical-content template siblings, verify the actual file contents at the destination paths rather than trusting git's rename display. Content correctness is what matters; rename display is cosmetic.
+
+---
+## 2026-07-15 — Super Z / unknown (Session 4)
+
+- **Problem:** mypy 1.18+ refuses to run when `python_version = "3.8"` is set in `pyproject.toml` — it errors with `python_version: Python 3.8 is not supported (must be 3.10 or higher)`. The InjectX README claims Python 3.8+ and the macOS env runs 3.9.6, so I initially set `python_version = "3.8"` to match.
+- **Cost:** ~2 minutes diagnosing + fixing.
+- **Cause:** mypy 1.18 dropped support for type-checking code targeting Python < 3.10. The `python_version` setting in mypy config is the *target* Python version (what mypy assumes for type semantics), not the runtime requirement — but mypy won't run if it's set below 3.10.
+- **Workaround / fix:** Set `python_version = "3.10"` in `[tool.mypy]`. The runtime target stays 3.8+ (the README claim is unchanged; the codebase uses `from __future__ import annotations` so PEP 585/604 syntax in annotations is fine at runtime on 3.8). mypy's `python_version` is just what it assumes for type-checking semantics.
+- **Prevent next time:** Documented in `system/environments.md` (Z.ai cloud sandbox block, Quirks). Future sessions setting up mypy config on this project should use `python_version = "3.10"` from the start.
+
+---
+## 2026-07-15 — Super Z / unknown (Session 4)
+
+- **Problem:** Shipping a `pyproject.toml` with `ruff` config that passes today was harder than expected. The natural starting rule set (E + F + W + I + UP + B) reports 119 errors — 61 UP045 (`Optional[X]` → `X | None`), 26 I001 (unsorted imports), 15 F401 (unused imports), 6 E402 (main.py's sys.path manipulation), 5 B904 (raise without `from`), 3 F841 (unused vars), 1 B007, 1 F601, 1 UP015. None are runtime bugs, but they all fail `ruff check` and would break CI.
+- **Cost:** ~10 minutes iterating the config (select → check statistics → ignore → per-file-ignore) to find a set that passes today while still being useful.
+- **Cause:** The codebase was written without a linter; ruff's modern rule sets flag patterns that are pervasive (UP045 especially — the codebase uses both `Optional[X]` and `X | None` forms).
+- **Workaround / fix:** Shipped `pyproject.toml` with `select = ["E", "F", "W"]`, `ignore = ["E501", "F401"]`, and `per-file-ignores = {"main.py" = ["E402"]}`. This passes clean today. Also fixed the 5 real-bug issues (F841 ×3, F601 ×1, B007 ×1) in a separate commit so the F841/F601/B007 rules could be enabled if a future session wants them. The 15 F401 unused-import cleanups are flagged in the backlog as a follow-up — once done, the `F401` ignore can be dropped. Tightening ruff to add I/UP/B is a future N6 sub-task.
+- **Prevent next time:** When shipping a new linter config to a project that didn't have one, run `ruff check . --statistics` FIRST to see the violation counts by rule, then pick a rule set that either (a) passes today or (b) is paired with a cleanup commit. Don't ship a config that fails — CI will break the moment it's wired up.
+
+---
+## 2026-07-15 — Super Z / unknown (Session 4)
+
+- **Problem:** When cleaning up `best_stage1_confidence` in `decrypt/ehi_decrypt.py`, ruff reported the variable as unused at line 207 (inside the success branch) — I removed that assignment, but ruff STILL reported it because the variable was ALSO initialized at line 181 (`best_stage1_confidence = 0.0`). I had to make a second pass to remove the initialization too.
+- **Cost:** ~2 minutes (one extra edit + re-run ruff).
+- **Cause:** I read the first ruff error, jumped to the cited line, removed the assignment there, and re-ran without checking whether the variable was referenced anywhere else. The init at line 181 was a few lines above the cited location and didn't appear in the error's context window.
+- **Workaround / fix:** Removed the init too. Final state: the variable is gone entirely; the explanatory comment now says "we don't need a separate confidence tracker here because each successful attempt is already recorded with confidence=0.3 in the trace, and the router selects the overall best."
+- **Prevent next time:** When a linter reports an unused variable, grep for ALL occurrences of that variable name in the file before editing — the cited line is one site, but the variable may be initialized, assigned, or referenced elsewhere. `grep -n <varname> <file>` is the cheapest pre-check.

@@ -53,3 +53,13 @@ outcome:
 - **Outcome:** done — zero data loss (every memory file moved via `git mv`, history preserved); `context-sync verify` passes; `memory/core.lock` records `version=0.2.0`. After this commit, future sessions need no package repo access — the protocol is vendored inside this repo at `.context/core/`.
 - **Open items:** none new. Backlog N1-N7 still open from prior sessions.
 - **Report:** no separate review report (migration session, not a code-review session). Migration details are in the commit message of `53838d0`.
+
+---
+## 2026-07-15 — Session 4
+
+- **Agent:** Super Z | **Model:** unknown (GLM family; system prompt states "GLM model developed by Z.ai" without a specific version — recorded as `unknown` per the protocol's no-guess rule) | **Platform:** Z.ai cloud sandbox — Debian 13 trixie, Python 3.12.13, Node v24.18.0 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** User said "Clone https://github.com/TisoneK/InjectX.git and start AGENTS.md" — followed the `.context/kickoff.md` protocol (cloud/sandbox edition). Standing Target applied (general sweep — scan everything, fix safe issues).
+- **Commits:** 8 product + 2 context = 10 total (`39c2dc7`..`ff7c1d1`). Product commits: 1 Medium frontend fix (INJECTX_PORT mismatch), 1 Medium audit fix (Pydantic v2 `.json()` → `model_dump_json()`), 4 Low fixes (unknown-protocol default, dialog filter, dead-code cleanup, typing.Any), 1 README alignment, 1 pyproject.toml. Context commits: 1 CHANGELOG (`docs:`), 1 review report (`docs(review):`). Plus this Phase 5 update (`chore(context):`).
+- **Outcome:** done — found & fixed 2 Medium bugs (one silent IPC-breakage on custom ports, one silently-broken audit-log persistence path), 4 Low bugs, aligned the README with v0.4 reality, shipped test infra config (advances N3). All Session 1+2 security fixes re-verified on this fresh cloud env. 9/9 pytest passing; ruff clean; mypy informational.
+- **Open items:** N1, N2, N3 (further advanced), N4, N5, N6 (partially advanced) in `tasks/backlog.md`. Recommended next: N4 (CI) is now the easiest win — `pyproject.toml` makes a `pytest && ruff check .` workflow trivial.
+- **Report:** .context/memory/reviews/2026-07-15-review-3.md
