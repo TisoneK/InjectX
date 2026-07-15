@@ -91,3 +91,16 @@ outcome:
 - **Outcome:** done — created `assets/configs/{format}/` directory tree (9 format subdirs + README + .gitkeep files), moved the 3 real .hc files from upload/ into assets/configs/hc/. Added backend endpoints: `GET /api/configs/assets` (list files in tree) and `POST /api/configs/import-assets` (batch-import all files). Added `INJECTX_AUTOIMPORT=1` env var for auto-import on startup. Added IMPORT ASSETS button to sidebar with live count badge (refreshed every 5s). Button streams real-time import logs to the activity console. Also fixed a pre-existing bug: format-specific normalizers were overwriting filepath/filename with empty strings — now filenames show correctly in /api/configs list and UI target cards. E2E verified: 3 files import in one click, all decode (scheme A5), no page errors, all 9 existing tests pass.
 - **Open items:** none new.
 - **Report:** this session entry.
+
+---
+## 2026-07-15 — Session 8
+- **Agent:** Super Z | **Model:** unknown (GLM family) | **Platform:** Z.ai cloud sandbox | **Role:** engineer
+- **Task:** User reported: "Rendering of decoded page is messed up i have to export the json to see results"
+- **Commits:** 1 product (`f1abf6a`..`5a32bac`). 2 files changed, 92 insertions, 34 deletions.
+- **Outcome:** done — root-caused 3 distinct rendering bugs in the detail view:
+  1. **highlightPayload() bug**: `$&amp;` in regex replacement appended literal "amp;" to every [crlf]/[split] marker, producing "[crlf]amp;Host: [proxy]amp;amp;..." instead of "[crlf]Host: [proxy][crlf][crlf]...". Fixed to `$&`; also converted [crlf] → ↵ line breaks and [split] → full-width separator.
+  2. **Notes iframe not rendering**: `sandbox="allow-same-origin"` blocked srcdoc content in some browsers. Removed sandbox attr; added auto-resize on iframe load event. Notes now render fully with colored fonts (verified: "R0meo" with colorful symbols visible).
+  3. **Section ordering**: HTTP PAYLOAD was buried below PROXY/DNS/PROTECTIONS. Reordered to put it right after SSH CREDENTIALS. Added `min-height: 0` to `.detail-content` (flexbox gotcha).
+  Also increased payload block max-height 320→480px, line-height 1.6→1.7.
+- **Open items:** none.
+- **Report:** this session entry.
