@@ -183,7 +183,7 @@ class StatusResponse(BaseModel):
 def _ir_to_response(config_id: str, normalized: NormalizedConfig) -> ConfigInfo:
     """Convert NormalizedConfig IR to API response model."""
     config_dict = None
-    if normalized and any(v is not None for k, v in normalized.dict().items()
+    if normalized and any(v is not None for k, v in normalized.model_dump().items()
                          if k not in ("filepath", "filename", "format", "ir_version",
                                       "is_encrypted", "decryption_status", "scheme_used",
                                       "errors", "warnings", "raw_data", "decrypt_trace")):
@@ -192,13 +192,13 @@ def _ir_to_response(config_id: str, normalized: NormalizedConfig) -> ConfigInfo:
         exclude_keys = {"filepath", "filename", "format", "ir_version", "is_encrypted",
                        "decryption_status", "scheme_used", "errors", "warnings",
                        "raw_data", "decrypt_trace", "payload_parsed"}
-        for k, v in normalized.dict().items():
+        for k, v in normalized.model_dump().items():
             if k not in exclude_keys and v is not None:
                 config_dict[k] = v
 
     trace_dict = None
     if normalized.decrypt_trace:
-        trace_dict = normalized.decrypt_trace.dict()
+        trace_dict = normalized.decrypt_trace.model_dump()
 
     confidence = 0.0
     if normalized.decrypt_trace and normalized.decrypt_trace.winning_scheme:
@@ -372,7 +372,7 @@ async def export_normalized_config(config_id: str = Query(...), format: str = Qu
     normalized = NormalizedConfig(**data)
 
     # Export: exclude raw_data and decrypt_trace (too verbose)
-    export = {k: v for k, v in normalized.dict().items()
+    export = {k: v for k, v in normalized.model_dump().items()
               if k not in ("raw_data", "decrypt_trace") and v is not None}
 
     return {"config_id": config_id, "ir_version": IR_VERSION, "export_format": format, "data": export}

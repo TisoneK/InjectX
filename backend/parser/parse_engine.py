@@ -118,7 +118,7 @@ def _normalize(
         normalized.raw_data = {
             "file_size": len(raw),
             "hex_preview": raw[:64].hex(),
-            "features": detect_result.features.dict(),
+            "features": detect_result.features.model_dump(),
         }
 
     return normalized
