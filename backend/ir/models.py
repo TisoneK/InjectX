@@ -120,6 +120,9 @@ class SchemeEnum(str, enum.Enum):
     # H-series: ZIVPN
     H1 = "H1"   # ZIV AES-256-GCM + PBKDF2-SHA256 (dot-separated salt.iv.ciphertext_mac)
 
+    # I-series: DARK Tunnel
+    I1 = "I1"   # DARK darktunnel:// base64(JSON) envelope; inner encryptedLockedConfig stays locked
+
     # Special
     NONE = "none"             # No decryption needed (plain text / ZIP + JSON)
     UNSUPPORTED = "unsupported"  # No public decryptor exists

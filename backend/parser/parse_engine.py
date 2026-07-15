@@ -99,11 +99,15 @@ def _normalize(
         if fmt == FormatEnum.EHI:
             normalized = _normalize_ehi_unencrypted(detect_result.filepath, raw)
 
-        # For DARK — no decryptor available
-        if fmt == FormatEnum.DARK:
+        # For DARK — the darktunnel:// base64(JSON) envelope failed to
+        # decode (a normal envelope is handled by scheme I1 and lands in
+        # the data-present branch above). This only fires on a genuinely
+        # malformed/unrecognized .dark file.
+        if fmt in (FormatEnum.DARK, FormatEnum.DARKTUNNEL):
             normalized.warnings.append(
-                "DARK TUNNEL VPN .dark files use proprietary encryption. "
-                "No public decryptor exists. Showing file metadata only."
+                "Could not decode this .dark file as a darktunnel:// "
+                "base64(JSON) envelope. It may be truncated or a different "
+                "DARK Tunnel export variant."
             )
 
         # For unknown encrypted — show hex preview
@@ -150,6 +154,8 @@ def _normalize_by_format(fmt: FormatEnum, data: dict) -> NormalizedConfig:
         return _normalize_vhd(data)
     elif fmt == FormatEnum.ZIV:
         return _normalize_ziv(data)
+    elif fmt in (FormatEnum.DARK, FormatEnum.DARKTUNNEL):
+        return _normalize_dark(data)
     else:
         # Generic fallback
         return NormalizedConfig(
@@ -470,6 +476,68 @@ def _normalize_hc(data: dict) -> NormalizedConfig:
 
     if config.payload:
         config.payload_parsed = _parse_payload(config.payload)
+
+    return config
+
+
+_DARK_TYPE_TO_PROTOCOL = {
+    "VLESS": ProtocolEnum.VLESS,
+    "VMESS": ProtocolEnum.VMESS,
+    "TROJAN": ProtocolEnum.TROJAN,
+    "SSH": ProtocolEnum.SSH,
+    "SHADOWSOCKS": ProtocolEnum.SHADOWSOCKS,
+    "HYSTERIA": ProtocolEnum.HYSTERIA,
+    "XRAY": ProtocolEnum.XRAY,
+}
+
+
+def _normalize_dark(data: dict) -> NormalizedConfig:
+    """Normalize a decoded DARK Tunnel envelope (scheme I1).
+
+    The envelope always exposes ``type`` and ``name``. When the author
+    locked the config, the credential body lives in the encrypted
+    ``encryptedLockedConfig`` blob (not recoverable without the key), so
+    only metadata is available. When unlocked, server fields sit directly
+    in the JSON and are mapped like any other format.
+    """
+    config = NormalizedConfig(filepath="", filename="", format=FormatEnum.DARK, is_encrypted=True)
+
+    dark_type = str(data.get("type") or "").upper()
+    config.protocol = _DARK_TYPE_TO_PROTOCOL.get(dark_type, ProtocolEnum.UNKNOWN)
+
+    locked = bool(data.get("encryptedLockedConfig"))
+
+    # Map any plaintext server fields (present on unlocked configs).
+    mapped = _apply_field_map({k: v for k, v in data.items() if k != "encryptedLockedConfig"})
+    for key, value in mapped.items():
+        if hasattr(config, key) and getattr(config, key) is None and not isinstance(value, (dict, list)):
+            setattr(config, key, value)
+
+    # Transport hint (e.g. trojanTunnelConfig.v2rayConfig.transportNetwork).
+    for sub_key in ("trojanTunnelConfig", "vlessTunnelConfig", "vmessTunnelConfig"):
+        sub = data.get(sub_key)
+        if isinstance(sub, dict):
+            v2 = sub.get("v2rayConfig")
+            if isinstance(v2, dict) and v2.get("transportNetwork"):
+                config.connection_type = v2["transportNetwork"]
+
+    if config.payload:
+        config.payload_parsed = _parse_payload(config.payload)
+
+    config.raw_data = {
+        "name": data.get("name"),
+        "type": data.get("type"),
+        "locked": locked,
+        "transport": config.connection_type,
+    }
+
+    if locked:
+        config.warnings.append(
+            "This DARK Tunnel config is LOCKED by its author: the "
+            "server/credentials are sealed in an encrypted "
+            "'encryptedLockedConfig' blob with a key that is not in the "
+            "file, so only type and name are recoverable."
+        )
 
     return config
 

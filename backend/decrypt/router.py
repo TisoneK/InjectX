@@ -41,6 +41,7 @@ from .hat_decrypt import decrypt_hat
 from .tls_decrypt import decrypt_tls
 from .vhd_decrypt import decrypt_vhd
 from .ziv_decrypt import decrypt_ziv
+from .dark_decrypt import decrypt_dark
 
 
 # ── Format → Applicable Schemes mapping ───────────────────────────────────────
@@ -56,8 +57,10 @@ FORMAT_SCHEMES: dict[FormatEnum, list[SchemeEnum]] = {
     FormatEnum.TLS: [SchemeEnum.F1],
     FormatEnum.VHD: [SchemeEnum.G1],
     FormatEnum.ZIV: [SchemeEnum.H1],
-    FormatEnum.DARK: [],           # No public decryptor
-    FormatEnum.DARKTUNNEL: [],     # In-app only
+    # DARK: outer darktunnel:// base64(JSON) envelope is plaintext (I1);
+    # the inner encryptedLockedConfig blob stays locked (no key in file).
+    FormatEnum.DARK: [SchemeEnum.I1],
+    FormatEnum.DARKTUNNEL: [SchemeEnum.I1],
     FormatEnum.LNK: [],            # No public decryptor (format recognized, payload encrypted)
     FormatEnum.OVPN: [],           # Plain text
     FormatEnum.CONF: [],           # Plain text
@@ -123,7 +126,14 @@ class SchemeRouter:
 
         for scheme in schemes:
             payload = self._try_scheme(scheme, format, raw, filepath, filename, trace)
-            if payload.status == DecryptStatusEnum.SUCCESS and payload.confidence > 0.0:
+            # Keep PARTIAL too: a partially-recovered payload (e.g. a DARK
+            # envelope whose credential body is locked, or a low-confidence
+            # TLS decode) still carries useful fields and must not be
+            # dropped in favour of a bare FAILED result.
+            if payload.status in (
+                DecryptStatusEnum.SUCCESS,
+                DecryptStatusEnum.PARTIAL,
+            ) and payload.confidence > 0.0:
                 candidates.append(payload)
 
         total_elapsed = (time.monotonic() - total_start) * 1000
@@ -196,6 +206,11 @@ class SchemeRouter:
             elif scheme == SchemeEnum.H1:
                 from audit.live_log import get_live_log
                 result = decrypt_ziv(scheme, raw, trace, live_log=get_live_log())
+
+            # I-series: DARK Tunnel
+            elif scheme == SchemeEnum.I1:
+                from audit.live_log import get_live_log
+                result = decrypt_dark(scheme, raw, trace, live_log=get_live_log())
 
             else:
                 result = DecryptedPayload(
