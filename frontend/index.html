@@ -118,9 +118,14 @@
           <span class="inject-btn-text">ACQUIRE TARGET</span>
           <span class="inject-btn-arrow">▶</span>
         </button>
+        <button id="btn-import-assets" class="assets-btn" title="Import all files from assets/configs/ in one batch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"/><path d="M9 12l3 3 3-3"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span class="assets-btn-text">IMPORT ASSETS</span>
+          <span class="assets-btn-count" id="assets-count-badge">0</span>
+        </button>
         <div class="sb-meta-row">
           <span class="sb-meta-pip"></span>
-          <span class="sb-meta-text">READY · AWAITING INPUT</span>
+          <span class="sb-meta-text" id="sb-meta-text">READY · AWAITING INPUT</span>
         </div>
       </div>
     </nav>

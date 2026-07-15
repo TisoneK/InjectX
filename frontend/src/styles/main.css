@@ -349,6 +349,37 @@ svg { display: block; }
   animation: dot-blink 2s ease-in-out infinite;
 }
 
+/* Assets import button (secondary, below ACQUIRE TARGET) */
+.assets-btn {
+  width: 100%; padding: 6px var(--gap-md);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-inset);
+  border: 1px solid var(--bd-bright);
+  color: var(--c-ice);
+  font-size: 10px; letter-spacing: 0.15em; font-weight: 700;
+  margin-top: var(--gap-sm);
+  transition: all 0.15s ease;
+}
+.assets-btn:hover {
+  background: rgba(0,217,255,0.08);
+  border-color: var(--c-ice);
+  color: var(--tx-bright);
+  box-shadow: 0 0 8px rgba(0,217,255,0.2);
+}
+.assets-btn-text { flex: 1; text-align: left; padding-left: var(--gap-sm); }
+.assets-btn-count {
+  font-size: 9px; padding: 1px 6px;
+  background: var(--c-ice-dim); color: var(--bg-base);
+  font-weight: 700; letter-spacing: 0;
+  min-width: 18px; text-align: center;
+}
+.assets-btn-count.empty { background: var(--bd-bright); color: var(--tx-muted); }
+.assets-btn.importing { opacity: 0.6; pointer-events: none; }
+.assets-btn.importing .assets-btn-text::after {
+  content: "..."; animation: dots 1s steps(4) infinite;
+}
+@keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+
 /* ═══ MAIN COLUMN ══════════════════════════════════════════════════════════ */
 .main-col {
   flex: 1; display: flex; flex-direction: column;

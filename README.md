@@ -24,6 +24,22 @@ npm start  # Electron auto-spawns the Python backend
 cd backend && python main.py
 ```
 
+### Sample Configs (assets/configs/)
+
+Drop real VPN config files into the per-format subdirectories under
+`assets/configs/` (e.g. `assets/configs/hc/myfile.hc`). The UI's
+sidebar has an **IMPORT ASSETS** button that walks the tree and parses
+every file in one batch — much faster than picking files one at a time.
+
+For dev/test, set `INJECTX_AUTOIMPORT=1` to auto-import every file on
+backend startup:
+
+```bash
+INJECTX_AUTOIMPORT=1 npm start
+```
+
+See `assets/configs/README.md` for the full layout.
+
 ## Supported Formats
 
 | Format | App | Extension | Encrypted | Decryptor Available |
@@ -85,6 +101,18 @@ Note: Newer app versions may not be supported yet (see
 
 ```
 injectx/
+├── assets/
+│   └── configs/                 # Sample configs for batch import
+│       ├── hc/                  # .hc files (HTTP Custom)
+│       ├── ehi/                 # .ehi files (HTTP Injector)
+│       ├── hat/                 # .hat / .ha files (HA Tunnel Plus)
+│       ├── tls/                 # .tls files (TLS Tunnel)
+│       ├── npv/                 # .npv4 / .inpv / .npv files (NapsternetV)
+│       ├── nsh/                 # .nsh files (SocksHTTP)
+│       ├── vhd/                 # .vhd files (V2Ray Tunnel)
+│       ├── dark/                # .dark / .drak / .dt files (DARK TUNNEL)
+│       ├── ovpn/                # .ovpn files (OpenVPN)
+│       └── README.md            # Layout docs
 ├── backend/
 │   ├── parser/
 │   │   ├── __init__.py          # Package exports
@@ -96,6 +124,13 @@ injectx/
 │   │   ├── tls_parser.py        # TLS Tunnel (.tls) — encrypted
 │   │   ├── npv_parser.py        # NapsternetV (.npv4) — encrypted
 │   │   └── nsh_parser.py        # SocksHTTP (.nsh) — encrypted
+│   ├── decrypt/
+│   │   ├── hc_decrypt.py        # HC legacy A1-A4 (XOR + AES-128-ECB)
+│   │   ├── hc_v27_decrypt.py    # HC v2.7+ A5 (ChaCha20 + RST + JKL)
+│   │   └── ...                  # Other format decryptors
+│   ├── audit/
+│   │   ├── trace.py             # Audit trail persistence
+│   │   └── live_log.py          # In-memory live log buffer (polled by UI)
 │   ├── tunnel/
 │   │   └── __init__.py          # Future tunnel engine
 │   ├── main.py                  # FastAPI server
@@ -128,6 +163,9 @@ injectx/
 | GET | `/api/config/export?config_id=` | Export normalized config |
 | GET | `/api/config/{id}/trace` | Get the decrypt audit trace |
 | GET | `/api/formats` | List supported formats |
+| GET | `/api/logs?since=N` | Live log stream (poll for entries with id > N) |
+| GET | `/api/configs/assets` | List files in `assets/configs/` (preview before import) |
+| POST | `/api/configs/import-assets` | Batch-import every file in `assets/configs/` |
 
 > **Note on `GET` vs `POST`:** `parse`, `detect`, and `export` are `GET`
 > because they are idempotent (no server state mutation). The frontend's

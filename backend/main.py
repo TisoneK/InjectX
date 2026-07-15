@@ -18,6 +18,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 from contextlib import asynccontextmanager
+import glob
 
 # Ensure backend/ is on sys.path so absolute imports (ir.models, parser, etc.) work
 # whether run as `python backend/main.py` or `cd backend && python main.py`
@@ -53,6 +54,13 @@ HOST = os.environ.get("INJECTX_HOST", "127.0.0.1")
 PORT = int(os.environ.get("INJECTX_PORT", "8742"))
 UPLOAD_DIR = Path(os.environ.get("INJECTX_UPLOAD_DIR", str(Path.home() / ".injectx" / "configs")))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Project-local sample-config tree. The UI's "IMPORT ASSETS" button
+# walks this and parses every file in one batch — much faster than
+# picking files one at a time when you have many to test. Set
+# INJECTX_AUTOIMPORT=1 to do the same on backend startup.
+ASSETS_CONFIGS_DIR = Path(__file__).resolve().parent.parent / "assets" / "configs"
+AUTOIMPORT = os.environ.get("INJECTX_AUTOIMPORT", "").lower() in ("1", "true", "yes", "on")
 
 # Cap on uploaded file size — 50 MiB. Config files for the supported formats
 # are kilobyte-scale; anything larger is almost certainly not a config file.
@@ -146,8 +154,58 @@ def _validate_config_path(filepath: str) -> Path:
 async def lifespan(app: FastAPI):
     logger.info("Backend v0.4 starting (IR version %s)...", IR_VERSION)
     logger.info("Config upload directory: %s", UPLOAD_DIR)
+    logger.info("Assets configs directory: %s", ASSETS_CONFIGS_DIR)
+
+    # Optional auto-import on startup. Useful for dev/test so you don't
+    # have to click IMPORT ASSETS every time. Disabled by default.
+    if AUTOIMPORT:
+        n = _import_assets_synchronously()
+        if n > 0:
+            logger.info("Auto-imported %d config(s) from %s", n, ASSETS_CONFIGS_DIR)
+
     yield
     logger.info("Backend shutting down...")
+
+
+def _import_assets_synchronously() -> int:
+    """Walk assets/configs/** and parse every file. Returns count imported.
+
+    Called from lifespan (auto-import) and from the /api/configs/import-assets
+    endpoint (manual import via UI button).
+    """
+    if not ASSETS_CONFIGS_DIR.exists():
+        return 0
+
+    from audit.live_log import get_live_log
+    live_log = get_live_log()
+
+    count = 0
+    # Walk every file under assets/configs/**/*
+    for path in sorted(ASSETS_CONFIGS_DIR.rglob("*")):
+        if not path.is_file():
+            continue
+        if path.name == ".gitkeep" or path.name == "README.md":
+            continue
+        ext = path.suffix.lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            live_log.add("SKIP", f"Skipping {path.relative_to(ASSETS_CONFIGS_DIR)} — unsupported extension '{ext}'", "warn")
+            continue
+
+        live_log.add("ACQUIRE", f"Importing {path.relative_to(ASSETS_CONFIGS_DIR)}", "info")
+        try:
+            config_id = str(uuid.uuid4())[:8]
+            normalized = parse_config(str(path))
+            config_store[config_id] = normalized.model_dump()
+            count += 1
+
+            fmt = normalized.format if isinstance(normalized.format, str) else normalized.format.value
+            status_raw = normalized.decryption_status
+            status = status_raw if isinstance(status_raw, str) else status_raw.value
+            live_log.add("OK", f"Imported {path.name} · {fmt.upper()} · {status.upper()}", "info")
+        except Exception as e:
+            live_log.add("ERR", f"Failed to import {path.name}: {e}", "err")
+
+    return count
 
 
 # ── App Setup ─────────────────────────────────────────────────────────────────
@@ -444,6 +502,54 @@ async def get_logs(since: int = Query(0, description="Return entries with id > s
     """
     log = get_live_log()
     return {"entries": log.since(since), "count": log.count}
+
+
+@app.post("/api/configs/import-assets")
+async def import_assets():
+    """Walk assets/configs/** and import every config file in one batch.
+
+    The user drops real .hc/.ehi/.hat/... files into the per-format
+    subdirectories under assets/configs/ in the repo, then clicks the
+    IMPORT ASSETS button in the UI. This endpoint walks the tree and
+    parses each file, streaming progress to the live log so the UI
+    console shows each import in real time.
+
+    Returns the count of successfully imported configs.
+    """
+    # Run the synchronous walker in a thread so we don't block the event
+    # loop while parsing many files. The live log writes are thread-safe.
+    import asyncio
+    n = await asyncio.to_thread(_import_assets_synchronously)
+    return {"imported": n, "total_in_store": len(config_store)}
+
+
+@app.get("/api/configs/assets")
+async def list_assets():
+    """List all config files currently in assets/configs/** without importing.
+
+    The UI calls this to show a preview ("3 files ready to import") next
+    to the IMPORT ASSETS button.
+    """
+    if not ASSETS_CONFIGS_DIR.exists():
+        return {"files": [], "total": 0, "dir": str(ASSETS_CONFIGS_DIR)}
+
+    files = []
+    for path in sorted(ASSETS_CONFIGS_DIR.rglob("*")):
+        if not path.is_file():
+            continue
+        if path.name in (".gitkeep", "README.md"):
+            continue
+        ext = path.suffix.lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            continue
+        rel = path.relative_to(ASSETS_CONFIGS_DIR)
+        files.append({
+            "path": str(rel),
+            "name": path.name,
+            "ext": ext,
+            "size": path.stat().st_size,
+        })
+    return {"files": files, "total": len(files), "dir": str(ASSETS_CONFIGS_DIR)}
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

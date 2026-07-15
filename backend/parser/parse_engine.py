@@ -62,6 +62,12 @@ def parse_config(filepath: str) -> NormalizedConfig:
         raw=raw,
     )
 
+    # Format-specific normalizers create a fresh NormalizedConfig with
+    # empty filepath/filename. Restore the real values from the detect
+    # result so the UI and /api/configs list can show the filename.
+    normalized.filepath = detect_result.filepath
+    normalized.filename = detect_result.filename
+
     return normalized
 
 
@@ -90,12 +96,6 @@ def _normalize(
         )
 
         # For EHI (ZIP), try extracting JSON directly (non-encrypted).
-        # NOTE: the common-metadata block below unconditionally reassigns
-        # `normalized.decryption_status = decrypt_payload.status`, so we do
-        # NOT set it here — the prior assignment was dead (overwritten before
-        # being read) and misleading. For unencrypted EHI the decrypt
-        # pipeline returns status=NOT_ENCRYPTED, which is what lands on the
-        # final IR either way.
         if fmt == FormatEnum.EHI:
             normalized = _normalize_ehi_unencrypted(detect_result.filepath, raw)
 
@@ -120,11 +120,13 @@ def _normalize(
 
     # Attach raw data for debugging (only when decryption failed)
     if decrypt_payload.status in (DecryptStatusEnum.FAILED, DecryptStatusEnum.NO_DECRYPTOR):
-        normalized.raw_data = {
-            "file_size": len(raw),
-            "hex_preview": raw[:64].hex(),
-            "features": detect_result.features.model_dump(),
-        }
+        # Don't overwrite raw_data if a format normalizer already set it
+        if not normalized.raw_data:
+            normalized.raw_data = {
+                "file_size": len(raw),
+                "hex_preview": raw[:64].hex(),
+                "features": detect_result.features.model_dump(),
+            }
 
     return normalized
 

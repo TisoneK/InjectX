@@ -17,6 +17,8 @@ contextBridge.exposeInMainWorld("vpnAPI", {
   checkHealth: () => ipcRenderer.invoke("check-health"),
   getDecryptTrace: (configId) => ipcRenderer.invoke("get-decrypt-trace", configId),
   getLogs: (since) => ipcRenderer.invoke("get-logs", since),
+  importAssets: () => ipcRenderer.invoke("import-assets"),
+  listAssets: () => ipcRenderer.invoke("list-assets"),
   onFilesSelected: (callback) => { ipcRenderer.on("files-selected", (_event, filePaths) => callback(filePaths)); },
 
   // Window controls for CustomTitleBar

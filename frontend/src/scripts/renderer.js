@@ -976,6 +976,83 @@ function renderSystemView() {
 //   FILE OPERATIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════
+//   ASSETS IMPORT — batch import from assets/configs/{format}/
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function refreshAssetsCount() {
+  const badge = $("#assets-count-badge");
+  if (!badge) return;
+  try {
+    const result = await API.listAssets();
+    if (result && typeof result.total === "number") {
+      badge.textContent = String(result.total);
+      badge.classList.toggle("empty", result.total === 0);
+    }
+  } catch (e) {
+    // Backend may briefly be unreachable during init — ignore
+  }
+}
+
+async function importAssets() {
+  const btn = $("#btn-import-assets");
+  if (!btn) return;
+
+  // Check what's available first
+  let list;
+  try {
+    list = await API.listAssets();
+  } catch (e) {
+    showToast("Failed to query assets", "error");
+    logEvent("ERR", `Assets query failed: ${e.message}`, "err");
+    return;
+  }
+  if (!list || !list.total) {
+    showToast("No files in assets/configs/", "info");
+    logEvent("INFO", "No files found in assets/configs/ — drop files into assets/configs/{format}/ and try again", "info");
+    return;
+  }
+
+  logEvent("CMD", `Batch importing ${list.total} file(s) from assets/configs/...`, "info");
+  btn.classList.add("importing");
+
+  // Start live-log polling so the user sees each import as it happens
+  startLiveLogPolling(60000);
+
+  try {
+    const result = await API.importAssets();
+    stopLiveLogPolling();
+    // Drain final entries
+    try {
+      const tail = await API.getLogs(state.liveLogSince);
+      if (tail && tail.entries) {
+        for (const e of tail.entries) {
+          const type = (e.tag === "OK") ? "ok" : (e.tag === "ERR") ? "err" : (e.tag === "SKIP") ? "warn" : "info";
+          logEvent(e.tag, e.msg, type);
+          state.liveLogSince = Math.max(state.liveLogSince, e.id);
+        }
+      }
+    } catch (e) { /* ignore */ }
+
+    if (result && result.error) {
+      logEvent("ERR", `Batch import failed: ${result.error}`, "err");
+      showToast("Import failed", "error");
+    } else {
+      const n = result?.imported ?? 0;
+      logEvent("OK", `Batch import complete · ${n} config(s) imported`, "ok");
+      showToast(`Imported ${n} config(s) from assets/`, "success");
+      await loadConfigs();
+    }
+  } catch (err) {
+    stopLiveLogPolling();
+    logEvent("ERR", `Batch import failed: ${err.message}`, "err");
+    showToast("Import failed", "error");
+  } finally {
+    btn.classList.remove("importing");
+    await refreshAssetsCount();
+  }
+}
+
 async function openConfig() {
   try {
     logEvent("CMD", "Opening file picker...", "info");
@@ -1283,8 +1360,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const openBtn = $("#btn-open-config");
   if (openBtn) openBtn.addEventListener("click", openConfig);
 
+  const importAssetsBtn = $("#btn-import-assets");
+  if (importAssetsBtn) importAssetsBtn.addEventListener("click", importAssets);
+
   const clearBtn = $("#btn-clear-all");
   if (clearBtn) clearBtn.addEventListener("click", clearAllConfigs);
+
+  // Initial assets count badge
+  refreshAssetsCount();
+  // Refresh assets count periodically (so dropping a new file shows up)
+  setInterval(refreshAssetsCount, 5000);
 
   const clearArchiveBtn = $("#btn-clear-archive");
   if (clearArchiveBtn) clearArchiveBtn.addEventListener("click", () => {
