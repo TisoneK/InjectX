@@ -49,3 +49,12 @@ if literally nothing slowed you down.
 - **Cause:** npm 11's `allow-scripts` feature defaults to skipping postinstall scripts unless explicitly approved.
 - **Workaround / fix:** Verified electron was in `node_modules/electron/` and that `npx electron --version` would work locally (it would NOT work in this sandbox due to no display server, but the binary is present for desktop machines).
 - **Prevent next time:** Document in `system/environments.md` that `npm install --no-audit --no-fund` works but electron postinstall is skipped — note this is fine because the binary still installs, and the postinstall script only handles native module rebuilds which aren't needed for this project.
+
+---
+## 2026-07-15 — Claude Code / claude-fable-5 (Session 2)
+
+- **Problem:** After editing `main.py`, I restarted the backgrounded backend with `pkill -f "python main.py"` + relaunch, but the OLD process survived the pkill and kept holding port 8799. The new process failed to bind (`Errno 48 address already in use`, visible only in its log) and I unknowingly kept cur/testing the STALE, unpatched backend — so my symlink fix appeared to "not work" (attack still returned 200).
+- **Cost:** ~1 full test cycle + a few minutes of confusion diagnosing why a correct fix seemed ineffective, before checking `lsof` and finding the stale PID.
+- **Cause:** `pkill -f` on a backgrounded process launched from a prior Bash tool call is unreliable in this harness (fresh shell per call; the background job isn't necessarily in pkill's match set or dies too slowly). uvicorn logs the bind failure but keeps the process alive serving nothing useful, and there's no foreground error.
+- **Workaround / fix:** Always verify the port is actually free before restarting: `lsof -iTCP:<port> -sTCP:LISTEN -n -P`, then `kill -9 <specific-pid>`. Don't trust `pkill` alone. Recorded in `system/environments.md` quirks for this machine.
+- **Prevent next time:** For iterative backend testing, either (a) kill by explicit PID captured from `$!` at launch and confirm with `lsof`, or (b) use a fresh port per restart. A stale-server check (health endpoint returning old behavior after a code change) should trigger an immediate `lsof` before further debugging.

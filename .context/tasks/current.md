@@ -5,8 +5,5 @@ session start (protocol Step 3), clear it at session end (Step 15). If
 you find a stale in-progress entry here, a prior session died mid-task —
 check its session entry and backlog before starting.
 
-- **Session:** 2026-07-15 — Super Z / unknown (GLM family)
-- **Task:** General sweep — discover InjectX, review all focus areas, fix safe issues, flag architectural ones, push to main, write `.context/reviews/` report. **Done.**
-- **Status:** done — 8 commits pushed (`23ea9cf`..`c90fafb`), 7 fixes applied (1 critical security, 1 high security, 2 medium, 3 low), 7 nice-to-have items flagged in backlog. See `.context/reviews/2026-07-15-review.md` and `CHANGELOG.md`.
-
-- **Session update:** Added environment-variable support for the backend host/port/upload directory and verified it with a regression test in `backend/tests/test_env_config.py`.
+- **Session:** idle — no task in progress.
+- **Last session:** 2026-07-15 Session 2 (Claude Fable 5, local macOS) — **done.** General sweep. Found & fixed a High-severity symlink bypass that reopened the C1 path-traversal fix (`3d12269`, with `test_path_validation.py`), plus CORS-tracks-PORT (`b08043b`) and a Pydantic `json_encoders` deprecation cleanup (`5665cd7`). 6 commits total (`3d12269`..`6f4533e`). See `.context/reviews/2026-07-15-review-2.md`.

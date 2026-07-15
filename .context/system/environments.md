@@ -39,3 +39,21 @@ block (and its "last verified" date) every time you run on it again.
   - `GIT_TOKEN` may be stored at `.context/secrets/github-pat` (0600 perms, gitignored — verified via `git check-ignore`) for convenience within a session. Read it back inline at the start of each push command: `GIT_TOKEN=$(head -1 .context/secrets/github-pat)`.
   - Workspace has predefined subdirs: `scripts/`, `download/`, `upload/`, `skills/`, `tool-results/`. Project repos should clone directly into `/home/z/my-project/<REPO>` (sibling to those), not into a subdir.
   - **Electron cannot launch in this sandbox** (no display server). `npm start` will fail. Test the backend in isolation with `python main.py` + `curl`; test frontend logic by reading the JS, not by running the app.
+
+---
+## Local macOS dev machine (last verified 2026-07-15)
+
+- **Identify by:** `$USER=bao`; repo cwd `/Users/bao/Code/InjectX`; package clone sibling at `/Users/bao/Code/context` (canonical name, NOT `.context`); shell reports `PDT`/`PST` timezone. macOS.
+- **OS:** Darwin 24.6.0 (macOS).
+- **Runtimes:** system Python **3.9.6** (`/usr/bin/python3`; older than the Z.ai sandbox's 3.12). The codebase imports and runs fine on 3.9: the module-level `frozenset[str]` / `dict[str, dict]` annotations in `main.py` evaluate because builtin generics gained `__class_getitem__` in Python 3.9 (PEP 585). Node **v24.17.0**, npm 11.13.0, git 2.39.5 (Apple Git-154). No bare `python` on PATH — only `python3`; inside an activated venv `python` resolves.
+- **Package managers:** `pip` in a project venv; `npm` for frontend.
+- **Agent type:** LOCAL agent (IDE-integrated). Uses the user's existing git credentials — **no PAT, no cloning, no token dance.** The cloud-edition PAT steps in `.context/inefficiencies/log.md` and `flaws/log.md` do NOT apply here.
+- **Verified commands (all run successfully this session on InjectX):**
+  - Backend deps: `cd backend && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt` — installs `fastapi 0.128.8, uvicorn 0.39.0, pydantic 2.13.4, pycryptodome 3.23.0, python-multipart 0.0.20` cleanly on Python 3.9.6.
+  - Tests: `cd backend && source .venv/bin/activate && pip install pytest && python -m pytest tests/ -q` → 9 passed.
+  - Backend start (isolated, does NOT touch the user's real `~/.injectx`): `INJECTX_PORT=8799 INJECTX_UPLOAD_DIR=<scratch>/uploads python main.py` → binds `127.0.0.1:8799`; `curl http://127.0.0.1:8799/api/health` → `{"status":"ok","version":"0.4.0","ir_version":"1.0"}`.
+  - `git push origin main` — works out of the box with the user's credentials (no PAT).
+- **Quirks:**
+  - **Env vars DO persist within a single Bash tool call** (`export X=y && cmd`) but the Claude Code harness starts a fresh shell per call, so exports do NOT carry across separate calls — same net effect as the Z.ai sandbox, different cause. Chain `export`s inline within one call, or set them on the same command line.
+  - **`pkill -f "python main.py"` is unreliable for killing a backgrounded backend here** — a launched backend can survive the pkill and keep holding its port, so a restarted server fails to bind (`Errno 48 address already in use`) and you unknowingly keep testing the OLD process. **Verify the kill:** `lsof -iTCP:<port> -sTCP:LISTEN -n -P` and `kill -9 <pid>` the specific PID before restarting. Cost this session: ~1 wasted test cycle (tested a stale unpatched backend, saw the "fix" apparently fail).
+  - Local wall-clock date can differ from `date -u`: this machine is PDT (UTC-7), so late-evening local time is already the next UTC day. Session dates follow `date -u +%F` (protocol Pitfall #41) → 2026-07-15 here even though local was 2026-07-14 evening. Session 1 (cloud) used the same UTC convention, so dates stay consistent.

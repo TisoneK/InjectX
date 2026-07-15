@@ -54,3 +54,14 @@ relitigating them. To reverse one, append a new ADR that supersedes it.
 - **Consequences:**
   - The git log is a clean record of "what changed in the product" vs "what changed in the agent memory" — useful for reviewers who care about only one.
   - Future agents must continue this discipline. A mixed commit is a protocol violation; log it as a flaw.
+
+---
+## ADR-5: Path validation re-checks the RESOLVED target's extension (2026-07-15)
+
+- **Status:** accepted (hardens ADR-1; does not supersede it)
+- **Context:** ADR-1 added `_validate_config_path` with an extension allowlist and `Path.resolve(strict=True)`. Session 2 verified live that the check was incomplete: the allowlist was applied to the *caller-supplied* path's extension, but `resolve()` follows symlinks, so a link named `x.ehi` pointing at `/etc/passwd` passed the check and the endpoint read the target file. This reopened C1's arbitrary-local-file-read for any process that can plant a symlink (trivial under the established threat model — any local process can call the loopback API).
+- **Decision:** After `raw.resolve(strict=True)`, re-check `resolved.suffix.lower()` against `ALLOWED_EXTENSIONS` and reject (400) if the resolved target has a disallowed extension. The pre-resolution extension check stays (fast reject before touching the filesystem); the post-resolution check is the authoritative one.
+- **Consequences:**
+  - Legitimate same-extension symlinks (`config.ehi -> archive.ehi`) still work. Only cross-extension links (the attack) are rejected. A legitimate symlink to a file with a *different but still-allowed* extension also works; a symlink to a no-extension or disallowed-extension file is rejected — acceptable, since a real config always carries a supported extension.
+  - Future agents must NOT remove the resolved-extension re-check. `_validate_config_path` has now been the site of two related traversal bugs (C1, S2-1); treat any change to it as security-sensitive and add a traversal test (including the symlink-with-allowed-extension vector) before merging.
+  - Regression coverage lives in `backend/tests/test_path_validation.py`.
