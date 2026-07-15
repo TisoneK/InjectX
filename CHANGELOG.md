@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Internal: migrated the IR serialization calls from Pydantic v2's
   deprecated `.dict()` method to `.model_dump()`. Removes log noise and
   prepares for Pydantic v3.
+- The backend now honors `INJECTX_HOST`, `INJECTX_PORT`, and
+  `INJECTX_UPLOAD_DIR` for its runtime configuration, matching the
+  documented environment-variable contract.
 - Internal: the backend now uses the `logging` module for startup and
   shutdown messages instead of `print()`, with timestamps and severity
   levels.

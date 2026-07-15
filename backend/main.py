@@ -48,7 +48,9 @@ logging.basicConfig(
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-UPLOAD_DIR = Path.home() / ".injectx" / "configs"
+HOST = os.environ.get("INJECTX_HOST", "127.0.0.1")
+PORT = int(os.environ.get("INJECTX_PORT", "8742"))
+UPLOAD_DIR = Path(os.environ.get("INJECTX_UPLOAD_DIR", str(Path.home() / ".injectx" / "configs")))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Cap on uploaded file size — 50 MiB. Config files for the supported formats
@@ -417,4 +419,4 @@ async def get_decrypt_trace(config_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8742)
+    uvicorn.run(app, host=HOST, port=PORT)
