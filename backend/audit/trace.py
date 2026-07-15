@@ -56,7 +56,12 @@ class AuditLog:
             return
         try:
             path = self._log_dir / f"{key}.json"
-            path.write_text(trace.json(indent=2))
+            # Pydantic v2: `.json()` is deprecated and `.json(indent=...)`
+            # raises TypeError (`dumps_kwargs` no longer supported).
+            # `model_dump_json(indent=...)` is the supported replacement
+            # (Session 1 migrated `.dict()` → `model_dump()`; this completes
+            # the v2 migration by handling the `.json()` form too).
+            path.write_text(trace.model_dump_json(indent=2))
         except Exception:
             pass
 
