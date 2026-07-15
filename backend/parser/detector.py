@@ -49,6 +49,7 @@ EXTENSION_MAP: dict[str, FormatEnum] = {
     ".ovpn": FormatEnum.OVPN,
     ".conf": FormatEnum.CONF,
     ".ziv": FormatEnum.ZIV,
+    ".lnk": FormatEnum.LNK,
 }
 
 
@@ -225,7 +226,7 @@ def _validate_format(path: Path, format_hint: FormatEnum) -> bool:
 
         elif format_hint in (FormatEnum.HC, FormatEnum.HAT, FormatEnum.DARK,
                              FormatEnum.TLS, FormatEnum.NPV, FormatEnum.NSH,
-                             FormatEnum.VHD, FormatEnum.ZIV):
+                             FormatEnum.VHD, FormatEnum.ZIV, FormatEnum.LNK):
             return path.exists() and path.stat().st_size > 0
 
         elif format_hint == FormatEnum.DARKTUNNEL:

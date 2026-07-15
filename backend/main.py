@@ -73,7 +73,7 @@ MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 ALLOWED_EXTENSIONS: frozenset[str] = frozenset({
     ".ehi", ".hc", ".hat", ".ha", ".dark", ".drak", ".dt", ".darktunnel",
     ".tls", ".npv4", ".inpv", ".npv", ".nsh", ".vhd", ".ovpn", ".conf",
-    ".ziv",
+    ".ziv", ".lnk",
 })
 
 # In-memory config store (keyed by ID → NormalizedConfig dict)

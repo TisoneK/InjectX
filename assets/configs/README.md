@@ -17,6 +17,7 @@ assets/configs/
 ├── vhd/     ← V2Ray/NPV Tunnel (.vhd)
 ├── dark/    ← DARK TUNNEL VPN (.dark, .drak, .dt)
 ├── ziv/     ← ZIVPN (.ziv)
+├── lnk/     ← LNK Config (.lnk)
 └── ovpn/    ← OpenVPN (.ovpn)
 ```
 

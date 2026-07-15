@@ -43,6 +43,7 @@ class FormatEnum(str, enum.Enum):
     OVPN = "ovpn"
     CONF = "conf"
     ZIV = "ziv"
+    LNK = "lnk"
     ENCRYPTED_UNKNOWN = "encrypted_unknown"
     UNKNOWN = "unknown"
 

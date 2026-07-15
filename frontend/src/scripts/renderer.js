@@ -71,22 +71,55 @@ function genSessionId() {
 }
 
 // ── Format metadata (user-facing; no scheme IDs, no decryptor sources) ───────
+// icon: path to the format's app icon (copied to frontend/src/assets/ for
+//       CSP-safe same-origin loading). Used on target cards + detail view.
 const FORMAT_META = {
-  ehi:   { name: "HTTP Injector",  color: "var(--c-ehi)",   short: "EHI",   exts: [".ehi"] },
-  hc:    { name: "HTTP Custom",    color: "var(--c-hc)",    short: "HC",    exts: [".hc"] },
-  hat:   { name: "HA Tunnel Plus", color: "var(--c-hat)",   short: "HAT",   exts: [".hat", ".ha"] },
-  dark:  { name: "DARK TUNNEL",    color: "var(--c-dark)",  short: "DARK",  exts: [".dark", ".drak", ".dt"] },
-  tls:   { name: "TLS Tunnel",     color: "var(--c-tls)",   short: "TLS",   exts: [".tls"] },
-  npv:   { name: "NapsternetV",    color: "var(--c-npv)",   short: "NPV",   exts: [".npv4", ".inpv", ".npv"] },
-  nsh:   { name: "SocksHTTP",      color: "var(--c-nsh)",   short: "NSH",   exts: [".nsh"] },
-  vhd:   { name: "V2Ray Tunnel",   color: "var(--c-vhd)",   short: "VHD",   exts: [".vhd"] },
-  ziv:   { name: "ZIVPN",          color: "var(--c-vhd)",   short: "ZIV",   exts: [".ziv"] },
-  ovpn:  { name: "OpenVPN",        color: "var(--c-ovpn)",  short: "OVPN",  exts: [".ovpn"] },
-  unknown: { name: "Unknown",      color: "var(--c-unk)",   short: "UNK",   exts: [] },
+  ehi:   { name: "HTTP Injector",  color: "var(--c-ehi)",   short: "EHI",   exts: [".ehi"],   icon: "src/assets/icon-ehi.jpg" },
+  hc:    { name: "HTTP Custom",    color: "var(--c-hc)",    short: "HC",    exts: [".hc"],    icon: "src/assets/icon-hc.png" },
+  hat:   { name: "HA Tunnel Plus", color: "var(--c-hat)",   short: "HAT",   exts: [".hat", ".ha"], icon: "src/assets/icon-ha.jpg" },
+  dark:  { name: "DARK TUNNEL",    color: "var(--c-dark)",  short: "DARK",  exts: [".dark", ".drak", ".dt"], icon: "src/assets/icon-dark.png" },
+  tls:   { name: "TLS Tunnel",     color: "var(--c-tls)",   short: "TLS",   exts: [".tls"],   icon: null },
+  npv:   { name: "NapsternetV",    color: "var(--c-npv)",   short: "NPV",   exts: [".npv4", ".inpv", ".npv"], icon: "src/assets/icon-npv.png" },
+  nsh:   { name: "SocksHTTP",      color: "var(--c-nsh)",   short: "NSH",   exts: [".nsh"],   icon: null },
+  vhd:   { name: "V2Ray Tunnel",   color: "var(--c-vhd)",   short: "VHD",   exts: [".vhd"],   icon: null },
+  ziv:   { name: "ZIVPN",          color: "var(--c-vhd)",   short: "ZIV",   exts: [".ziv"],   icon: "src/assets/icon-ziv.png" },
+  lnk:   { name: "LNK Config",     color: "var(--c-unk)",   short: "LNK",   exts: [".lnk"],   icon: "src/assets/icon-lnk.jpg" },
+  ovpn:  { name: "OpenVPN",        color: "var(--c-ovpn)",  short: "OVPN",  exts: [".ovpn"],  icon: null },
+  unknown: { name: "Unknown",      color: "var(--c-unk)",   short: "UNK",   exts: [],         icon: null },
 };
 
 function formatMeta(fmt) {
   return FORMAT_META[fmt] || FORMAT_META.unknown;
+}
+
+/**
+ * Create a format icon element. If the format has an app icon, show it
+ * as an <img>. Otherwise fall back to the short text badge.
+ */
+function createFormatIcon(fmt, size = 32) {
+  const meta = formatMeta(fmt);
+  if (meta.icon) {
+    return el("img", {
+      src: meta.icon,
+      alt: meta.short,
+      className: "format-icon-img",
+      style: `width: ${size}px; height: ${size}px;`,
+      title: meta.name,
+      onerror: function () {
+        // If the icon fails to load, replace with text badge
+        const badge = el("span", {
+          className: `format-badge format-${fmt || "unknown"}`,
+          style: `--card-accent: ${meta.color}; width: ${size}px; height: ${size}px; display: inline-flex; align-items: center; justify-content: center;`,
+        }, [meta.short]);
+        this.replaceWith(badge);
+      },
+    });
+  }
+  // No icon — use text badge
+  return el("span", {
+    className: `format-badge format-${fmt || "unknown"}`,
+    style: `--card-accent: ${meta.color}; width: ${size}px; height: ${size}px; display: inline-flex; align-items: center; justify-content: center;`,
+  }, [meta.short]);
 }
 
 // Translate raw decryption_status into a user-facing tri-state
@@ -383,7 +416,10 @@ function renderTargetCard(cfg) {
     onClick: () => showConfigDetail(cfg.id),
   }, [
     el("div", { className: "tc-head" }, [
-      el("span", { className: "tc-format" }, [meta.short]),
+      el("div", { className: "tc-format-row" }, [
+        createFormatIcon(cfg.format, 28),
+        el("span", { className: "tc-format" }, [meta.short]),
+      ]),
       el("span", { className: `tc-status ${status}` }, [
         el("span", { className: "tc-status-dot" }),
         statusLabel,
@@ -524,6 +560,7 @@ function renderConfigDetail(config) {
   container.appendChild(el("div", { className: "detail-header" }, [
     el("div", { className: "detail-title-block" }, [
       el("div", { className: "detail-format-row" }, [
+        createFormatIcon(config.format, 40),
         el("span", {
           className: "detail-format-badge",
           style: `--card-accent: ${meta.color}; color: ${meta.color}`,
@@ -904,13 +941,14 @@ function renderArsenalView() {
     { id: "nsh",  desc: "SocksHTTP configuration file. Password-derived encryption with salted key derivation." },
     { id: "vhd",  desc: "V2Ray / Xray tunnel configuration. Encrypted envelope around an outboundBean JSON structure." },
     { id: "ziv",  desc: "ZIVPN configuration file. AES-256-GCM with PBKDF2-SHA256 key derivation. Dot-separated salt.iv.ciphertext_mac format." },
+    { id: "lnk",  desc: "LNK configuration file. Encrypted VPN config format. No public decryptor available — file metadata only." },
     { id: "dark", desc: "DARK TUNNEL VPN proprietary configuration. Encryption envelope is closed-source; payload cannot be extracted." },
     { id: "ovpn", desc: "OpenVPN plain-text configuration file. No encryption envelope; parser support is limited." },
   ];
 
   for (const fmt of formats) {
     const meta = formatMeta(fmt.id);
-    const decryptable = fmt.id !== "dark" && fmt.id !== "ovpn";
+    const decryptable = fmt.id !== "dark" && fmt.id !== "ovpn" && fmt.id !== "lnk";
     const encrypted = fmt.id !== "ehi" && fmt.id !== "ovpn";
 
     const tags = [];
@@ -921,7 +959,7 @@ function renderArsenalView() {
     }
     if (decryptable) {
       tags.push(el("span", { className: "ac-tag ok" }, ["EXTRACTABLE"]));
-    } else if (fmt.id === "dark") {
+    } else if (fmt.id === "dark" || fmt.id === "lnk") {
       tags.push(el("span", { className: "ac-tag danger" }, ["NO ACCESS"]));
     } else {
       tags.push(el("span", { className: "ac-tag warn" }, ["STUB"]));
@@ -932,7 +970,10 @@ function renderArsenalView() {
       style: `--card-accent: ${meta.color}`,
     }, [
       el("div", { className: "ac-head" }, [
-        el("span", { className: "ac-name", style: `color: ${meta.color}` }, [meta.name]),
+        el("div", { className: "ac-head-left" }, [
+          createFormatIcon(fmt.id, 36),
+          el("span", { className: "ac-name", style: `color: ${meta.color}` }, [meta.name]),
+        ]),
         el("span", { className: "ac-ext" }, [meta.exts.join(" / ")]),
       ]),
       el("p", { className: "ac-desc" }, [fmt.desc]),

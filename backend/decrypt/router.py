@@ -57,6 +57,7 @@ FORMAT_SCHEMES: dict[FormatEnum, list[SchemeEnum]] = {
     FormatEnum.ZIV: [SchemeEnum.H1],
     FormatEnum.DARK: [],           # No public decryptor
     FormatEnum.DARKTUNNEL: [],     # In-app only
+    FormatEnum.LNK: [],            # No public decryptor (format recognized, payload encrypted)
     FormatEnum.OVPN: [],           # Plain text
     FormatEnum.CONF: [],           # Plain text
     FormatEnum.ENCRYPTED_UNKNOWN: [],

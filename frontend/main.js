@@ -38,7 +38,7 @@ let backendProcess = null;
 // accepts them. Now one constant feeds both call sites.
 const CONFIG_EXTENSIONS = [
   "ehi", "hc", "hat", "ha", "dark", "drak", "dt", "darktunnel",
-  "tls", "npv4", "inpv", "npv", "nsh", "vhd", "ovpn", "conf", "ziv",
+  "tls", "npv4", "inpv", "npv", "nsh", "vhd", "ovpn", "conf", "ziv", "lnk",
 ];
 
 function configOpenDialogOptions() {
