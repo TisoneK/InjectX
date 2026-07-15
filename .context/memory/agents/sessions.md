@@ -104,3 +104,12 @@ outcome:
   Also increased payload block max-height 320→480px, line-height 1.6→1.7.
 - **Open items:** none.
 - **Report:** this session entry.
+
+---
+## 2026-07-15 — Session 9
+- **Agent:** Super Z | **Model:** unknown (GLM family) | **Platform:** Z.ai cloud sandbox | **Role:** engineer
+- **Task:** User: "Pull changes i made in local repo, i added configs and icon you need to set icon for the app also for the taskbar icon and test new configs files i have added for other formats"
+- **Commits:** 1 product (`1e1b271`..`7b8a0c2`). 18 files changed.
+- **Outcome:** done — (1) App icon wired into Electron BrowserWindow + macOS dock + sidebar + titlebar. Added electron-builder config to package.json with per-platform icon paths. (2) Pulled user's new config files: 4 .dark, 7 .ehi, 7 new .hc, 2 .tls, 6 .ziv. (3) Added EHI v2 decryptor (scheme B2): reverse-engineered from ENIGMATIC-MAN — L1 AES-256-CBC + L2 AES-128-CBC + XXTEA + Argon2id + ChaCha20-Poly1305. All 6 .ehi files now decode (was 0/6). (4) Fixed EHI detector: was rejecting v2 binary format (\\x00\\x03ehi header) because it only accepted ZIPs. (5) Added ZIV format (scheme H1): AES-256-GCM + PBKDF2-SHA256. 6 .ziv files recognized; 0 decode (password rotated). (6) Fixed TLS parser: handles newer base64_payload::::: format. (7) Added argon2-cffi to requirements. Test results: HC 13/13 ✅, EHI 6/6 ✅ (NEW), DARK 0/4 (proprietary), TLS 0/2 (key rotated), ZIV 0/6 (password rotated). All 9 existing tests pass.
+- **Open items:** TLS Tunnel and ZIVPN keys have been rotated in newer app builds — not yet publicly reversed. DARK remains proprietary with no public decryptor.
+- **Report:** this session entry.
