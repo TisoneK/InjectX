@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Open a whole folder of configs at once (new "Open Folder" button, or
+  `targets openfolder` / `targets import <folder>` in the terminal), and
+  the app remembers it — the pickers reopen where you last were, and your
+  last folder is reloaded automatically the next time you launch, like an
+  IDE reopening your last project.
 - The Terminal can point at files anywhere on your machine, not just
   loaded ones: `targets info`/`targets debug` accept a file path, quoted
   paths with spaces work, and `targets pick` opens the file picker. The
