@@ -185,3 +185,12 @@ outcome:
 - **Outcome:** done — Ran the app e2e to diagnose: (1) the user's app was on a STALE backend (the screenshot's EHI showed FAILED, but a fresh backend decodes EHI 6/6, HC 13/13, ZIV 6/6, DARK 4/4 — a restart fixes it); (2) even on success the detail view rendered near-empty because formats like EHI/ZIV keep their data in `raw_data._all_fields`, unmapped to IR slots (an EHI showed 1 row despite 21 fields). Shipped `feat(ui)`: activity log → 340px right dock (`.work-area` flex); output redesign — compact status strip, hero tiles (host/port/protocol), 2-col card grid, full-width "DECODED FIELDS" table (all extracted fields), notes pick up `configMessage`/`file.msg`, and fixed a latent `.hidden` bug (raw-JSON never collapsed). Verified in-browser vs real HC/EHI configs; no console errors.
 - **Open items:** N9 RESOLVED (all decoded fields now visible). User should restart the app for the current backend. N10/N11/N12/N13 unchanged.
 - **Report:** .context/memory/reviews/2026-07-16-review.md
+
+---
+## 2026-07-16 — Session 18
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** User (Windows) shared `sample_results.zip` — "only HC works as desired" — and asked for copy icons on logs + fields (server/host/proxy).
+- **Commits:** 3 (`3335c71` fix(api) export + `629ee42` feat(ui) copy buttons + changelog `docs`) + this Phase 5 `chore(context)` + review `docs(review)`.
+- **Outcome:** done — Root-caused "only HC works" from the exports: (1) `/api/config/export` DROPPED `raw_data`, and HC is the only format that maps data to top-level IR fields — HTTP Injector/ZIVPN/DARK keep it in `raw_data._all_fields`, so their exports came out near-empty. Fixed the export to keep raw_data (minus debug keys); ZIV export now 24 fields, EHI 21, DARK its name/type. (2) The user's EHI shows FAILED because their Windows backend venv is missing `argon2-cffi` (B2 needs it) — env, not code (EHI decodes 6/6 here); told them to reinstall deps. Added copy-to-clipboard buttons (⧉) on hero tiles, all field values, and log lines (Clipboard API + execCommand fallback). 54/54 tests, ruff clean, verified in-browser. Left the user's untracked `electron-builder` bump in package.json/lock untouched.
+- **Open items:** N10/N11/N12/N13 unchanged. Optional: promote more EHI/ZIV app fields to top-level IR (deferred).
+- **Report:** .context/memory/reviews/2026-07-16-review-2.md
