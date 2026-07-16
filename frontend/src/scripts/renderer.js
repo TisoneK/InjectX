@@ -1530,6 +1530,34 @@ function pickTarget(query, io) {
   return r;
 }
 
+function looksLikePath(s) {
+  return typeof s === "string" && (/[\\/]/.test(s) || /\.[a-z0-9]{2,6}$/i.test(s));
+}
+
+// Resolve to a full config for inspection: a loaded target (by id/filename)
+// OR, when the argument is an absolute path on the user's machine, parse the
+// file fresh via the backend. This is what lets the terminal work with the
+// user's own files (Downloads, etc.), not just the loaded set.
+async function resolveOrParse(query, io) {
+  if (!query) { io.error("Specify a target id, filename, or filepath."); return null; }
+  const r = resolveTarget(query);
+  if (r && !r._ambiguous) return await API.getConfig(r.id);
+  if (r && r._ambiguous && !looksLikePath(query)) {
+    io.error(`'${query}' matches ${r._ambiguous.length} targets — be more specific:`);
+    r._ambiguous.forEach((c) => io.print(`  ${shortId(c.id)}  ${c.filename}`));
+    return null;
+  }
+  if (looksLikePath(query)) {
+    io.print(`Parsing ${query} ...`);
+    const res = await API.parseConfig(query);
+    if (!res || res.error) { io.error(res && res.error ? res.error : "Parse failed."); return null; }
+    await loadConfigs();
+    return res;
+  }
+  io.error(`No target matches '${query}'.`);
+  return null;
+}
+
 function targetHost(d) {
   const af = (d.raw_data && d.raw_data._all_fields) || {};
   return d.host || d.ssh_server || d.proxy_host || af.udpserver || af.sniHostname || null;
@@ -1557,12 +1585,13 @@ const CMD = {
 
   targets: {
     help(args, io) {
-      io.print("targets — manage loaded configs:");
+      io.print("targets — manage configs (accepts a loaded target id/name, or a filepath on your machine):");
       io.table(["SUBCOMMAND", "DESCRIPTION"], [
         ["targets [list]", "list all loaded targets"],
-        ["targets info <id|file>", "summary of one target"],
-        ["targets open <id|file>", "open a target's detail view"],
-        ["targets debug <id|file>", "scheme, file location, decrypt trace"],
+        ["targets pick", "open the file picker to add config(s) from your machine"],
+        ["targets info <id|file|path>", "summary of one target or a file"],
+        ["targets debug <id|file|path>", "scheme, file location, decrypt trace"],
+        ["targets open <id|file>", "open a loaded target's detail view"],
         ["targets export <id|file>", "download a target's JSON"],
         ["targets purge [id|file|all]", "delete one, or all if omitted"],
         ["targets import <filepath>", "parse a config file by absolute path"],
@@ -1570,6 +1599,18 @@ const CMD = {
       ]);
     },
     _default(args, io) { return CMD.targets.list(args, io); },
+    async pick(args, io) {
+      if (!API.openFileDialog) { io.error("File picker is only available in the desktop app."); return; }
+      io.print("Opening file picker...");
+      const paths = await API.openFileDialog();
+      if (!paths || !paths.length) { io.print("No file selected."); return; }
+      for (const p of paths) {
+        const r = await API.parseConfig(p);
+        if (r && !r.error) io.print(`Added ${r.filename} — ${r.format} [${r.decryption_status}]`);
+        else io.error(`Failed: ${p.split(/[\\/]/).pop()}${r && r.error ? " · " + r.error : ""}`);
+      }
+      await loadConfigs();
+    },
     list(args, io) {
       if (!state.configs.length) { io.print("No targets loaded. Drop a config or run 'assets import'."); return; }
       io.table(["#", "ID", "FMT", "STATUS", "FILE"], state.configs.map((c, i) => [
@@ -1579,10 +1620,9 @@ const CMD = {
       io.print(`${state.configs.length} target(s).`);
     },
     async info(args, io) {
-      const c = pickTarget(args[0], io); if (!c) return;
-      const full = await API.getConfig(c.id);
+      const full = await resolveOrParse(args.join(" ").trim(), io); if (!full) return;
       const d = full.config || {};
-      io.print(`TGT_${shortId(c.id)}  ${full.filename}`);
+      io.print(`TGT_${shortId(full.id || "")}  ${full.filename}`);
       io.print(`  format ${full.format}  ·  scheme ${full.scheme_used || "—"}  ·  status ${full.decryption_status}`);
       const host = targetHost(d);
       if (host) io.print(`  host      ${host}`);
@@ -1597,9 +1637,8 @@ const CMD = {
       showConfigDetail(c.id);
     },
     async debug(args, io) {
-      const c = pickTarget(args[0], io); if (!c) return;
-      const full = await API.getConfig(c.id);
-      io.print(`DEBUG TGT_${shortId(c.id)}  ${full.filename}`);
+      const full = await resolveOrParse(args.join(" ").trim(), io); if (!full) return;
+      io.print(`DEBUG TGT_${shortId(full.id || "")}  ${full.filename}`);
       io.print(`  location   ${full.filepath || "—"}`);
       io.print(`  format ${full.format}  ·  scheme ${full.scheme_used || "—"}  ·  confidence ${full.confidence ?? "—"}`);
       io.print(`  status     ${full.decryption_status}`);
@@ -1738,9 +1777,21 @@ function fmtTable(headers, rows) {
   return [line(headers), ...rows.map(line)];
 }
 
+// Split a command line into tokens, honouring "double" and 'single' quotes so
+// that paths with spaces (e.g. "C:\Users\me\My Configs\a.hc") stay one token.
+function tokenize(raw) {
+  const out = [];
+  const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
+  let m;
+  while ((m = re.exec(raw)) !== null) {
+    out.push(m[1] !== undefined ? m[1] : (m[2] !== undefined ? m[2] : m[3]));
+  }
+  return out;
+}
+
 async function runCommand(raw, io) {
   io.echo(raw);
-  const tokens = raw.trim().split(/\s+/);
+  const tokens = tokenize(raw.trim());
   const name = (tokens[0] || "").toLowerCase();
   const node = CMD[name];
   if (!node) { io.error(`Unknown command: ${name}. Type 'help'.`); return; }
@@ -1812,8 +1863,15 @@ function termWrite(text, type) {
   const body = $("#terminal-body");
   if (!body) return;
   const cls = type === "err" ? "term-err" : (type === "cmd" ? "term-cmd" : "term-out");
-  body.appendChild(el("div", { className: "term-line" }, [el("span", { className: cls }, [String(text)])]));
+  body.appendChild(el("div", { className: "term-line" }, [
+    el("span", { className: cls }, [String(text)]),
+    copyBtn(String(text), "term-copy"),
+  ]));
   body.scrollTop = body.scrollHeight;
+}
+
+function terminalAsText() {
+  return [...$$("#terminal-body .term-line span:first-child")].map((s) => s.textContent).join("\n");
 }
 
 function setupTerminal() {
@@ -1828,6 +1886,15 @@ function setupTerminal() {
   });
   const row = $(".terminal-input-row");
   if (row) row.addEventListener("click", () => input.focus());
+
+  const copyBtnEl = $("#btn-copy-terminal");
+  if (copyBtnEl) copyBtnEl.addEventListener("click", () => {
+    const text = terminalAsText();
+    if (!text.trim()) { showToast("Terminal is empty", "info"); return; }
+    copyText(text, () => showToast("Terminal output copied", "success"));
+  });
+  const clearBtnEl = $("#btn-clear-terminal");
+  if (clearBtnEl) clearBtnEl.addEventListener("click", () => { const b = $("#terminal-body"); if (b) b.innerHTML = ""; });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1873,6 +1940,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderArchive();
   setupConsoleInput();
   setupTerminal();
+
+  // "Import Assets" loads the bundled dev sample configs — hide it in the
+  // packaged app so real users work only from their own file selections.
+  try {
+    const dev = await API.isDev();
+    const assetsBtn = $("#btn-import-assets");
+    if (assetsBtn && !dev) assetsBtn.style.display = "none";
+  } catch (e) { /* keep the button if we can't tell */ }
 
   // Navigation
   $$(".sb-nav-item").forEach((item) => {

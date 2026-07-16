@@ -206,6 +206,10 @@ function setupIPC() {
   ipcMain.handle("list-assets", proxyGet("/api/configs/assets"));
 
   // ── Window Control IPC ─────────────────────────────────────────────────────
+  // Dev-only surfaces (e.g. the "Import Assets" sample-config button) check
+  // this. Unpackaged = running via `electron .` during development.
+  ipcMain.handle("is-dev", () => !app.isPackaged);
+
   ipcMain.handle("window-minimize", () => { if (mainWindow) mainWindow.minimize(); });
   ipcMain.handle("window-maximize", () => { if (mainWindow) { mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize(); } });
   ipcMain.handle("window-close", () => { if (mainWindow) mainWindow.close(); });

@@ -1238,7 +1238,11 @@ svg { display: block; }
   flex: 1; overflow-y: auto; padding: var(--gap-md);
   font-size: 12px; line-height: 1.65;
 }
-.term-line { padding: 1px 0; word-break: break-word; white-space: pre-wrap; }
+.term-line { display: flex; align-items: flex-start; gap: var(--gap-sm); padding: 1px 0; }
+.term-line > span:first-child { flex: 1; min-width: 0; white-space: pre-wrap; word-break: break-word; }
+.term-copy { opacity: 0; flex-shrink: 0; }
+.term-line:hover .term-copy { opacity: 0.55; }
+.term-line:hover .term-copy:hover { opacity: 1; }
 .term-cmd { color: var(--c-matrix); }
 .term-out { color: var(--tx-primary); }
 .term-err { color: var(--c-blood); }

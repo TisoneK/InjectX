@@ -116,7 +116,7 @@
           <span class="inject-btn-text">ACQUIRE TARGET</span>
           <span class="inject-btn-arrow">▶</span>
         </button>
-        <button id="btn-import-assets" class="assets-btn" title="Import all files from assets/configs/ in one batch">
+        <button id="btn-import-assets" class="assets-btn" title="DEV ONLY — import the bundled sample configs from assets/configs/. Real configs come from Acquire Target or drag-and-drop.">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"/><path d="M9 12l3 3 3-3"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span class="assets-btn-text">IMPORT ASSETS</span>
           <span class="assets-btn-count" id="assets-count-badge">0</span>
@@ -306,6 +306,10 @@
             <div class="vt-left">
               <h2 class="vt-title">TERMINAL</h2>
               <span class="vt-sub">command console · type 'help'</span>
+            </div>
+            <div class="vt-right">
+              <button id="btn-copy-terminal" class="vt-btn">COPY</button>
+              <button id="btn-clear-terminal" class="vt-btn">CLEAR</button>
             </div>
           </div>
           <div class="terminal-window">

@@ -22,6 +22,7 @@ const API = {
   getLogs(since = 0) { return window.vpnAPI.getLogs(since); },
   importAssets() { return window.vpnAPI.importAssets(); },
   listAssets() { return window.vpnAPI.listAssets(); },
+  isDev() { return window.vpnAPI && window.vpnAPI.isDev ? window.vpnAPI.isDev() : Promise.resolve(false); },
   onFilesSelected(callback) { window.vpnAPI.onFilesSelected(callback); },
 
   // Window controls for CustomTitleBar

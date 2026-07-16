@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld("vpnAPI", {
   getLogs: (since) => ipcRenderer.invoke("get-logs", since),
   importAssets: () => ipcRenderer.invoke("import-assets"),
   listAssets: () => ipcRenderer.invoke("list-assets"),
+  isDev: () => ipcRenderer.invoke("is-dev"),
   onFilesSelected: (callback) => { ipcRenderer.on("files-selected", (_event, filePaths) => callback(filePaths)); },
 
   // Window controls for CustomTitleBar
