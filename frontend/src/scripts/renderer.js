@@ -147,6 +147,34 @@ const STATUS_LABEL = {
 //   CONSOLE / ACTIVITY LOG
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Small copy-to-clipboard control. `get` is a string or a function → string.
+// Uses the async Clipboard API when available (Electron/localhost), with an
+// execCommand fallback for plain file:// contexts.
+function copyBtn(get, extraClass = "") {
+  const b = el("button", { className: "copy-btn " + extraClass, type: "button", title: "Copy" }, ["⧉"]);
+  const flash = () => {
+    b.classList.add("copied"); b.textContent = "✓";
+    setTimeout(() => { b.classList.remove("copied"); b.textContent = "⧉"; }, 1000);
+  };
+  b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const text = String(typeof get === "function" ? get() : get);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(flash).catch(() => fallbackCopy(text, flash));
+    } else {
+      fallbackCopy(text, flash);
+    }
+  });
+  return b;
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); if (done) done(); } catch (_) { /* ignore */ }
+  ta.remove();
+}
+
 function logEvent(tag, msg, type = "info") {
   const body = $("#console-body");
   if (!body) return;
@@ -155,6 +183,7 @@ function logEvent(tag, msg, type = "info") {
     el("span", { className: "cl-time" }, [fmtTime()]),
     el("span", { className: `cl-tag cl-tag-${type}` }, [tag]),
     el("span", { className: "cl-msg" }, [msg]),
+    copyBtn(msg, "cl-copy"),
   ]);
   body.appendChild(line);
   body.scrollTop = body.scrollHeight;
@@ -658,7 +687,10 @@ function renderHeroStrip(container, d) {
 
   container.appendChild(el("div", { className: "hero-strip" },
     tiles.map((t) => el("div", { className: "hero-tile" + (t.accent ? " accent" : "") }, [
-      el("div", { className: "ht-label" }, [t.label]),
+      el("div", { className: "ht-head" }, [
+        el("div", { className: "ht-label" }, [t.label]),
+        copyBtn(t.value, "ht-copy"),
+      ]),
       el("div", { className: "ht-value" + (t.mono ? " mono" : "") }, [t.value]),
     ]))
   ));
@@ -914,17 +946,20 @@ function renderExtractedFields(container, d) {
   for (const [k, v] of Object.entries(all)) {
     if (v === null || v === undefined || v === "") continue;
     if (looksLikeHtml(v)) continue; // shown in the NOTES section instead
-    let valEl;
+    let valEl, copyText;
     if (v && typeof v === "object") {
-      valEl = el("pre", { className: "kv-val kv-json" }, [JSON.stringify(v, null, 2)]);
+      copyText = JSON.stringify(v, null, 2);
+      valEl = el("pre", { className: "kv-val kv-json" }, [copyText]);
     } else if (typeof v === "boolean" || typeof v === "number") {
-      valEl = el("span", { className: "kv-val mono" }, [String(v)]);
+      copyText = String(v);
+      valEl = el("span", { className: "kv-val mono" }, [copyText]);
     } else {
-      valEl = el("span", { className: "kv-val" }, [String(v)]);
+      copyText = String(v);
+      valEl = el("span", { className: "kv-val" }, [copyText]);
     }
     rows.push(el("div", { className: "kv-row" }, [
       el("div", { className: "kv-key" }, [prettifyKey(k)]),
-      valEl,
+      kvCell(valEl, copyText),
     ]));
   }
   if (rows.length === 0) return;
@@ -938,6 +973,13 @@ function renderExtractedFields(container, d) {
       el("div", { className: "kv-table kv-table-wide" }, rows),
     ]),
   ]));
+}
+
+// Wrap a value element in a grid cell that carries a copy button. Keeps the
+// value's own color classes (mono/secret/kv-json) but moves cell padding to
+// the wrapper so the copy button can sit at the right edge.
+function kvCell(valEl, copyText) {
+  return el("div", { className: "kv-val-cell" }, [valEl, copyBtn(copyText, "kv-copy")]);
 }
 
 function renderKVSection(container, title, fields, d) {
@@ -963,7 +1005,7 @@ function renderKVSection(container, title, fields, d) {
     }
     rows.push(el("div", { className: "kv-row" }, [
       el("div", { className: "kv-key" }, [f.label]),
-      valEl,
+      kvCell(valEl, String(v)),
     ]));
   }
 

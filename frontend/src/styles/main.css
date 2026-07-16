@@ -861,6 +861,31 @@ svg { display: block; }
 .kv-val.secret:hover { filter: blur(3px); }
 .kv-val.empty { color: var(--tx-faint); font-style: italic; }
 
+/* Value cell wrapper: value text + copy button. The cell owns the padding
+   and background; the inner .kv-val keeps only its colour. */
+.kv-val-cell {
+  display: flex; align-items: flex-start; gap: var(--gap-sm);
+  padding: var(--gap-sm) var(--gap-md);
+  background: var(--bg-surface);
+}
+.kv-val-cell > .kv-val { flex: 1; min-width: 0; padding: 0; background: transparent; }
+.kv-val-cell > .kv-copy { opacity: 0; flex-shrink: 0; }
+.kv-row:hover .kv-copy,
+.kv-val-cell:hover .kv-copy { opacity: 1; }
+
+/* Copy-to-clipboard button */
+.copy-btn {
+  font-size: 12px; line-height: 1; color: var(--tx-muted);
+  background: transparent; border: none; cursor: pointer;
+  padding: 1px 4px; transition: color 0.15s ease, opacity 0.15s ease;
+}
+.copy-btn:hover { color: var(--c-matrix); }
+.copy-btn.copied { color: var(--c-matrix); }
+.hero-tile .ht-copy { font-size: 13px; }
+.cl-copy { opacity: 0; font-size: 11px; margin-left: auto; }
+.console-line:hover .cl-copy { opacity: 0.7; }
+.console-line:hover .cl-copy:hover { opacity: 1; }
+
 /* ── Redesigned detail output ──────────────────────────────────────────── */
 /* Compact status strip (replaces the chatty panel) */
 .detail-status-strip {
@@ -890,6 +915,9 @@ svg { display: block; }
   display: flex; flex-direction: column; gap: 4px; min-width: 0;
 }
 .hero-tile.accent { border-top-color: var(--c-matrix); }
+.ht-head { display: flex; align-items: center; justify-content: space-between; gap: var(--gap-sm); }
+.ht-head .ht-copy { opacity: 0; }
+.hero-tile:hover .ht-copy { opacity: 1; }
 .ht-label { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--tx-faint); }
 .ht-value {
   font-size: 15px; color: var(--tx-bright); font-weight: 600;
