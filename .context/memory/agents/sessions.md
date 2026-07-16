@@ -221,3 +221,12 @@ outcome:
 - **Outcome:** done — Root cause of the failing command: the arg tokenizer split on whitespace (broke the quoted path) AND info/debug only searched loaded targets. Fixes: quoted-arg `tokenize()`; `resolveOrParse()` so `targets info/debug` accept a filesystem path (parsed fresh via backend if not loaded); new `targets pick` opens the native file dialog; terminal COPY/CLEAR toolbar + per-line copy. Also: the 31 "assets" were NOT auto-loaded (main.js sets no INJECTX_AUTOIMPORT) — they came from the sidebar Import Assets button; exposed `app.isPackaged` as `isDev` and hid that button in the packaged app (dev-only sample fixtures). Verified in-browser: the exact screenshot command now parses the Windows path and prints host/port/etc.; copy buttons present; assets button hides when isDev=false; no console errors.
 - **Open items:** N10/N11/N12/N13 unchanged. Note: `targets pick` + isDev-hide are Electron-main paths, verified by logic/syntax; confirm in packaged app.
 - **Report:** .context/memory/reviews/2026-07-16-review-5.md
+
+---
+## 2026-07-16 — Session 22
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** Folder import + IDE-style "remember the last folder / reopen last project."
+- **Commits:** 2 (`cb71d75` feat(app) + changelog `docs`) + this Phase 5 `chore(context)` + review `docs(review)`.
+- **Outcome:** done — Electron main: a persisted `settings.json` (userData) with lastDir/lastFolder, `open-folder-dialog`, `list-config-files` (fs scan by CONFIG_EXTENSIONS), get/set-last-folder; file dialog now defaults to + records last dir. Renderer: `importFolder()`/`openFolder()`, a sidebar Open Folder button, terminal `targets openfolder` + `targets import <folder>` (folder = no dot in last segment), and a startup reopen-last-folder (silent re-import, since the backend store is memory-only). Verified in-browser with mocked Electron APIs: `targets import "<folder with spaces>"` → 3/3; reopen re-imports 3; button wired; no console errors. Native dialog/fs/settings run in Electron main — flagged for confirmation in the packaged app.
+- **Open items:** N10/N11/N12/N13 unchanged. Follow-ups (review-6): recursive folder scan; guard double-import if backend gains persistence (N5).
+- **Report:** .context/memory/reviews/2026-07-16-review-6.md
