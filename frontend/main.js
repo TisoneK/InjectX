@@ -22,6 +22,9 @@ const BACKEND_HOST = process.env.INJECTX_HOST || "127.0.0.1";
 const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`;
 
 let mainWindow = null;
+// Set once the user has confirmed quitting (or a real app quit is underway),
+// so the close-confirmation dialog isn't shown twice.
+let isQuitting = false;
 let backendProcess = null;
 
 // ── File Dialog Filter ────────────────────────────────────────────────────────
@@ -135,6 +138,24 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, "index.html"));
   if (process.env.NODE_ENV === "development") mainWindow.webContents.openDevTools();
+
+  // Confirm before closing. Fires for the titlebar ✕ (via the window-close
+  // IPC → mainWindow.close()) and the OS window close. Cmd+Q / app quit set
+  // isQuitting in before-quit, so they don't re-prompt.
+  mainWindow.on("close", (e) => {
+    if (isQuitting) return;
+    e.preventDefault();
+    const choice = dialog.showMessageBoxSync(mainWindow, {
+      type: "question",
+      buttons: ["Cancel", "Quit"],
+      defaultId: 1, cancelId: 0, noLink: true,
+      title: "Quit InjectX",
+      message: "Quit InjectX?",
+      detail: "Decoded configs are held in memory only and will be cleared.",
+    });
+    if (choice === 1) { isQuitting = true; app.quit(); }
+  });
+
   mainWindow.on("closed", () => { mainWindow = null; });
 
   // Set the dock/taskbar icon (macOS dock, Linux taskbar).
@@ -204,5 +225,5 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => { stopBackend(); app.quit(); });
-app.on("before-quit", () => { stopBackend(); });
+app.on("before-quit", () => { isQuitting = true; stopBackend(); });
 app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
