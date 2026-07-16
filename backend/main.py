@@ -416,10 +416,23 @@ async def export_normalized_config(config_id: str = Query(...), format: str = Qu
 
     data = config_store[config_id]
     normalized = NormalizedConfig(**data)
+    dumped = normalized.model_dump()
 
-    # Export: exclude raw_data and decrypt_trace (too verbose)
-    export = {k: v for k, v in normalized.model_dump().items()
+    # Export excludes the verbose decrypt_trace. It KEEPS the decoded
+    # raw_data — that's where formats other than HC (HTTP Injector, ZIVPN,
+    # DARK) keep most of their fields (_all_fields); dropping it made those
+    # exports look empty while HC (which maps everything to top-level IR
+    # fields) exported fully. Only the debug-only keys, which appear on
+    # failed decodes, are stripped from raw_data.
+    raw = dumped.get("raw_data")
+    if isinstance(raw, dict):
+        raw = {k: v for k, v in raw.items()
+               if k not in ("file_size", "hex_preview", "features", "detected_header")}
+
+    export = {k: v for k, v in dumped.items()
               if k not in ("raw_data", "decrypt_trace") and v is not None}
+    if raw:
+        export["raw_data"] = raw
 
     return {"config_id": config_id, "ir_version": IR_VERSION, "export_format": format, "data": export}
 
