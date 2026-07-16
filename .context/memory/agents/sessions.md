@@ -158,3 +158,12 @@ outcome:
 - **Outcome:** done — **Cracked DARK Tunnel**, which every prior session wrongly called "proprietary encryption, no decryptor." A `.dark` file is `darktunnel://base64(JSON)`: type/name/transport are plaintext, only the optional `encryptedLockedConfig` (author DRM lock) is sealed. Shipped scheme **I1** (`decrypt/dark_decrypt.py`) — tolerant base64→JSON, PARTIAL+warning when locked, SUCCESS when not; wired router/normalizer/`/api/formats`; fixed the router to keep PARTIAL payloads; removed the orphaned never-imported `dark_parser.py`. 4/4 DARK samples now decode (protocol+name+transport). +5 tests (43→48). Produced a full per-format algorithm inventory (review-7): works now = HC/EHI/DARK; algorithm-present-but-key-rotated = TLS/ZIV; algorithm-present-but-no-sample = HAT/NPV/NSH/VHD; unknown = LNK.
 - **Open items:** N13 (new — samples for NPV/NSH/VHD/HAT + identify LNK). N9/N10/N11/N12 unchanged. Remaining formats are blocked on inputs I don't have (real samples, or current TLS/ZIV keys), not on missing algorithms.
 - **Report:** .context/memory/reviews/2026-07-15-review-7.md
+
+---
+## 2026-07-15 — Session 15
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** Extract the rotated ZIVPN key from the app APK and make `.ziv` decode (user supplied the ZIVPN Tunnel v2.1.5 XAPK).
+- **Commits:** 3 product/docs (`f6e91d8` feat + changelog `docs` + this Phase 5 `chore(context)` + review `docs(review)`).
+- **Outcome:** done — **CRACKED ZIVPN: `.ziv` now decodes 6/6 (was 0/6).** The 5-session "key rotated, unfixable" verdict was wrong. Static-analyzed the APK with androguard (no JVM — `/usr/bin/java` is a stub so jadx couldn't run; pip-installed androguard instead). Config importer `o3.a.<clinit>` builds the password from five base64 constants → `SecurePart1..SecurePart5` concatenated; `u3.c`/`v3.b` = BouncyCastle PKCS5S2 PBKDF2 (1000 iters, 16-byte key) + AES-GCM over salt.iv.ct. InjectX's H1 algorithm was already exactly right — only the password was stale — so adding it fixed all 6. Also mapped UDP-mode fields (udpserver→host: udpsg3/udpsg4.zivpn.com), +6 tests (48→54). First-half of session: automated APK download failed (mirror anti-bot), user supplied the XAPK.
+- **Open items:** N11 — ZIV half DONE; TLS half open (same method, needs the com.tlsvpn.tlstunnel APK). N12/N13 unchanged.
+- **Report:** .context/memory/reviews/2026-07-15-review-8.md
