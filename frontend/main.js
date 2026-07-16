@@ -8,6 +8,7 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
 const os = require("os");
 const path = require("path");
+const fs = require("fs");
 const { spawn } = require("child_process");
 const net = require("net");
 
@@ -26,6 +27,24 @@ let mainWindow = null;
 // so the close-confirmation dialog isn't shown twice.
 let isQuitting = false;
 let backendProcess = null;
+
+// ── Persisted settings (last-used folder/dir, IDE-style) ───────────────────────
+// A tiny JSON file in the OS userData dir remembers where the user last opened
+// files/folders so the pickers default there and the app can reopen the last
+// folder on launch. Loaded in whenReady (app.getPath needs the app ready).
+let settings = {};
+function settingsPath() { return path.join(app.getPath("userData"), "settings.json"); }
+function loadSettings() {
+  try { return JSON.parse(fs.readFileSync(settingsPath(), "utf8")); } catch (e) { return {}; }
+}
+function saveSettings() {
+  try {
+    fs.mkdirSync(path.dirname(settingsPath()), { recursive: true });
+    fs.writeFileSync(settingsPath(), JSON.stringify(settings, null, 2));
+  } catch (e) { /* non-fatal */ }
+}
+function rememberDir(dir) { if (dir) { settings.lastDir = dir; saveSettings(); } }
+function rememberFolder(folder) { if (folder) { settings.lastFolder = folder; settings.lastDir = folder; saveSettings(); } }
 
 // ── File Dialog Filter ────────────────────────────────────────────────────────
 //
@@ -177,18 +196,55 @@ function createWindow() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
 }
 
+function fileDialogOptions() {
+  const opts = configOpenDialogOptions();
+  if (settings.lastDir) opts.defaultPath = settings.lastDir;
+  return opts;
+}
+
 async function handleOpenFile() {
-  const result = await dialog.showOpenDialog(mainWindow, configOpenDialogOptions());
-  if (!result.canceled && result.filePaths.length > 0) mainWindow.webContents.send("files-selected", result.filePaths);
+  const result = await dialog.showOpenDialog(mainWindow, fileDialogOptions());
+  if (!result.canceled && result.filePaths.length > 0) {
+    rememberDir(path.dirname(result.filePaths[0]));
+    mainWindow.webContents.send("files-selected", result.filePaths);
+  }
 }
 
 // ── IPC Handlers ──────────────────────────────────────────────────────────────
 
 function setupIPC() {
   ipcMain.handle("open-file-dialog", async () => {
-    const result = await dialog.showOpenDialog(mainWindow, configOpenDialogOptions());
+    const result = await dialog.showOpenDialog(mainWindow, fileDialogOptions());
+    if (!result.canceled && result.filePaths.length > 0) rememberDir(path.dirname(result.filePaths[0]));
     return result.canceled ? { canceled: true, filePaths: [] } : { canceled: false, filePaths: result.filePaths };
   });
+
+  // Pick a folder; remember it as the "last project" folder.
+  ipcMain.handle("open-folder-dialog", async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: "Select Config Folder",
+      defaultPath: settings.lastFolder || settings.lastDir || undefined,
+      properties: ["openDirectory"],
+    });
+    if (result.canceled || !result.filePaths.length) return { canceled: true, folder: null };
+    rememberFolder(result.filePaths[0]);
+    return { canceled: false, folder: result.filePaths[0] };
+  });
+
+  // List the config files (by known extension) directly inside a folder.
+  ipcMain.handle("list-config-files", async (_e, folder) => {
+    try {
+      const files = fs.readdirSync(folder, { withFileTypes: true })
+        .filter((d) => d.isFile())
+        .map((d) => d.name)
+        .filter((n) => CONFIG_EXTENSIONS.includes((n.split(".").pop() || "").toLowerCase()))
+        .map((n) => path.join(folder, n));
+      return { folder, files };
+    } catch (err) { return { error: err.message, files: [] }; }
+  });
+
+  ipcMain.handle("get-last-folder", () => settings.lastFolder || null);
+  ipcMain.handle("set-last-folder", (_e, folder) => { rememberFolder(folder); });
 
   const proxyGet = (endpoint) => async () => { try { return (await fetch(`${BACKEND_URL}${endpoint}`)).json(); } catch (err) { return { error: err.message }; } };
 
@@ -222,6 +278,7 @@ function setupIPC() {
 // ── App Lifecycle ─────────────────────────────────────────────────────────────
 
 app.whenReady().then(async () => {
+  settings = loadSettings();
   startBackend();
   try { await waitForBackend(); console.log("[Main] Backend is ready"); } catch (err) { console.error("[Main] Backend failed:", err.message); }
   createWindow();

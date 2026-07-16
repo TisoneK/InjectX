@@ -20,6 +20,10 @@ contextBridge.exposeInMainWorld("vpnAPI", {
   importAssets: () => ipcRenderer.invoke("import-assets"),
   listAssets: () => ipcRenderer.invoke("list-assets"),
   isDev: () => ipcRenderer.invoke("is-dev"),
+  openFolderDialog: () => ipcRenderer.invoke("open-folder-dialog"),
+  listConfigFiles: (folder) => ipcRenderer.invoke("list-config-files", folder),
+  getLastFolder: () => ipcRenderer.invoke("get-last-folder"),
+  setLastFolder: (folder) => ipcRenderer.invoke("set-last-folder", folder),
   onFilesSelected: (callback) => { ipcRenderer.on("files-selected", (_event, filePaths) => callback(filePaths)); },
 
   // Window controls for CustomTitleBar

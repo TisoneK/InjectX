@@ -23,6 +23,10 @@ const API = {
   importAssets() { return window.vpnAPI.importAssets(); },
   listAssets() { return window.vpnAPI.listAssets(); },
   isDev() { return window.vpnAPI && window.vpnAPI.isDev ? window.vpnAPI.isDev() : Promise.resolve(false); },
+  openFolderDialog() { return window.vpnAPI && window.vpnAPI.openFolderDialog ? window.vpnAPI.openFolderDialog() : Promise.resolve({ canceled: true, folder: null }); },
+  listConfigFiles(folder) { return window.vpnAPI && window.vpnAPI.listConfigFiles ? window.vpnAPI.listConfigFiles(folder) : Promise.resolve({ files: [] }); },
+  getLastFolder() { return window.vpnAPI && window.vpnAPI.getLastFolder ? window.vpnAPI.getLastFolder() : Promise.resolve(null); },
+  setLastFolder(folder) { return window.vpnAPI && window.vpnAPI.setLastFolder ? window.vpnAPI.setLastFolder(folder) : Promise.resolve(); },
   onFilesSelected(callback) { window.vpnAPI.onFilesSelected(callback); },
 
   // Window controls for CustomTitleBar

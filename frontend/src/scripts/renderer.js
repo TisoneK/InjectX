@@ -1379,6 +1379,38 @@ async function exportConfig(configId) {
   }
 }
 
+// Import every config file inside a folder (IDE-style "open project folder").
+// `quiet` skips toasts (used for the silent reopen-last-folder on startup).
+async function importFolder(folder, quiet = false) {
+  if (!folder || !API.listConfigFiles) return 0;
+  const res = await API.listConfigFiles(folder);
+  if (res && res.error) { logEvent("ERR", `Folder read failed: ${res.error}`, "err"); return 0; }
+  const files = (res && res.files) || [];
+  if (!files.length) {
+    if (!quiet) { logEvent("SYS", `No config files in ${folder}`, "sys"); showToast("No configs in that folder", "info"); }
+    return 0;
+  }
+  logEvent("ACQUIRE", `Importing ${files.length} config(s) from folder`, "info");
+  let ok = 0;
+  for (const f of files) {
+    const r = await API.parseConfig(f);
+    if (r && !r.error) ok++;
+  }
+  if (API.setLastFolder) await API.setLastFolder(folder);
+  await loadConfigs();
+  logEvent("OK", `Loaded ${ok}/${files.length} from ${folder.split(/[\\/]/).pop()}`, "ok");
+  if (!quiet) showToast(`Loaded ${ok} config(s) from folder`, "success");
+  return ok;
+}
+
+// Open the native folder picker and import the chosen folder.
+async function openFolder() {
+  if (!API.openFolderDialog) { showToast("Folder picker needs the desktop app", "info"); return; }
+  const res = await API.openFolderDialog();
+  if (!res || res.canceled || !res.folder) return;
+  await importFolder(res.folder);
+}
+
 async function clearAllConfigs() {
   if (state.configs.length === 0) {
     showToast("No targets to purge", "info");
@@ -1589,6 +1621,8 @@ const CMD = {
       io.table(["SUBCOMMAND", "DESCRIPTION"], [
         ["targets [list]", "list all loaded targets"],
         ["targets pick", "open the file picker to add config(s) from your machine"],
+        ["targets openfolder", "pick a folder and import every config in it"],
+        ["targets import <folder>", "import every config in a folder by path"],
         ["targets info <id|file|path>", "summary of one target or a file"],
         ["targets debug <id|file|path>", "scheme, file location, decrypt trace"],
         ["targets open <id|file>", "open a loaded target's detail view"],
@@ -1682,13 +1716,36 @@ const CMD = {
       io.print(`Purged TGT_${shortId(c.id)} — ${c.filename}`);
     },
     async import(args, io) {
-      const path = args.join(" ").trim();
-      if (!path) { io.error("Usage: targets import <absolute filepath>"); return; }
-      io.print(`Parsing ${path}...`);
-      const res = await API.parseConfig(path);
+      const p = args.join(" ").trim();
+      if (!p) { io.error("Usage: targets import <filepath | folder path>"); return; }
+      // A path whose last segment has no dot is treated as a folder.
+      const isFolder = !p.split(/[\\/]/).pop().includes(".");
+      if (isFolder) {
+        io.print(`Scanning folder ${p} ...`);
+        const res = await API.listConfigFiles(p);
+        if (!res || res.error) { io.error(res && res.error ? res.error : "Could not read folder."); return; }
+        const files = res.files || [];
+        if (!files.length) { io.print("No config files found in that folder."); return; }
+        let ok = 0;
+        for (const f of files) { const r = await API.parseConfig(f); if (r && !r.error) ok++; }
+        if (API.setLastFolder) await API.setLastFolder(p);
+        await loadConfigs();
+        io.print(`Imported ${ok}/${files.length} config(s) from the folder.`);
+        return;
+      }
+      io.print(`Parsing ${p} ...`);
+      const res = await API.parseConfig(p);
       if (!res || res.error) { io.error(res && res.error ? res.error : "Parse failed."); return; }
       await loadConfigs();
       io.print(`Imported TGT_${shortId(res.id)} — ${res.filename} [${res.decryption_status}]`);
+    },
+    async openfolder(args, io) {
+      if (!API.openFolderDialog) { io.error("Folder picker is only available in the desktop app."); return; }
+      io.print("Opening folder picker...");
+      const res = await API.openFolderDialog();
+      if (!res || res.canceled || !res.folder) { io.print("No folder selected."); return; }
+      const n = await importFolder(res.folder);
+      io.print(`Imported ${n} config(s) from ${res.folder}.`);
     },
     count(args, io) {
       const byFmt = {}, byStatus = { decoded: 0, locked: 0, unknown: 0 };
@@ -1934,6 +1991,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Load existing configs
   await loadConfigs();
 
+  // Reopen the last folder the user worked in (IDE-style "last project").
+  // The backend's store is cleared on restart, so re-import to restore it.
+  try {
+    if (API.getLastFolder) {
+      const last = await API.getLastFolder();
+      if (last) { logEvent("SYS", `Reopening last folder: ${last}`, "sys"); await importFolder(last, true); }
+    }
+  } catch (e) { /* no last folder or not in desktop app */ }
+
   // Setup
   setupDragDrop();
   renderArsenalView();
@@ -1971,6 +2037,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Action buttons
   const openBtn = $("#btn-open-config");
   if (openBtn) openBtn.addEventListener("click", openConfig);
+
+  const openFolderBtn = $("#btn-open-folder");
+  if (openFolderBtn) openFolderBtn.addEventListener("click", openFolder);
 
   const importAssetsBtn = $("#btn-import-assets");
   if (importAssetsBtn) importAssetsBtn.addEventListener("click", importAssets);
