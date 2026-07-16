@@ -50,6 +50,20 @@ So the entire game is: **get the key out of the app.**
 4. If strings are obfuscated/encrypted (common in newer builds), static
    grep fails — go to Method 2.
 
+> **Reality check — packers defeat static analysis.** First check the
+> native libs: `ls lib/*/` for `libdexprotector.so`, `libjiagu*.so`
+> (360 Jiagu), `libapp-*.so`/`libexec*.so` (packers). If present, the
+> app's own strings and classes are decrypted only at runtime — a
+> string/dex grep will only ever find the *unprotected* third-party ad
+> SDKs (Google/Tink, Mintegral, Fyber, Digital Turbine), never the
+> app's real key. Confirmed case: **ZIVPN 2.1.5 is unprotected** (key
+> extracted statically in minutes — `SecurePart1..5` in class `o3.a`);
+> **TLS Tunnel 8.0.6 ships DexProtector** (`libdexprotector.so` +
+> `libtlsvpn.so`) and a brute force of 148k extracted strings × common
+> key derivations found nothing. For a packed app, skip straight to
+> Method 2 (dynamic Frida), which hooks the cipher *after* the packer
+> has decrypted everything.
+
 ## Method 2 — dynamic extraction with Frida (beats obfuscation)
 
 Run the app and capture the key at the moment it's used, after any
