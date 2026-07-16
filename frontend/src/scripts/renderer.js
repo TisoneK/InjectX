@@ -583,32 +583,17 @@ function renderConfigDetail(config) {
     }, ["◀ BACK"]),
   ]));
 
-  // ── Status panel ───────────────────────────────────────────────────────
-  if (status === "decoded") {
-    container.appendChild(el("div", { className: "detail-panel" }, [
-      el("div", { className: "dp-title" }, ["EXTRACTION SUCCESSFUL"]),
-      el("p", { className: "dp-msg" }, [
-        "Payload successfully extracted. All configuration fields below are readable. ",
-        "Sensitive values (passwords, secrets) are masked by default — hover to reveal.",
-      ]),
-    ]));
-  } else if (status === "locked") {
-    container.appendChild(el("div", { className: "detail-panel warn" }, [
-      el("div", { className: "dp-title" }, ["ENVELOPE LOCKED"]),
-      el("p", { className: "dp-msg" }, [
-        "This configuration uses a proprietary encryption scheme with no public decryptor available. ",
-        "Only basic metadata is shown. The underlying payload cannot be extracted.",
-      ]),
-    ]));
-  } else if (status === "unknown") {
-    container.appendChild(el("div", { className: "detail-panel err" }, [
-      el("div", { className: "dp-title" }, ["EXTRACTION FAILED"]),
-      el("p", { className: "dp-msg" }, [
-        "All known extraction approaches were attempted but none produced a readable result. ",
-        "This configuration may use a newer encryption variant or an unsupported structure.",
-      ]),
-    ]));
-  }
+  // ── Status strip (compact) ─────────────────────────────────────────────
+  const STATUS_STRIP = {
+    decoded: { cls: "ok",   label: "DECODED",  msg: "Payload extracted — sensitive values masked, click to reveal." },
+    locked:  { cls: "warn", label: "LOCKED",   msg: "Credentials sealed by the config author. Metadata only." },
+    unknown: { cls: "err",  label: "NO OUTPUT", msg: "Decryption failed — newer variant or missing key." },
+  };
+  const ss = STATUS_STRIP[status] || STATUS_STRIP.unknown;
+  container.appendChild(el("div", { className: `detail-status-strip ${ss.cls}` }, [
+    el("span", { className: "dss-label" }, [ss.label]),
+    el("span", { className: "dss-msg" }, [ss.msg]),
+  ]));
 
   // ── Errors ─────────────────────────────────────────────────────────────
   if (config.errors && config.errors.length > 0) {
@@ -645,9 +630,51 @@ function renderConfigDetail(config) {
   ]));
 }
 
+// Build a full-width section shell (header + body) for wide blocks.
+function wideSection(title, hint, bodyChildren) {
+  const head = [el("span", { className: "detail-section-title" }, [title])];
+  if (hint) head.push(el("span", { className: "detail-section-hint" }, [hint]));
+  return el("div", { className: "detail-section span-all" }, [
+    el("div", { className: "detail-section-head" }, head),
+    el("div", { className: "detail-section-body" }, bodyChildren),
+  ]);
+}
+
+// Primary decoded values as big, scannable tiles at the top of the output.
+function renderHeroStrip(container, d) {
+  const af = (d.raw_data && d.raw_data._all_fields) || {};
+  const host  = d.host || d.ssh_server || d.proxy_host || af.udpserver || null;
+  const port  = d.port || d.ssh_port || d.proxy_port || null;
+  const proto = d.protocol || null;
+  const sni   = d.sni || af.sniHostname || null;
+
+  const tiles = [];
+  if (host)  tiles.push({ label: "Server / Host", value: String(host), accent: true, mono: true });
+  if (port)  tiles.push({ label: "Port", value: String(port), mono: true });
+  if (proto) tiles.push({ label: "Protocol", value: String(proto).toUpperCase() });
+  if (sni)   tiles.push({ label: "SNI", value: String(sni), mono: true });
+  if (d.ssh_user) tiles.push({ label: "Username", value: String(d.ssh_user), mono: true });
+  if (tiles.length === 0) return;
+
+  container.appendChild(el("div", { className: "hero-strip" },
+    tiles.map((t) => el("div", { className: "hero-tile" + (t.accent ? " accent" : "") }, [
+      el("div", { className: "ht-label" }, [t.label]),
+      el("div", { className: "ht-value" + (t.mono ? " mono" : "") }, [t.value]),
+    ]))
+  ));
+}
+
 function renderConfigData(container, d) {
-  // ── Connection ─────────────────────────────────────────────────────────
-  const connectionFields = [
+  // Hero tiles first (outside the grid, full width).
+  renderHeroStrip(container, d);
+
+  // Everything else flows into a responsive grid: narrow field cards sit
+  // side-by-side to use the width; wide blocks (payload, notes, all fields)
+  // span the full row.
+  const grid = el("div", { className: "detail-grid" });
+
+  // ── Narrow cards ───────────────────────────────────────────────────────
+  renderKVSection(grid, "CONNECTION", [
     { key: "host",          label: "Server Host" },
     { key: "port",          label: "Server Port" },
     { key: "protocol",      label: "Protocol" },
@@ -658,88 +685,65 @@ function renderConfigData(container, d) {
     { key: "tunnel_mode",   label: "Tunnel Mode" },
     { key: "inject_type",   label: "Injection Method" },
     { key: "ssl_enabled",   label: "SSL" },
-  ];
-  renderKVSection(container, "CONNECTION", connectionFields, d);
+  ], d);
 
-  // ── SSH ────────────────────────────────────────────────────────────────
-  const sshFields = [
+  renderKVSection(grid, "SSH CREDENTIALS", [
     { key: "ssh_server", label: "SSH Server" },
     { key: "ssh_port",   label: "SSH Port" },
     { key: "ssh_user",   label: "Username" },
     { key: "ssh_pass",   label: "Password", secret: true },
-  ];
-  renderKVSection(container, "SSH CREDENTIALS", sshFields, d);
+  ], d);
 
-  // ── HTTP Payload (with [crlf] / [split] syntax highlighting) ───────────
-  // Moved up — this is the most important decoded data; users shouldn't
-  // have to scroll past proxy/dns/protections to find it.
-  if (d.payload) {
-    const highlighted = highlightPayload(String(d.payload));
-    const preEl = el("pre", { className: "payload-block payload-highlighted" });
-    preEl.innerHTML = highlighted;
-    container.appendChild(el("div", { className: "detail-section" }, [
-      el("div", { className: "detail-section-head" }, [
-        el("span", { className: "detail-section-title" }, ["HTTP PAYLOAD"]),
-        el("span", { className: "detail-section-hint" }, ["[crlf]=\\r\\n  ·  [split]=request separator  ·  [proxy]=injected host  ·  [ua]=user-agent"]),
-      ]),
-      el("div", { className: "detail-section-body" }, [preEl]),
-    ]));
-  }
-
-  // ── Proxy ──────────────────────────────────────────────────────────────
-  const proxyFields = [
+  renderKVSection(grid, "PROXY", [
     { key: "proxy_host", label: "Proxy Host" },
     { key: "proxy_port", label: "Proxy Port" },
-  ];
-  renderKVSection(container, "PROXY", proxyFields, d);
+  ], d);
 
-  // ── DNS ────────────────────────────────────────────────────────────────
-  const dnsFields = [
-    { key: "dns",         label: "DNS Server" },
-    { key: "remote_dns",  label: "Remote DNS" },
-  ];
-  renderKVSection(container, "DNS", dnsFields, d);
+  renderKVSection(grid, "DNS", [
+    { key: "dns",        label: "DNS Server" },
+    { key: "remote_dns", label: "Remote DNS" },
+  ], d);
 
-  // ── Protections (HC v2.7+ — hwid/area/password/provider locks) ─────────
-  // Protections may be at top level OR inside raw_data
+  // Protections (HC v2.7+ hwid/area/password locks) — top level or raw_data.
   const protections = d.protections || (d.raw_data && d.raw_data.protections);
   if (protections && Object.keys(protections).length > 0) {
-    const protFields = Object.entries(protections).map(([k, v]) => ({
+    renderKVSection(grid, "PROTECTIONS", Object.entries(protections).map(([k, v]) => ({
       key: k, label: k.toUpperCase(), value: v,
-    }));
-    renderKVSection(container, "PROTECTIONS", protFields, protections);
+    })), protections);
   }
 
-  // ── Notes (HC v2.7+ — HTML content shown in a sandboxed iframe) ────────
-  // Notes may be at top level OR inside raw_data._all_fields.notes
-  const notes = d.notes
-              || (d.raw_data && d.raw_data._all_fields && d.raw_data._all_fields.notes)
+  // ── Wide blocks (span full width) ──────────────────────────────────────
+  // HTTP payload with [crlf]/[split] syntax highlighting.
+  if (d.payload) {
+    const preEl = el("pre", { className: "payload-block payload-highlighted" });
+    preEl.innerHTML = highlightPayload(String(d.payload));
+    grid.appendChild(wideSection(
+      "HTTP PAYLOAD",
+      "[crlf]=\\r\\n  ·  [split]=request separator  ·  [proxy]=injected host  ·  [ua]=user-agent",
+      [preEl],
+    ));
+  }
+
+  // Notes — HTML from the config author (HC `notes`, HTTP Injector
+  // `configMessage`, ZIVPN `file.msg`), rendered in a sandboxed iframe.
+  const af = (d.raw_data && d.raw_data._all_fields) || {};
+  const notes = d.notes || af.notes || af.configMessage || af["file.msg"]
               || (d.raw_data && d.raw_data.notes);
   if (notes && typeof notes === "string" && notes.trim()) {
-    container.appendChild(el("div", { className: "detail-section" }, [
-      el("div", { className: "detail-section-head" }, [
-        el("span", { className: "detail-section-title" }, ["NOTES (HTML)"]),
-        el("span", { className: "detail-section-hint" }, ["rendered as-is from the config author"]),
-      ]),
-      el("div", { className: "detail-section-body" }, [
-        renderNotesSandboxed(notes),
-      ]),
-    ]));
+    grid.appendChild(wideSection("NOTES", "rendered as-is from the config author",
+      [renderNotesSandboxed(notes)]));
   }
 
-  // ── Custom headers ─────────────────────────────────────────────────────
+  // Every field the decoder extracted (raw_data._all_fields).
+  renderExtractedFields(grid, d);
+
+  // Custom headers.
   if (d.custom_headers && Object.keys(d.custom_headers).length > 0) {
-    container.appendChild(el("div", { className: "detail-section" }, [
-      el("div", { className: "detail-section-head" }, [
-        el("span", { className: "detail-section-title" }, ["CUSTOM HEADERS"]),
-      ]),
-      el("div", { className: "detail-section-body" }, [
-        el("pre", { className: "payload-block" }, [JSON.stringify(d.custom_headers, null, 2)]),
-      ]),
-    ]));
+    grid.appendChild(wideSection("CUSTOM HEADERS", null,
+      [el("pre", { className: "payload-block" }, [JSON.stringify(d.custom_headers, null, 2)])]));
   }
 
-  // ── Protocol-specific blocks ───────────────────────────────────────────
+  // Protocol-specific config blocks.
   const protoBlocks = [
     { key: "v2ray",       label: "V2RAY CONFIG" },
     { key: "vmess_config", label: "VMESS CONFIG" },
@@ -752,39 +756,29 @@ function renderConfigData(container, d) {
     { key: "openvpn_config", label: "OPENVPN CONFIG" },
   ];
   for (const { key, label } of protoBlocks) {
-    if (d[key] && typeof d[key] === "object" && Object.keys(d[key]).length > 0) {
-      container.appendChild(el("div", { className: "detail-section" }, [
-        el("div", { className: "detail-section-head" }, [
-          el("span", { className: "detail-section-title" }, [label]),
-        ]),
-        el("div", { className: "detail-section-body" }, [
-          el("pre", { className: "payload-block" }, [JSON.stringify(d[key], null, 2)]),
-        ]),
-      ]));
-    } else if (d[key] && typeof d[key] === "string" && d[key].trim()) {
-      container.appendChild(el("div", { className: "detail-section" }, [
-        el("div", { className: "detail-section-head" }, [
-          el("span", { className: "detail-section-title" }, [label]),
-        ]),
-        el("div", { className: "detail-section-body" }, [
-          el("pre", { className: "payload-block" }, [String(d[key])]),
-        ]),
-      ]));
+    const v = d[key];
+    if (v && typeof v === "object" && Object.keys(v).length > 0) {
+      grid.appendChild(wideSection(label, null,
+        [el("pre", { className: "payload-block" }, [JSON.stringify(v, null, 2)])]));
+    } else if (v && typeof v === "string" && v.trim()) {
+      grid.appendChild(wideSection(label, null,
+        [el("pre", { className: "payload-block" }, [String(v)])]));
     }
   }
 
-  // ── Raw JSON (collapsible) ─────────────────────────────────────────────
+  // Raw JSON (collapsible).
   const rawToggle = el("button", { className: "action-btn" }, ["{} TOGGLE RAW JSON"]);
   const rawBlock = el("pre", { className: "payload-block hidden", style: "margin-top: 8px;" }, [JSON.stringify(d, null, 2)]);
   rawToggle.addEventListener("click", () => rawBlock.classList.toggle("hidden"));
-
-  container.appendChild(el("div", { className: "detail-section" }, [
+  grid.appendChild(el("div", { className: "detail-section span-all" }, [
     el("div", { className: "detail-section-head" }, [
-      el("span", { className: "detail-section-title" }, ["RAW PAYLOAD"]),
+      el("span", { className: "detail-section-title" }, ["RAW JSON"]),
       rawToggle,
     ]),
     rawBlock,
   ]));
+
+  container.appendChild(grid);
 }
 
 /**
@@ -890,6 +884,60 @@ function renderNotesSandboxed(html) {
   });
   wrapper.appendChild(iframe);
   return wrapper;
+}
+
+// Turn a raw config key (camelCase / snake_case / dotted) into a readable
+// label: "overwriteServerData" -> "Overwrite Server Data", "file.msg" -> "File Msg".
+function prettifyKey(k) {
+  return String(k)
+    .replace(/^_+/, "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_.]+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function looksLikeHtml(v) {
+  return typeof v === "string" && /<\/?[a-z][\s\S]*>/i.test(v);
+}
+
+// Render EVERY field the decoder extracted (raw_data._all_fields) as a clean
+// key/value table. This is the fix for "the decoded page is empty, I have to
+// export JSON": the structured sections only show mapped IR fields, but the
+// full decoded config lives here. Scalars render inline, nested objects as
+// pretty JSON, and HTML-ish values are skipped (they render in NOTES).
+function renderExtractedFields(container, d) {
+  const all = d.raw_data && d.raw_data._all_fields;
+  if (!all || typeof all !== "object" || Array.isArray(all)) return;
+
+  const rows = [];
+  for (const [k, v] of Object.entries(all)) {
+    if (v === null || v === undefined || v === "") continue;
+    if (looksLikeHtml(v)) continue; // shown in the NOTES section instead
+    let valEl;
+    if (v && typeof v === "object") {
+      valEl = el("pre", { className: "kv-val kv-json" }, [JSON.stringify(v, null, 2)]);
+    } else if (typeof v === "boolean" || typeof v === "number") {
+      valEl = el("span", { className: "kv-val mono" }, [String(v)]);
+    } else {
+      valEl = el("span", { className: "kv-val" }, [String(v)]);
+    }
+    rows.push(el("div", { className: "kv-row" }, [
+      el("div", { className: "kv-key" }, [prettifyKey(k)]),
+      valEl,
+    ]));
+  }
+  if (rows.length === 0) return;
+
+  container.appendChild(el("div", { className: "detail-section span-all" }, [
+    el("div", { className: "detail-section-head" }, [
+      el("span", { className: "detail-section-title" }, ["DECODED FIELDS"]),
+      el("span", { className: "detail-section-hint" }, [`${rows.length} fields extracted`]),
+    ]),
+    el("div", { className: "detail-section-body", style: "padding: 0;" }, [
+      el("div", { className: "kv-table kv-table-wide" }, rows),
+    ]),
+  ]));
 }
 
 function renderKVSection(container, title, fields, d) {
