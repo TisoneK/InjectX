@@ -203,3 +203,12 @@ outcome:
 - **Outcome:** done — all 7 shipped. Terminal module (sidebar 04, shared `runCommand`); collapsible log dock (340↔34px); clock UTC→local; status-header cells `flex-shrink:0` so labels don't clip; Electron close dialog (`dialog.showMessageBoxSync` + `isQuitting` flag); sticky `.detail-header` (top) + `.detail-actions` (bottom) — removed `.detail-content` vertical padding so they sit flush (fixed a content-bleed sliver caught in the first pass). Verified in-browser vs real HC config (terminal runs, collapse toggles, local clock, sticky no-bleed, no console errors); `node --check` clean. Close dialog is Electron-main-only — code-reviewed + syntax-checked, user to confirm in packaged app.
 - **Open items:** N10/N11/N12/N13 unchanged. User reminders: reinstall backend deps on Windows (argon2-cffi) for EHI; restart app for current backend.
 - **Report:** .context/memory/reviews/2026-07-16-review-3.md
+
+---
+## 2026-07-16 — Session 20
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** (1) Logs page copy button; (2) redesign the cramped/non-functional Arsenal page; (3) big feature — a realistic terminal command system with namespaced args.
+- **Commits:** 2 (`f99fe9b` feat(ui) + changelog `docs`) + this Phase 5 `chore(context)` + review `docs(review)`.
+- **Outcome:** done — All three shipped in one cohesive frontend commit (interleaved across index.html/renderer.js/main.css). Terminal: replaced flat CONSOLE_COMMANDS with a namespaced parser/dispatcher (`runCommand` + `CMD` tree) shared by the terminal + activity-log via IO surfaces, aligned-table output; commands `targets list/info/open/debug/export/purge/import/count`, `logs`, `system`, `assets import`; target resolution by id/filename with ambiguity detection; `debug` caps the trace table at 20 rows. Arsenal: live dashboard (summary strip + accurate status pills + live LOADED·DECODED counts + click-to-filter via new `state.formatFilter`). Logs: COPY LOG button + per-entry copy + shared `copyText()`. Verified in-browser vs 31 real targets (injected list + mocked getConfig due to CORS); tables align, ambiguity/unknown handling works, arsenal click-filters hc→13, no console errors.
+- **Open items:** N10/N11/N12/N13 unchanged. Terminal follow-ups noted in review (history/tab-completion/keyfile add).
+- **Report:** .context/memory/reviews/2026-07-16-review-4.md
