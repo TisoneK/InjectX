@@ -167,3 +167,12 @@ outcome:
 - **Outcome:** done — **CRACKED ZIVPN: `.ziv` now decodes 6/6 (was 0/6).** The 5-session "key rotated, unfixable" verdict was wrong. Static-analyzed the APK with androguard (no JVM — `/usr/bin/java` is a stub so jadx couldn't run; pip-installed androguard instead). Config importer `o3.a.<clinit>` builds the password from five base64 constants → `SecurePart1..SecurePart5` concatenated; `u3.c`/`v3.b` = BouncyCastle PKCS5S2 PBKDF2 (1000 iters, 16-byte key) + AES-GCM over salt.iv.ct. InjectX's H1 algorithm was already exactly right — only the password was stale — so adding it fixed all 6. Also mapped UDP-mode fields (udpserver→host: udpsg3/udpsg4.zivpn.com), +6 tests (48→54). First-half of session: automated APK download failed (mirror anti-bot), user supplied the XAPK.
 - **Open items:** N11 — ZIV half DONE; TLS half open (same method, needs the com.tlsvpn.tlstunnel APK). N12/N13 unchanged.
 - **Report:** .context/memory/reviews/2026-07-15-review-8.md
+
+---
+## 2026-07-15 — Session 16
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** Extract the current TLS Tunnel `.tls` AES-GCM key from the app APK (user supplied TLS Tunnel v8.0.6, com.tlsvpn.tlstunnel), same method as ZIVPN.
+- **Commits:** 1 doc (`docs` key-extraction packer caveat) + this Phase 5 `chore(context)` + review `docs(review)`. No product code change (no key recovered).
+- **Outcome:** blocked — **TLS Tunnel 8.0.6 ships DexProtector** (`libdexprotector.so`), a commercial packer that encrypts the app's own strings/classes at runtime, defeating static extraction. Enumerated every AES/GCM/SecretKeySpec reference in all 4 dex — all were unprotected ad SDKs (Digital Turbine Ignite `Lhm`, Conscrypt `Lo30`, Google Tink, Mintegral), none the config crypto; no com.tlsvpn class references the crypto directly. Brute-forced 148,232 strings (dex + all .so) × 5 key derivations against a sample — no hit. TLS's F1 algorithm is still correct; only the (runtime-only) key is missing. Path forward: dynamic Frida on a rooted device/emulator (needs the user's device; not runnable here). Contrast: ZIVPN had no packer, so it cracked; TLS is deliberately hardened.
+- **Open items:** N11 (TLS) reclassified — blocked on dynamic Frida (device), not on the APK. N12/N13 unchanged.
+- **Report:** .context/memory/reviews/2026-07-15-review-9.md
