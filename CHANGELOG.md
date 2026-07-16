@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- ZIVPN (`.ziv`) configs now decode again. Newer ZIVPN builds changed the
+  secret password used to lock config files, which had left every `.ziv`
+  file unreadable. The current password was recovered and all bundled
+  ZIVPN configs now decrypt, showing the server (e.g. `udpsg3.zivpn.com`)
+  and their settings.
 - DARK Tunnel (`.dark`) configs are now readable. They were previously
   written off as using "proprietary encryption," but the file is really
   a wrapped, plainly-encoded package: the app type (VLESS/VMESS/Trojan),
