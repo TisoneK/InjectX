@@ -8,8 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- A **Terminal** module in the sidebar — a full-size command console
-  (help, status, targets, clear, purge, about).
+- The **Terminal** now understands real commands with arguments —
+  `targets list`, `targets debug <id|name>`, `targets purge <id|name|all>`,
+  `targets info/open/export/import/count`, plus `logs`, `system`, and
+  `assets import`. Type `help` (or `targets help`) for the full list.
+- The **Arsenal** page is now a live dashboard: a summary of formats and
+  decode counts, an accurate status for every format, and per-format
+  counts of how many of your loaded configs decoded — click a format to
+  jump to those targets.
+- The **Logs** page can now copy the whole log, and each line has its own
+  copy button.
+- A **Terminal** module in the sidebar — a full-size command console.
 - The activity log can now be **collapsed** to a thin rail (toggle in its
   header), giving the output the full window width.
 - A confirmation dialog when you close the app, so an accidental close
