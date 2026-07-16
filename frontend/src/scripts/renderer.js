@@ -285,7 +285,7 @@ function renderArchive() {
 function startClock() {
   const tick = () => {
     const sh = $("#sh-clock");
-    if (sh) sh.textContent = fmtUTC();
+    if (sh) sh.textContent = fmtTime();
   };
   tick();
   setInterval(tick, 1000);
@@ -350,6 +350,10 @@ function showView(viewName) {
 
   if (viewName === "archive") renderArchive();
   if (viewName === "system") renderSystemView();
+  if (viewName === "terminal") {
+    const ti = $("#terminal-input");
+    if (ti) setTimeout(() => ti.focus(), 60);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1451,31 +1455,70 @@ const CONSOLE_COMMANDS = {
   about:   "InjectX // CIPHER_OPS — tactical VPN config inspector. Local-only, no telemetry.",
 };
 
+// Shared command runner. `echo` prints the entered line; `out(msg, type)`
+// prints results. Used by both the activity-log console and the Terminal view.
+function runCommand(raw, echo, out) {
+  echo(`> ${raw}`);
+  const handler = CONSOLE_COMMANDS[raw.toLowerCase()];
+  if (!handler) {
+    out(`Unknown command: ${raw} (type 'help')`, "err");
+    return;
+  }
+  const result = typeof handler === "function" ? handler() : handler;
+  if (result) out(result, "info");
+}
+
 function setupConsoleInput() {
   const input = $("#console-input");
-  if (!input) return;
+  if (input) {
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const raw = input.value.trim();
+      if (!raw) return;
+      input.value = "";
+      runCommand(
+        raw,
+        (m) => logEvent("CMD", m, "info"),
+        (m, t) => logEvent(t === "err" ? "ERR" : "OUT", m, t || "info"),
+      );
+    });
+    const ciRow = $(".console-input");
+    if (ciRow) ciRow.addEventListener("click", () => input.focus());
+  }
 
+  // Collapse / expand the activity-log dock.
+  const toggle = $("#btn-toggle-console");
+  const consoleEl = $(".console");
+  if (toggle && consoleEl) {
+    toggle.addEventListener("click", () => {
+      const collapsed = consoleEl.classList.toggle("collapsed");
+      toggle.textContent = collapsed ? "⟨" : "⟩";
+      toggle.title = collapsed ? "Expand activity log" : "Collapse activity log";
+    });
+  }
+}
+
+// Terminal view — a full-size command console sharing CONSOLE_COMMANDS.
+function termWrite(text, type) {
+  const body = $("#terminal-body");
+  if (!body) return;
+  const cls = type === "err" ? "term-err" : (type === "cmd" ? "term-cmd" : "term-out");
+  body.appendChild(el("div", { className: "term-line" }, [el("span", { className: cls }, [String(text)])]));
+  body.scrollTop = body.scrollHeight;
+}
+
+function setupTerminal() {
+  const input = $("#terminal-input");
+  if (!input) return;
   input.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
     const raw = input.value.trim();
     if (!raw) return;
-    const cmd = raw.toLowerCase();
     input.value = "";
-
-    logEvent("CMD", `> ${raw}`, "info");
-
-    const handler = CONSOLE_COMMANDS[cmd];
-    if (!handler) {
-      logEvent("ERR", `Unknown command: ${cmd} (type 'help')`, "err");
-      return;
-    }
-    const out = typeof handler === "function" ? handler() : handler;
-    logEvent("OUT", out, "info");
+    runCommand(raw, (m) => termWrite(m, "cmd"), (m, t) => termWrite(m, t));
   });
-
-  // Keep cursor visible — focus when clicking anywhere on the input row
-  const ciRow = $(".console-input");
-  if (ciRow) ciRow.addEventListener("click", () => input.focus());
+  const row = $(".terminal-input-row");
+  if (row) row.addEventListener("click", () => input.focus());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1520,6 +1563,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderArsenalView();
   renderArchive();
   setupConsoleInput();
+  setupTerminal();
 
   // Navigation
   $$(".sb-nav-item").forEach((item) => {

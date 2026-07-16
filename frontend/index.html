@@ -97,8 +97,13 @@
             <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4"/><path d="M5 8v12h14V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
             <span class="sb-nav-label">Logs</span>
           </li>
-          <li class="sb-nav-item" data-view="system">
+          <li class="sb-nav-item" data-view="terminal">
             <span class="sb-nav-idx">04</span>
+            <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M7 9l3 3-3 3"/><line x1="12" y1="15" x2="16" y2="15"/></svg>
+            <span class="sb-nav-label">Terminal</span>
+          </li>
+          <li class="sb-nav-item" data-view="system">
+            <span class="sb-nav-idx">05</span>
             <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
             <span class="sb-nav-label">System</span>
           </li>
@@ -130,7 +135,7 @@
       <header class="status-header">
         <div class="sh-left">
           <div class="sh-cell">
-            <span class="sh-cell-label">UTC</span>
+            <span class="sh-cell-label">LOCAL</span>
             <span class="sh-cell-value" id="sh-clock">--:--:--</span>
           </div>
           <div class="sh-cell">
@@ -294,11 +299,32 @@
           </div>
         </section>
 
+        <!-- ─── Terminal View ────────────────────────────────────────────── -->
+        <section id="view-terminal" class="view">
+          <div class="view-toolbar">
+            <div class="vt-left">
+              <h2 class="vt-title">TERMINAL</h2>
+              <span class="vt-sub">command console · type 'help'</span>
+            </div>
+          </div>
+          <div class="terminal-window">
+            <div class="terminal-body" id="terminal-body">
+              <div class="term-line"><span class="term-out">InjectX // CIPHER_OPS terminal ready. Type 'help' for commands.</span></div>
+            </div>
+            <div class="terminal-input-row">
+              <span class="ci-prompt">&gt;</span>
+              <input type="text" id="terminal-input" placeholder="enter command" autocomplete="off" spellcheck="false" />
+              <span class="ci-cursor"></span>
+            </div>
+          </div>
+        </section>
+
       </main>
 
       <!-- Activity Console (right dock) -->
       <aside class="console">
         <div class="console-header">
+          <button id="btn-toggle-console" class="console-collapse-btn" title="Collapse activity log">⟩</button>
           <span class="console-tab active">// ACTIVITY_LOG</span>
           <span class="console-meta">
             <span class="console-pip"></span>

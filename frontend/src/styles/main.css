@@ -407,7 +407,9 @@ svg { display: block; }
   border-bottom: 1px solid var(--bd-line);
   gap: var(--gap-md);
 }
-.sh-left, .sh-right { display: flex; align-items: center; gap: var(--gap-lg); }
+/* Left/right cells never shrink, so their labels (LOCAL/OP/SIG/STATUS) can't
+   get clipped; the decorative center marquee absorbs any width shortage. */
+.sh-left, .sh-right { display: flex; align-items: center; gap: var(--gap-lg); flex-shrink: 0; }
 .sh-cell { display: flex; flex-direction: column; gap: 1px; }
 .sh-cell-end { align-items: flex-end; }
 .sh-cell-label {
@@ -416,7 +418,7 @@ svg { display: block; }
 .sh-cell-value {
   font-size: 11px; color: var(--tx-primary); letter-spacing: 0.1em;
 }
-.sh-center { flex: 1; overflow: hidden; }
+.sh-center { flex: 1; min-width: 0; overflow: hidden; }
 .sh-marquee {
   overflow: hidden; white-space: nowrap;
   border-left: 1px solid var(--bd-line);
@@ -748,15 +750,24 @@ svg { display: block; }
 .detail-content {
   flex: 1; overflow-y: auto;
   min-height: 0;
-  padding: var(--gap-lg);
+  /* No top/bottom padding: the sticky header/footer own their vertical
+     padding and must sit flush against the scroll edges, or content bleeds
+     through the gap above the header / below the footer while scrolling. */
+  padding: 0 var(--gap-lg);
   display: flex; flex-direction: column; gap: var(--gap-md);
 }
 
 .detail-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding-bottom: var(--gap-md);
   border-bottom: 1px solid var(--bd-line);
   flex-wrap: wrap; gap: var(--gap-md);
+  /* Sticky: stays visible while scrolling the output. Negative margins pull
+     it over the scroll container's padding so nothing shows above it. */
+  position: sticky; top: 0; z-index: 20;
+  background: var(--bg-base);
+  margin: 0 calc(-1 * var(--gap-lg));
+  padding: var(--gap-lg) var(--gap-lg) var(--gap-md);
+  box-shadow: 0 6px 12px -6px rgba(0,0,0,0.7);
 }
 .detail-title-block { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
 .detail-format-row { display: flex; gap: var(--gap-sm); align-items: center; flex-wrap: wrap; }
@@ -1010,8 +1021,14 @@ svg { display: block; }
 
 /* Action bar */
 .detail-actions {
-  display: flex; gap: var(--gap-sm); padding-top: var(--gap-md);
+  display: flex; gap: var(--gap-sm);
   border-top: 1px solid var(--bd-line);
+  /* Sticky footer: export/purge stay reachable at the bottom while scrolling. */
+  position: sticky; bottom: 0; z-index: 20;
+  background: var(--bg-base);
+  margin: 0 calc(-1 * var(--gap-lg));
+  padding: var(--gap-md) var(--gap-lg) var(--gap-lg);
+  box-shadow: 0 -6px 12px -6px rgba(0,0,0,0.7);
 }
 .action-btn {
   padding: 8px 16px; font-size: 11px; letter-spacing: 0.2em;
@@ -1184,6 +1201,48 @@ svg { display: block; }
   transition: all 0.15s ease;
 }
 .console-clear:hover { color: var(--c-amber); border-color: var(--c-amber-dim); }
+
+/* Collapse toggle + collapsed dock */
+.console-collapse-btn {
+  font-size: 12px; color: var(--tx-muted); background: transparent;
+  border: 1px solid var(--bd-bright); padding: 1px 6px; cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease; flex-shrink: 0;
+}
+.console-collapse-btn:hover { color: var(--c-matrix); border-color: var(--c-matrix-dim); }
+.console.collapsed { width: 34px; }
+.console.collapsed .console-tab,
+.console.collapsed .console-meta,
+.console.collapsed .console-clear,
+.console.collapsed .console-body,
+.console.collapsed .console-input { display: none; }
+.console.collapsed .console-header {
+  height: 100%; flex-direction: column; justify-content: flex-start;
+  padding: var(--gap-sm) 0; border-bottom: none;
+}
+
+/* Terminal view */
+.terminal-window {
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  margin: 0 var(--gap-lg) var(--gap-lg);
+  border: 1px solid var(--bd-line); background: var(--bg-inset);
+}
+.terminal-body {
+  flex: 1; overflow-y: auto; padding: var(--gap-md);
+  font-size: 12px; line-height: 1.65;
+}
+.term-line { padding: 1px 0; word-break: break-word; }
+.term-cmd { color: var(--c-matrix); }
+.term-out { color: var(--tx-primary); }
+.term-err { color: var(--c-blood); }
+.terminal-input-row {
+  height: 36px; flex-shrink: 0; display: flex; align-items: center; gap: var(--gap-sm);
+  padding: 0 var(--gap-md); background: var(--bg-surface);
+  border-top: 1px solid var(--bd-line);
+}
+#terminal-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--tx-bright); font-size: 12px; font-family: inherit;
+}
 
 .console-body {
   flex: 1; overflow-y: auto;
