@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Redesigned the decoded-config view. The activity log now sits in a
+  panel on the right instead of across the bottom, giving results the
+  full height of the window. Decoded configs now lead with big tiles for
+  the key details (server, port, protocol), lay the sections out in two
+  columns to use the space, and show a complete "Decoded Fields" table —
+  so you can read everything a config contains without exporting JSON.
+  Author notes (including HTTP Injector and ZIVPN messages) now display
+  in-place, and the raw-JSON viewer collapses again by default.
+
 ### Added
 - ZIVPN (`.ziv`) configs now decode again. Newer ZIVPN builds changed the
   secret password used to lock config files, which had left every `.ziv`
