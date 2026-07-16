@@ -194,3 +194,12 @@ outcome:
 - **Outcome:** done — Root-caused "only HC works" from the exports: (1) `/api/config/export` DROPPED `raw_data`, and HC is the only format that maps data to top-level IR fields — HTTP Injector/ZIVPN/DARK keep it in `raw_data._all_fields`, so their exports came out near-empty. Fixed the export to keep raw_data (minus debug keys); ZIV export now 24 fields, EHI 21, DARK its name/type. (2) The user's EHI shows FAILED because their Windows backend venv is missing `argon2-cffi` (B2 needs it) — env, not code (EHI decodes 6/6 here); told them to reinstall deps. Added copy-to-clipboard buttons (⧉) on hero tiles, all field values, and log lines (Clipboard API + execCommand fallback). 54/54 tests, ruff clean, verified in-browser. Left the user's untracked `electron-builder` bump in package.json/lock untouched.
 - **Open items:** N10/N11/N12/N13 unchanged. Optional: promote more EHI/ZIV app fields to top-level IR (deferred).
 - **Report:** .context/memory/reviews/2026-07-16-review-2.md
+
+---
+## 2026-07-16 — Session 19
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** 7-item UI polish batch: Terminal module, collapsible activity log, local (not UTC) time, other UI-inconsistency fixes, close-confirmation dialog, sticky detail header + footer.
+- **Commits:** 3 (`90129c6` feat(app) close dialog + `f78f35b` feat(ui) UI batch + changelog `docs`) + this Phase 5 `chore(context)` + review `docs(review)`.
+- **Outcome:** done — all 7 shipped. Terminal module (sidebar 04, shared `runCommand`); collapsible log dock (340↔34px); clock UTC→local; status-header cells `flex-shrink:0` so labels don't clip; Electron close dialog (`dialog.showMessageBoxSync` + `isQuitting` flag); sticky `.detail-header` (top) + `.detail-actions` (bottom) — removed `.detail-content` vertical padding so they sit flush (fixed a content-bleed sliver caught in the first pass). Verified in-browser vs real HC config (terminal runs, collapse toggles, local clock, sticky no-bleed, no console errors); `node --check` clean. Close dialog is Electron-main-only — code-reviewed + syntax-checked, user to confirm in packaged app.
+- **Open items:** N10/N11/N12/N13 unchanged. User reminders: reinstall backend deps on Windows (argon2-cffi) for EHI; restart app for current backend.
+- **Report:** .context/memory/reviews/2026-07-16-review-3.md
