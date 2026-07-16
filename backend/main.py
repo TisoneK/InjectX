@@ -475,7 +475,7 @@ async def supported_formats():
             {"id": "npv", "name": "NapsternetV", "extensions": [".npv4", ".inpv", ".npv"], "encrypted": True, "decryptable": True, "schemes": ["C1"], "description": "Subtraction cipher (charCode subtraction with cycling key)"},
             {"id": "nsh", "name": "SocksHTTP", "extensions": [".nsh"], "encrypted": True, "decryptable": True, "schemes": ["D1"], "description": "AES-128-GCM + PBKDF2 with dot-separated salt.iv.ciphertext_mac format"},
             {"id": "vhd", "name": "V2Ray/NPV Tunnel", "extensions": [".vhd"], "encrypted": True, "decryptable": True, "schemes": ["G1"], "description": "AES-128-CBC with V2Ray/Xray outboundBean structure"},
-            {"id": "ziv", "name": "ZIVPN", "extensions": [".ziv"], "encrypted": True, "decryptable": True, "schemes": ["H1"], "description": "AES-256-GCM + PBKDF2-SHA256, dot-separated salt.iv.ciphertext_mac (keys rotated in newer builds)"},
+            {"id": "ziv", "name": "ZIVPN", "extensions": [".ziv"], "encrypted": True, "decryptable": True, "schemes": ["H1"], "description": "AES-128-GCM + PBKDF2-SHA256 (1000 iters), dot-separated salt.iv.ciphertext_mac; current v2.1.5 password supported"},
             {"id": "lnk", "name": "Renamed config (.lnk)", "extensions": [".lnk"], "encrypted": True, "decryptable": False, "schemes": [], "description": "Config renamed to .lnk so Windows treats it as a file, not a shortcut; algorithm not yet reversed"},
             {"id": "ovpn", "name": "OpenVPN", "extensions": [".ovpn"], "encrypted": False, "decryptable": False, "schemes": [], "description": "Plain text OpenVPN config (not yet implemented)"},
         ],

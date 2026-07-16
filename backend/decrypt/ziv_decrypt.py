@@ -11,13 +11,16 @@ File format: "salt.iv.ciphertext_mac" (3 dot-separated base64 segments)
 Key derivation: PBKDF2(password, salt, hmac=SHA256) → 32-byte AES key
 Decryption: AES-256-GCM(key, iv).decrypt_and_verify(ciphertext, mac)
 
-The password is a hardcoded app constant. The original X-Tools password
-'fubvx788b46v' works for older .ziv files; newer ZIVPN builds may use
-a different password (not yet publicly documented).
+The password is a hardcoded app constant. Current ZIVPN Tunnel builds
+(v2.1.5, com.zi.zivpn) use 'SecurePart1..SecurePart5' concatenated —
+extracted by static analysis of class o3.a / u3.c / v3.b in the APK
+(BouncyCastle PKCS5S2 PBKDF2, 1000 iterations, 16-byte AES key, AES-GCM).
+The original X-Tools password 'fubvx788b46v' works for older .ziv files.
 
 Decrypted output: XML properties with <entry key="...">value</entry> pairs.
 
-Reference: https://github.com/EstebanZxx/X-Tools (Main.py)
+References: https://github.com/EstebanZxx/X-Tools (Main.py) for the legacy
+password; ZIVPN Tunnel v2.1.5 APK (o3.a) for the current one.
 """
 
 from __future__ import annotations
@@ -44,7 +47,14 @@ from ir.models import (
 # The original X-Tools password works for older files; newer builds
 # may have rotated the key (not yet publicly reversed).
 _ZIV_PASSWORDS: list[bytes] = [
-    b"fubvx788b46v",        # X-Tools original
+    # Current password, extracted from ZIVPN Tunnel v2.1.5 (com.zi.zivpn):
+    # class o3.a builds it in <clinit> by concatenating five base64 parts
+    # (U2VjdXJlUGFydDE=.."U2VjdXJlUGFydDU=" -> "SecurePart1".."SecurePart5"),
+    # feeds it to a BouncyCastle PKCS5S2 (PBKDF2) generator (1000 iterations),
+    # then AES-GCM-decrypts the salt.iv.ct payload. Matches this module's
+    # PBKDF2(SHA256, dkLen=16, count=1000) + AES-GCM exactly.
+    b"SecurePart1SecurePart2SecurePart3SecurePart4SecurePart5",
+    b"fubvx788b46v",        # X-Tools / KMKZ era (older builds)
     b"fubvx788B4mev",       # variant
     b"zivpn",
     b"ZIVPN",
@@ -153,7 +163,8 @@ def _parse_ziv_xml(text: str) -> dict:
     for key, value in matches:
         out[key] = value
 
-    # Map common ZIVPN field names to IR field names
+    # Map common ZIVPN field names to IR field names. ZIVPN has two config
+    # shapes: SSH-mode (sshServer/…) and UDP-mode (udpserver/…, tunnelType=4).
     field_map = {
         "sshServer": "ssh_server",
         "sshPort": "ssh_port",
@@ -167,6 +178,10 @@ def _parse_ziv_xml(text: str) -> dict:
         "dnsServer": "dns",
         "remoteDns": "remote_dns",
         "notes": "notes",
+        # UDP-mode (Hysteria-based) fields
+        "udpserver": "host",
+        "udpResolver": "remote_dns",
+        "sniHost": "sni",
     }
     normalized: dict = {}
     for ziv_key, ir_key in field_map.items():
