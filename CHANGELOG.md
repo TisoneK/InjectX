@@ -8,12 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- A **Terminal** module in the sidebar — a full-size command console
+  (help, status, targets, clear, purge, about).
+- The activity log can now be **collapsed** to a thin rail (toggle in its
+  header), giving the output the full window width.
+- A confirmation dialog when you close the app, so an accidental close
+  doesn't discard your decoded configs.
+- On the decoded page, the header and the Export/Purge buttons now stay
+  pinned to the top and bottom while you scroll through the output.
 - Copy buttons throughout the decoded view. Hover any key value — the
   server/host, proxy, SSH credentials, SNI, or any decoded field — and a
   copy icon appears to put it on your clipboard in one click. Activity-log
   lines are copyable too.
 
 ### Fixed
+- The header clock now shows your local time instead of UTC.
+- Header labels no longer get clipped on a narrow window.
 - Exporting a config now includes everything that was decoded. Previously
   only HTTP Custom configs exported fully; HTTP Injector, ZIVPN, and DARK
   Tunnel exports came out nearly empty because their fields were dropped.
