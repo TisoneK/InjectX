@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Copy buttons throughout the decoded view. Hover any key value — the
+  server/host, proxy, SSH credentials, SNI, or any decoded field — and a
+  copy icon appears to put it on your clipboard in one click. Activity-log
+  lines are copyable too.
+
+### Fixed
+- Exporting a config now includes everything that was decoded. Previously
+  only HTTP Custom configs exported fully; HTTP Injector, ZIVPN, and DARK
+  Tunnel exports came out nearly empty because their fields were dropped.
+  Now every decoded field is in the exported JSON.
+
 ### Changed
 - Redesigned the decoded-config view. The activity log now sits in a
   panel on the right instead of across the bottom, giving results the
