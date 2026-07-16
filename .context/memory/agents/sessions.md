@@ -176,3 +176,12 @@ outcome:
 - **Outcome:** blocked — **TLS Tunnel 8.0.6 ships DexProtector** (`libdexprotector.so`), a commercial packer that encrypts the app's own strings/classes at runtime, defeating static extraction. Enumerated every AES/GCM/SecretKeySpec reference in all 4 dex — all were unprotected ad SDKs (Digital Turbine Ignite `Lhm`, Conscrypt `Lo30`, Google Tink, Mintegral), none the config crypto; no com.tlsvpn class references the crypto directly. Brute-forced 148,232 strings (dex + all .so) × 5 key derivations against a sample — no hit. TLS's F1 algorithm is still correct; only the (runtime-only) key is missing. Path forward: dynamic Frida on a rooted device/emulator (needs the user's device; not runnable here). Contrast: ZIVPN had no packer, so it cracked; TLS is deliberately hardened.
 - **Open items:** N11 (TLS) reclassified — blocked on dynamic Frida (device), not on the APK. N12/N13 unchanged.
 - **Report:** .context/memory/reviews/2026-07-15-review-9.md
+
+---
+## 2026-07-16 — Session 17
+- **Agent:** Claude Code | **Model:** claude-fable-5 (Claude Fable 5; exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6 | **Role:** engineer | **Core:** 0.2.0
+- **Task:** UI refinement (user paused decode work). "Decoded page is messed up, I have to export JSON." Then: move activity log to the right + redesign the output.
+- **Commits:** 2 product/docs (`6d09419` feat(ui) + changelog `docs`) + this Phase 5 `chore(context)` + review `docs(review)`.
+- **Outcome:** done — Ran the app e2e to diagnose: (1) the user's app was on a STALE backend (the screenshot's EHI showed FAILED, but a fresh backend decodes EHI 6/6, HC 13/13, ZIV 6/6, DARK 4/4 — a restart fixes it); (2) even on success the detail view rendered near-empty because formats like EHI/ZIV keep their data in `raw_data._all_fields`, unmapped to IR slots (an EHI showed 1 row despite 21 fields). Shipped `feat(ui)`: activity log → 340px right dock (`.work-area` flex); output redesign — compact status strip, hero tiles (host/port/protocol), 2-col card grid, full-width "DECODED FIELDS" table (all extracted fields), notes pick up `configMessage`/`file.msg`, and fixed a latent `.hidden` bug (raw-JSON never collapsed). Verified in-browser vs real HC/EHI configs; no console errors.
+- **Open items:** N9 RESOLVED (all decoded fields now visible). User should restart the app for the current backend. N10/N11/N12/N13 unchanged.
+- **Report:** .context/memory/reviews/2026-07-16-review.md
