@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- The Terminal can point at files anywhere on your machine, not just
+  loaded ones: `targets info`/`targets debug` accept a file path, quoted
+  paths with spaces work, and `targets pick` opens the file picker. The
+  Terminal also gained Copy/Clear buttons and a copy button per line.
 - The **Terminal** now understands real commands with arguments —
   `targets list`, `targets debug <id|name>`, `targets purge <id|name|all>`,
   `targets info/open/export/import/count`, plus `logs`, `system`, and
@@ -39,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Now every decoded field is in the exported JSON.
 
 ### Changed
+- The "Import Assets" button (which loads bundled sample configs) is now
+  hidden in the packaged app — those are development samples, so the app
+  works only from your own file selections. It still appears when running
+  from source.
 - Redesigned the decoded-config view. The activity log now sits in a
   panel on the right instead of across the bottom, giving results the
   full height of the window. Decoded configs now lead with big tiles for
