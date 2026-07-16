@@ -17,6 +17,7 @@ const state = {
   selectedConfig: null,
   currentView: "targets",
   filter: "all",
+  formatFilter: null,     // format id to filter targets by (set from Arsenal); null = all
   archive: [],
   consoleLines: 0,
   sessionStart: Date.now(),
@@ -152,20 +153,23 @@ const STATUS_LABEL = {
 // execCommand fallback for plain file:// contexts.
 function copyBtn(get, extraClass = "") {
   const b = el("button", { className: "copy-btn " + extraClass, type: "button", title: "Copy" }, ["⧉"]);
-  const flash = () => {
-    b.classList.add("copied"); b.textContent = "✓";
-    setTimeout(() => { b.classList.remove("copied"); b.textContent = "⧉"; }, 1000);
-  };
   b.addEventListener("click", (e) => {
     e.stopPropagation();
-    const text = String(typeof get === "function" ? get() : get);
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(flash).catch(() => fallbackCopy(text, flash));
-    } else {
-      fallbackCopy(text, flash);
-    }
+    copyText(String(typeof get === "function" ? get() : get), () => {
+      b.classList.add("copied"); b.textContent = "✓";
+      setTimeout(() => { b.classList.remove("copied"); b.textContent = "⧉"; }, 1000);
+    });
   });
   return b;
+}
+// Copy text to the clipboard: async Clipboard API where available
+// (Electron/localhost), execCommand fallback for plain file:// contexts.
+function copyText(text, done) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done || (() => {})).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
 }
 function fallbackCopy(text, done) {
   const ta = document.createElement("textarea");
@@ -274,6 +278,7 @@ function renderArchive() {
       el("span", { className: "ae-time" }, [fmtTime(d)]),
       el("span", { className: `ae-tag ${entry.type}` }, [entry.tag]),
       el("span", { className: "ae-msg" }, [entry.msg]),
+      copyBtn(`${fmtTime(d)} [${entry.tag}] ${entry.msg}`, "ae-copy"),
     ]));
   }
 }
@@ -389,8 +394,9 @@ function renderTargetGrid() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // Apply filter
+  // Apply filters: format (from Arsenal) + status (from pills)
   const filtered = state.configs.filter((c) => {
+    if (state.formatFilter && c.format !== state.formatFilter) return false;
     if (state.filter === "all") return true;
     return classifyStatus(c) === state.filter;
   });
@@ -1029,59 +1035,103 @@ function renderKVSection(container, title, fields, d) {
 //   ARSENAL VIEW (formats — minus scheme IDs / decryptor sources)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Per-format capability intel. Status reflects the real state of each
+// decryptor (see .context reviews): operational = decodes today; partial =
+// envelope only; needs-key = correct algorithm, key rotated; untested =
+// implemented but no sample verified; no-decryptor / plain as named.
+const ARSENAL = [
+  { id: "hc",   scheme: "A5", status: "operational",  note: "HTTP Custom v2.7+ — ChaCha20 multi-layer + per-field decode. Fully decoding." },
+  { id: "ehi",  scheme: "B2", status: "operational",  note: "HTTP Injector v6.3+ — Argon2id + ChaCha20-Poly1305 (needs argon2-cffi installed)." },
+  { id: "ziv",  scheme: "H1", status: "operational",  note: "ZIVPN — PBKDF2-SHA256 + AES-GCM. Current v2.1.5 password recovered." },
+  { id: "dark", scheme: "I1", status: "partial",      note: "DARK Tunnel — darktunnel:// base64(JSON) envelope decoded; author-locked configs keep credentials sealed." },
+  { id: "tls",  scheme: "F1", status: "needs-key",    note: "TLS Tunnel — AES-256-GCM. Key rotated in newer (DexProtector) builds; supply one via a keyfile." },
+  { id: "hat",  scheme: "E1", status: "untested",     note: "HA Tunnel Plus — AES-128-ECB. Implemented; no sample verified yet." },
+  { id: "npv",  scheme: "C1", status: "untested",     note: "NapsternetV — charCode-subtraction cipher. Implemented; no sample verified yet." },
+  { id: "nsh",  scheme: "D1", status: "untested",     note: "SocksHTTP — AES-128-GCM + PBKDF2. Implemented; no sample verified yet." },
+  { id: "vhd",  scheme: "G1", status: "untested",     note: "V2Ray / Xray VHD — AES-128-CBC. Implemented; no sample verified yet." },
+  { id: "lnk",  scheme: "—",  status: "no-decryptor", note: "Unknown / renamed config format. No decryptor available." },
+  { id: "ovpn", scheme: "—",  status: "plain",        note: "OpenVPN plaintext. No encryption envelope; parsed directly." },
+];
+const ARSENAL_STATUS = {
+  operational:    { label: "OPERATIONAL",  cls: "ok" },
+  partial:        { label: "PARTIAL",      cls: "warn" },
+  "needs-key":    { label: "NEEDS KEY",    cls: "warn" },
+  untested:       { label: "UNTESTED",     cls: "info" },
+  "no-decryptor": { label: "NO DECRYPTOR", cls: "danger" },
+  plain:          { label: "PLAIN",        cls: "info" },
+};
+
+function arsStat(val, label) {
+  return el("div", { className: "ars-stat" }, [
+    el("div", { className: "ars-stat-val" }, [val]),
+    el("div", { className: "ars-stat-label" }, [label]),
+  ]);
+}
+
+function openTargetsFiltered(fmtId) {
+  showView("targets");
+  state.formatFilter = fmtId;
+  state.filter = "all";
+  $$(".filter-pill").forEach((p) => p.classList.toggle("active", p.dataset.filter === "all"));
+  renderTargetGrid();
+  showToast(`Showing ${formatMeta(fmtId).short} targets`, "info");
+}
+
 function renderArsenalView() {
   const grid = $("#arsenal-grid");
   if (!grid) return;
   grid.innerHTML = "";
 
-  const formats = [
-    { id: "ehi",  desc: "HTTP Injector configuration. Multi-layer encryption (AES-256-CBC + AES-128-CBC + XXTEA + Argon2id + ChaCha20-Poly1305) for v6.3+ files; legacy ZIP+JSON for older versions." },
-    { id: "hc",   desc: "HTTP Custom encrypted format. v2.7+ uses ChaCha20 + RST AES + per-field JKL/Braille/z3a decryption. Legacy versions use XOR + AES-128-ECB with ePro keys." },
-    { id: "hat",  desc: "HA Tunnel Plus configuration. Encrypted JSON envelope; multiple profile structures supported." },
-    { id: "tls",  desc: "TLS Tunnel configuration file. AES-256-GCM with versioned build metadata. Key may be rotated in newer builds." },
-    { id: "npv",  desc: "NapsternetV configuration file. Lightweight encoding wrapping V2Ray/VLess/VMess configurations." },
-    { id: "nsh",  desc: "SocksHTTP configuration file. Password-derived encryption with salted key derivation." },
-    { id: "vhd",  desc: "V2Ray / Xray tunnel configuration. Encrypted envelope around an outboundBean JSON structure." },
-    { id: "ziv",  desc: "ZIVPN configuration file. AES-256-GCM with PBKDF2-SHA256 key derivation. Dot-separated salt.iv.ciphertext_mac format." },
-    { id: "lnk",  desc: "LNK configuration file. Encrypted VPN config format. No public decryptor available — file metadata only." },
-    { id: "dark", desc: "DARK TUNNEL VPN proprietary configuration. Encryption envelope is closed-source; payload cannot be extracted." },
-    { id: "ovpn", desc: "OpenVPN plain-text configuration file. No encryption envelope; parser support is limited." },
-  ];
+  // Live counts from the loaded targets.
+  const loaded = {}, decoded = {};
+  for (const c of state.configs) {
+    loaded[c.format] = (loaded[c.format] || 0) + 1;
+    if (classifyStatus(c) === "decoded") decoded[c.format] = (decoded[c.format] || 0) + 1;
+  }
+  const opCount = ARSENAL.filter((f) => f.status === "operational").length;
+  const decodedTotal = state.configs.filter((c) => classifyStatus(c) === "decoded").length;
 
-  for (const fmt of formats) {
+  // Summary strip.
+  grid.appendChild(el("div", { className: "arsenal-summary" }, [
+    arsStat(String(ARSENAL.length), "FORMATS"),
+    arsStat(String(opCount), "OPERATIONAL"),
+    arsStat(String(state.configs.length), "TARGETS LOADED"),
+    arsStat(String(decodedTotal), "DECODED"),
+  ]));
+
+  // Format cards.
+  const cards = el("div", { className: "arsenal-cards" });
+  for (const fmt of ARSENAL) {
     const meta = formatMeta(fmt.id);
-    const decryptable = fmt.id !== "dark" && fmt.id !== "ovpn" && fmt.id !== "lnk";
-    const encrypted = fmt.id !== "ehi" && fmt.id !== "ovpn";
+    const st = ARSENAL_STATUS[fmt.status];
+    const n = loaded[fmt.id] || 0, m = decoded[fmt.id] || 0;
 
-    const tags = [];
-    if (encrypted) {
-      tags.push(el("span", { className: "ac-tag warn" }, ["ENCRYPTED"]));
-    } else {
-      tags.push(el("span", { className: "ac-tag info" }, ["PLAIN"]));
-    }
-    if (decryptable) {
-      tags.push(el("span", { className: "ac-tag ok" }, ["EXTRACTABLE"]));
-    } else if (fmt.id === "dark" || fmt.id === "lnk") {
-      tags.push(el("span", { className: "ac-tag danger" }, ["NO ACCESS"]));
-    } else {
-      tags.push(el("span", { className: "ac-tag warn" }, ["STUB"]));
-    }
-
-    grid.appendChild(el("div", {
-      className: "arsenal-card",
-      style: `--card-accent: ${meta.color}`,
-    }, [
+    const card = el("div", { className: "arsenal-card", style: `--card-accent: ${meta.color}` }, [
       el("div", { className: "ac-head" }, [
         el("div", { className: "ac-head-left" }, [
-          createFormatIcon(fmt.id, 36),
-          el("span", { className: "ac-name", style: `color: ${meta.color}` }, [meta.name]),
+          createFormatIcon(fmt.id, 32),
+          el("div", { className: "ac-title" }, [
+            el("span", { className: "ac-name", style: `color: ${meta.color}` }, [meta.name]),
+            el("span", { className: "ac-ext" }, [meta.exts.join(" / ")]),
+          ]),
         ]),
-        el("span", { className: "ac-ext" }, [meta.exts.join(" / ")]),
+        el("span", { className: `ac-status ${st.cls}` }, [st.label]),
       ]),
-      el("p", { className: "ac-desc" }, [fmt.desc]),
-      el("div", { className: "ac-tags" }, tags),
-    ]));
+      el("p", { className: "ac-desc" }, [fmt.note]),
+      el("div", { className: "ac-foot" }, [
+        el("span", { className: "ac-scheme" }, ["SCHEME ", el("strong", {}, [fmt.scheme])]),
+        el("span", { className: "ac-counts" + (n ? " live" : "") }, [`LOADED ${n} · DECODED ${m}`]),
+      ]),
+    ]);
+
+    if (n > 0) {
+      card.classList.add("clickable");
+      card.title = `Show ${n} ${meta.short} target(s)`;
+      card.addEventListener("click", () => openTargetsFiltered(fmt.id));
+    }
+    cards.appendChild(card);
   }
+  grid.appendChild(cards);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1442,30 +1492,293 @@ async function runBootSequence() {
 //   CONSOLE INPUT (fake command line — for flavor)
 // ═══════════════════════════════════════════════════════════════════════════
 
-const CONSOLE_COMMANDS = {
-  help:   "Available: help · status · targets · clear · purge · about",
-  status: () => {
-    const total = state.configs.length;
-    const decoded = state.configs.filter(c => classifyStatus(c) === "decoded").length;
-    return `OP: CIPHER_OPS · TARGETS: ${total} · DECODED: ${decoded} · LINK: ESTABLISHED`;
+// ── Command system ─────────────────────────────────────────────────────────
+// A small namespaced command tree shared by the Terminal view and the
+// activity-log input. Handlers receive (args, io); io writes output:
+//   io.echo(line)          — echo the entered command
+//   io.print(text, type?)  — a result line ("info" | "err")
+//   io.error(text)         — an error line
+//   io.table(headers,rows) — an aligned table
+//   io.clear()             — clear the current surface
+
+const STATUS_SHORT = { decoded: "DECODED", locked: "LOCKED", unknown: "FAILED" };
+
+// Resolve a target by id (full or 8-char short) or filename substring.
+// Returns a config, {_ambiguous:[...]}, or null.
+function resolveTarget(query) {
+  if (!query) return null;
+  const q = String(query).toLowerCase();
+  const byId = state.configs.find(
+    (c) => c.id.toLowerCase() === q || shortId(c.id).toLowerCase() === q,
+  );
+  if (byId) return byId;
+  const matches = state.configs.filter((c) => (c.filename || "").toLowerCase().includes(q));
+  if (matches.length === 1) return matches[0];
+  if (matches.length > 1) return { _ambiguous: matches };
+  return null;
+}
+
+function pickTarget(query, io) {
+  if (!query) { io.error("Specify a target id or filename."); return null; }
+  const r = resolveTarget(query);
+  if (!r) { io.error(`No target matches '${query}'.`); return null; }
+  if (r._ambiguous) {
+    io.error(`'${query}' matches ${r._ambiguous.length} targets — be more specific:`);
+    r._ambiguous.forEach((c) => io.print(`  ${shortId(c.id)}  ${c.filename}`));
+    return null;
+  }
+  return r;
+}
+
+function targetHost(d) {
+  const af = (d.raw_data && d.raw_data._all_fields) || {};
+  return d.host || d.ssh_server || d.proxy_host || af.udpserver || af.sniHostname || null;
+}
+
+const CMD = {
+  help(args, io) {
+    io.print("InjectX // CIPHER_OPS — command reference:");
+    io.table(["COMMAND", "DESCRIPTION"], [
+      ["help", "this list"],
+      ["clear", "clear the console"],
+      ["version", "show app version"],
+      ["targets <sub>", "manage loaded configs — 'targets help'"],
+      ["logs <sub>", "activity log — 'logs help'"],
+      ["system <sub>", "backend + environment — 'system help'"],
+      ["assets import", "import all bundled sample configs"],
+    ]);
   },
-  targets: () => `${state.configs.length} target(s) loaded`,
-  clear:   () => { $("#console-body").innerHTML = ""; state.consoleLines = 0; $("#console-line-count").textContent = "0 EVENTS"; return "Console flushed"; },
-  purge:   () => { clearAllConfigs(); return "Purging all targets..."; },
-  about:   "InjectX // CIPHER_OPS — tactical VPN config inspector. Local-only, no telemetry.",
+  version(args, io) { io.print("InjectX // CIPHER_OPS v0.5.0 — local-only, no telemetry."); },
+  about(args, io) { io.print("InjectX — tactical VPN config inspector. Local-only, no telemetry."); },
+  clear(args, io) { io.clear(); },
+  // aliases for the old flat commands
+  status(args, io) { return CMD.system.status(args, io); },
+  purge(args, io) { return CMD.targets.purge(args, io); },
+
+  targets: {
+    help(args, io) {
+      io.print("targets — manage loaded configs:");
+      io.table(["SUBCOMMAND", "DESCRIPTION"], [
+        ["targets [list]", "list all loaded targets"],
+        ["targets info <id|file>", "summary of one target"],
+        ["targets open <id|file>", "open a target's detail view"],
+        ["targets debug <id|file>", "scheme, file location, decrypt trace"],
+        ["targets export <id|file>", "download a target's JSON"],
+        ["targets purge [id|file|all]", "delete one, or all if omitted"],
+        ["targets import <filepath>", "parse a config file by absolute path"],
+        ["targets count", "counts by format and status"],
+      ]);
+    },
+    _default(args, io) { return CMD.targets.list(args, io); },
+    list(args, io) {
+      if (!state.configs.length) { io.print("No targets loaded. Drop a config or run 'assets import'."); return; }
+      io.table(["#", "ID", "FMT", "STATUS", "FILE"], state.configs.map((c, i) => [
+        i + 1, shortId(c.id), (c.format || "?").toUpperCase(),
+        STATUS_SHORT[classifyStatus(c)] || "?", c.filename || "unnamed",
+      ]));
+      io.print(`${state.configs.length} target(s).`);
+    },
+    async info(args, io) {
+      const c = pickTarget(args[0], io); if (!c) return;
+      const full = await API.getConfig(c.id);
+      const d = full.config || {};
+      io.print(`TGT_${shortId(c.id)}  ${full.filename}`);
+      io.print(`  format ${full.format}  ·  scheme ${full.scheme_used || "—"}  ·  status ${full.decryption_status}`);
+      const host = targetHost(d);
+      if (host) io.print(`  host      ${host}`);
+      if (d.port) io.print(`  port      ${d.port}`);
+      if (d.protocol) io.print(`  protocol  ${d.protocol}`);
+      if (d.sni) io.print(`  sni       ${d.sni}`);
+      if (d.ssh_user) io.print(`  ssh user  ${d.ssh_user}`);
+    },
+    open(args, io) {
+      const c = pickTarget(args[0], io); if (!c) return;
+      io.print(`Opening TGT_${shortId(c.id)} — ${c.filename}`);
+      showConfigDetail(c.id);
+    },
+    async debug(args, io) {
+      const c = pickTarget(args[0], io); if (!c) return;
+      const full = await API.getConfig(c.id);
+      io.print(`DEBUG TGT_${shortId(c.id)}  ${full.filename}`);
+      io.print(`  location   ${full.filepath || "—"}`);
+      io.print(`  format ${full.format}  ·  scheme ${full.scheme_used || "—"}  ·  confidence ${full.confidence ?? "—"}`);
+      io.print(`  status     ${full.decryption_status}`);
+      const tr = full.decrypt_trace;
+      const attempts = (tr && tr.attempts) || [];
+      if (attempts.length) {
+        // Surface the interesting attempts (success/error) first, then fill
+        // with the rest up to a cap so a 200-key brute-force doesn't flood.
+        const CAP = 20;
+        const ranked = attempts.slice().sort((a, b) =>
+          (a.result === "fail" ? 1 : 0) - (b.result === "fail" ? 1 : 0));
+        const shown = ranked.slice(0, CAP);
+        const okN = attempts.filter((a) => a.result === "success").length;
+        io.print(`  decrypt attempts: ${attempts.length} total · ${okN} success (showing ${shown.length})`);
+        io.table(["SCHEME", "RESULT", "KEY", "TIME"], shown.map((a) => [
+          a.scheme || "?", a.result || "?", (a.key_label || "").slice(0, 24),
+          a.elapsed_ms != null ? a.elapsed_ms.toFixed(1) + "ms" : "",
+        ]));
+        if (attempts.length > CAP) io.print(`  … ${attempts.length - CAP} more attempt(s) omitted.`);
+      } else {
+        io.print("  no decrypt attempts recorded.");
+      }
+      if (full.errors && full.errors.length) io.print("  errors: " + full.errors.join("; "));
+    },
+    export(args, io) {
+      const c = pickTarget(args[0], io); if (!c) return;
+      io.print(`Exporting TGT_${shortId(c.id)}...`);
+      exportConfig(c.id);
+    },
+    async purge(args, io) {
+      const q = args[0];
+      if (!q || q.toLowerCase() === "all") {
+        if (!state.configs.length) { io.print("No targets to purge."); return; }
+        const n = state.configs.length;
+        await clearAllConfigs();
+        io.print(`Purged ${n} target(s).`);
+        return;
+      }
+      const c = pickTarget(q, io); if (!c) return;
+      await deleteConfig(c.id);
+      io.print(`Purged TGT_${shortId(c.id)} — ${c.filename}`);
+    },
+    async import(args, io) {
+      const path = args.join(" ").trim();
+      if (!path) { io.error("Usage: targets import <absolute filepath>"); return; }
+      io.print(`Parsing ${path}...`);
+      const res = await API.parseConfig(path);
+      if (!res || res.error) { io.error(res && res.error ? res.error : "Parse failed."); return; }
+      await loadConfigs();
+      io.print(`Imported TGT_${shortId(res.id)} — ${res.filename} [${res.decryption_status}]`);
+    },
+    count(args, io) {
+      const byFmt = {}, byStatus = { decoded: 0, locked: 0, unknown: 0 };
+      for (const c of state.configs) {
+        byFmt[c.format] = (byFmt[c.format] || 0) + 1;
+        byStatus[classifyStatus(c)]++;
+      }
+      io.print(`Total ${state.configs.length}  ·  decoded ${byStatus.decoded}  ·  locked ${byStatus.locked}  ·  failed ${byStatus.unknown}`);
+      const rows = Object.entries(byFmt).sort().map(([f, n]) => [f.toUpperCase(), n]);
+      if (rows.length) io.table(["FMT", "COUNT"], rows);
+    },
+  },
+
+  logs: {
+    help(args, io) { io.print("logs [list [n]]  ·  logs clear  ·  logs copy"); },
+    _default(args, io) { return CMD.logs.list(args, io); },
+    list(args, io) {
+      const n = parseInt(args[0], 10) || 20;
+      const entries = state.archive.slice(0, n); // newest-first
+      if (!entries.length) { io.print("No log entries."); return; }
+      entries.slice().reverse().forEach((e) => io.print(`${fmtTime(new Date(e.time))} [${e.tag}] ${e.msg}`));
+    },
+    clear(args, io) {
+      state.archive = [];
+      renderArchive();
+      const cb = $("#console-body"); if (cb) cb.innerHTML = "";
+      state.consoleLines = 0;
+      const cnt = $("#console-line-count"); if (cnt) cnt.textContent = "0 EVENTS";
+      io.print("Logs cleared.");
+    },
+    copy(args, io) {
+      if (!state.archive.length) { io.print("No logs to copy."); return; }
+      copyText(archiveAsText());
+      io.print(`Copied ${state.archive.length} log line(s) to the clipboard.`);
+    },
+  },
+
+  system: {
+    help(args, io) { io.print("system [status]  ·  system formats  ·  system health"); },
+    _default(args, io) { return CMD.system.status(args, io); },
+    async status(args, io) {
+      const total = state.configs.length;
+      const dec = state.configs.filter((c) => classifyStatus(c) === "decoded").length;
+      let backend = "offline";
+      try { const h = await API.checkHealth(); if (h && h.status === "ok") backend = "online"; } catch (e) { /* offline */ }
+      io.print("InjectX // CIPHER_OPS v0.5.0");
+      io.print(`  targets ${total}  ·  decoded ${dec}`);
+      io.print(`  backend ${backend}  ·  127.0.0.1:8742`);
+    },
+    async formats(args, io) {
+      const r = await API.getFormats();
+      const fmts = (r && (r.formats || r)) || [];
+      io.table(["FMT", "SCHEMES", "DECRYPT"], fmts.map((f) => [
+        (f.id || f.name || "?").toUpperCase(),
+        (f.schemes || []).join(",") || "—",
+        f.decryptable ? "yes" : "no",
+      ]));
+    },
+    async health(args, io) {
+      try { const h = await API.checkHealth(); io.print(h && h.status === "ok" ? "Backend link: OK" : "Backend link: DEGRADED"); }
+      catch (e) { io.error("Backend link: OFFLINE — start the backend."); }
+    },
+  },
+
+  assets: {
+    help(args, io) { io.print("assets import — import all bundled sample configs from assets/configs/"); },
+    _default(args, io) { return CMD.assets.import(args, io); },
+    async import(args, io) {
+      io.print("Importing bundled assets...");
+      await importAssets();
+      io.print("Import complete. Run 'targets list'.");
+    },
+  },
 };
 
-// Shared command runner. `echo` prints the entered line; `out(msg, type)`
-// prints results. Used by both the activity-log console and the Terminal view.
-function runCommand(raw, echo, out) {
-  echo(`> ${raw}`);
-  const handler = CONSOLE_COMMANDS[raw.toLowerCase()];
-  if (!handler) {
-    out(`Unknown command: ${raw} (type 'help')`, "err");
-    return;
+function archiveAsText() {
+  return state.archive.slice().reverse()
+    .map((e) => `${fmtTime(new Date(e.time))} [${e.tag}] ${e.msg}`).join("\n");
+}
+
+// Format an aligned text table (monospace).
+function fmtTable(headers, rows) {
+  const widths = headers.map((h, i) =>
+    Math.max(String(h).length, ...rows.map((r) => String(r[i] ?? "").length)));
+  const line = (cells) => cells.map((c, i) => String(c ?? "").padEnd(widths[i])).join("  ").trimEnd();
+  return [line(headers), ...rows.map(line)];
+}
+
+async function runCommand(raw, io) {
+  io.echo(raw);
+  const tokens = raw.trim().split(/\s+/);
+  const name = (tokens[0] || "").toLowerCase();
+  const node = CMD[name];
+  if (!node) { io.error(`Unknown command: ${name}. Type 'help'.`); return; }
+  try {
+    if (typeof node === "function") { await node(tokens.slice(1), io); return; }
+    const sub = (tokens[1] || "").toLowerCase();
+    const handler = (sub && node[sub]) || node._default;
+    const args = (sub && node[sub]) ? tokens.slice(2) : tokens.slice(1);
+    if (!handler) { io.error(`Unknown subcommand '${name} ${sub}'. Try '${name} help'.`); return; }
+    await handler(args, io);
+  } catch (e) {
+    io.error(`Error: ${e && e.message ? e.message : e}`);
   }
-  const result = typeof handler === "function" ? handler() : handler;
-  if (result) out(result, "info");
+}
+
+// IO surface for the Terminal view.
+function terminalIO() {
+  return {
+    echo: (line) => termWrite(`> ${line}`, "cmd"),
+    print: (t, type) => termWrite(t, type),
+    error: (t) => termWrite(t, "err"),
+    clear: () => { const b = $("#terminal-body"); if (b) b.innerHTML = ""; },
+    table: (headers, rows) => fmtTable(headers, rows).forEach((l) => termWrite(l, "out")),
+  };
+}
+// IO surface for the activity-log input (single-line entries).
+function consoleIO() {
+  return {
+    echo: (line) => logEvent("CMD", `> ${line}`, "info"),
+    print: (t, type) => logEvent(type === "err" ? "ERR" : "OUT", t, type || "info"),
+    error: (t) => logEvent("ERR", t, "err"),
+    clear: () => {
+      const b = $("#console-body"); if (b) b.innerHTML = "";
+      state.consoleLines = 0;
+      const c = $("#console-line-count"); if (c) c.textContent = "0 EVENTS";
+    },
+    table: (headers, rows) => fmtTable(headers, rows).forEach((l) => logEvent("OUT", l, "info")),
+  };
 }
 
 function setupConsoleInput() {
@@ -1476,11 +1789,7 @@ function setupConsoleInput() {
       const raw = input.value.trim();
       if (!raw) return;
       input.value = "";
-      runCommand(
-        raw,
-        (m) => logEvent("CMD", m, "info"),
-        (m, t) => logEvent(t === "err" ? "ERR" : "OUT", m, t || "info"),
-      );
+      runCommand(raw, consoleIO());
     });
     const ciRow = $(".console-input");
     if (ciRow) ciRow.addEventListener("click", () => input.focus());
@@ -1498,7 +1807,7 @@ function setupConsoleInput() {
   }
 }
 
-// Terminal view — a full-size command console sharing CONSOLE_COMMANDS.
+// Terminal view — a full-size command console.
 function termWrite(text, type) {
   const body = $("#terminal-body");
   if (!body) return;
@@ -1515,7 +1824,7 @@ function setupTerminal() {
     const raw = input.value.trim();
     if (!raw) return;
     input.value = "";
-    runCommand(raw, (m) => termWrite(m, "cmd"), (m, t) => termWrite(m, t));
+    runCommand(raw, terminalIO());
   });
   const row = $(".terminal-input-row");
   if (row) row.addEventListener("click", () => input.focus());
@@ -1579,6 +1888,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       $$(".filter-pill").forEach((p) => p.classList.remove("active"));
       pill.classList.add("active");
       state.filter = pill.dataset.filter;
+      state.formatFilter = null; // status pills clear any Arsenal format filter
       renderTargetGrid();
     });
   });
@@ -1597,6 +1907,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   refreshAssetsCount();
   // Refresh assets count periodically (so dropping a new file shows up)
   setInterval(refreshAssetsCount, 5000);
+
+  const copyArchiveBtn = $("#btn-copy-archive");
+  if (copyArchiveBtn) copyArchiveBtn.addEventListener("click", () => {
+    if (!state.archive.length) { showToast("No logs to copy", "info"); return; }
+    copyText(archiveAsText(), () => showToast(`Copied ${state.archive.length} log line(s)`, "success"));
+  });
 
   const clearArchiveBtn = $("#btn-clear-archive");
   if (clearArchiveBtn) clearArchiveBtn.addEventListener("click", () => {
