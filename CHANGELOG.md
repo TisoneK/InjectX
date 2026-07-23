@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **SNI Host Hunter** — InjectX can now *find* working bug hosts, not just
+  read the ones you already have. From the Terminal, `sni find <domain>`
+  looks up candidate hosts for a domain, and `sni scan` checks a list of
+  hosts to see which ones actually work — testing each and labelling it
+  working, redirected, blocked, or dead, with progress in the activity log.
+  It comes with starter host lists for Safaricom, Airtel, and Telkom Kenya,
+  and you can export the working hosts to a file to drop into your config.
+  It is a research and verification tool — please read the "Responsible
+  Use" note in the README. Type `sni help` for the full command list.
 - Open a whole folder of configs at once (new "Open Folder" button, or
   `targets openfolder` / `targets import <folder>` in the terminal), and
   the app remembers it — the pickers reopen where you last were, and your
