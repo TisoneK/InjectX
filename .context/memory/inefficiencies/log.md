@@ -38,6 +38,21 @@ if literally nothing slowed you down.
 - **Problem 3:** No test infrastructure exists — no `tests/`, no `pytest` config, no sample config files to verify decryption against. Each fix had to be verified by ad-hoc `curl` calls against a freshly-started backend.
 - **Cost:** ~15 minutes total spent starting/stopping the backend and crafting test inputs for each fix verification.
 - **Cause:** Project never had test infrastructure; the team relied on manual testing through the Electron UI.
+
+---
+## 2026-07-26 — GitHub Copilot / DeepSeek V4 Flash Free
+
+- **Problem 1: README stale across 6+ sections vs v0.4 reality.** The format table omitted ZIV/LNK rows, labelled DARK as "proprietary" (reality: scheme I1, cracked since Session 14), listed `dark_parser.py` in project structure (file deleted Session 14), and claimed DARK had "no public decryptor" in both Key Finding and Research Sources sections.
+- **Cost:** ~15 minutes reading, diffing, and applying 4 sequential edit operations across 3 sections.
+- **Cause:** README was never updated as new decryptors (DARK I1, ZIV H1, LNK detection, EHI v2 B2, HC v2.7 A5) were added over 14 prior improvement sessions. No protocol step enforces README sync on session completion.
+- **Workaround / fix:** Applied the fixes manually (multi_replace_string_in_file). README now matches v0.4.
+- **Prevent next time:** Add a Pitfall to the protocol: "After adding/changing any decryptor or format support, verify the README Supported Formats table, Key Finding section, Research Sources section, and Project Structure tree are in sync before closing the session." Or add an automated check: grep the README for stale scheme ranges vs actual `decrypt/` files.
+
+- **Problem 2: `python -m ruff` fails on Windows venv.** The ruff entry point is at `.venv\Scripts\ruff.exe` but `python -m ruff` raises `ModuleNotFoundError` even with ruff installed. This is a Windows-specific venv quirk.
+- **Cost:** ~3 minutes figuring out the correct invocation, then recording it in environments.md.
+- **Cause:** On Windows, `python -m` looks for `__main__.py` in the ruff package's site-packages directory, but pip-installed ruff on this Python 3.13.1 venv doesn't expose a `__main__` module (ruff is installed as a console-script entry point, not a module).
+- **Workaround / fix:** Use `.venv\Scripts\ruff.exe` directly (or activate the venv first so `ruff` is on PATH). Recorded in `environments.md` Windows block.
+- **Prevent next time:** Already done — the environments entry warns future agents.
 - **Workaround / fix:** Used `python main.py &` + `sleep 2` + `curl` + `kill` for each verification. Created a small `/tmp/test.ehi` ZIP file as a known-good sample.
 - **Prevent next time:** Backlog N3 — add `pytest` + sample config files + happy-path tests per format. Highest-leverage next session.
 

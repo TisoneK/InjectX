@@ -1,6 +1,6 @@
 # InjectX
 
-Universal VPN tunnel config file reader — supports EHI, HC, HAT, DARK, TLS, NPV4, NSH and more.
+Universal VPN tunnel config file reader — supports EHI, HC, HAT, DARK, TLS, ZIV, NPV4, NSH and more.
 
 ## Quick Start
 
@@ -47,15 +47,17 @@ See `assets/configs/README.md` for the full layout.
 | EHI | HTTP Injector | `.ehi` | Can be locked | Yes — scheme B1 (2-stage AES + field XOR) |
 | HC | HTTP Custom | `.hc` | Yes | Yes — schemes A1–A4 (XOR + AES-128-ECB, 76+ keys) |
 | HAT | HA Tunnel Plus | `.hat`, `.ha` | Yes | Yes — scheme E1 (AES-128-ECB) |
-| DARK | DARK TUNNEL VPN | `.dark`, `.drak`, `.dt` | Yes | **None** (proprietary) |
+| DARK | DARK TUNNEL VPN | `.dark`, `.drak`, `.dt` | Can be locked | Yes — scheme I1 (base64 JSON envelope) |
 | DarkTunnel | DarkTunnel | `.darktunnel` | No | N/A (in-app configs) |
-| TLS | TLS Tunnel | `.tls` | Yes | Yes — scheme F1 (AES-256-GCM) |
+| TLS | TLS Tunnel | `.tls` | Yes | Yes — scheme F1 (AES-256-GCM, key rotated) |
+| ZIV | ZIVPN Tunnel | `.ziv` | Yes | Yes — scheme H1 (AES-256-GCM + PBKDF2) |
 | NPV | NapsternetV | `.npv4`, `.inpv`, `.npv` | Yes | Yes — scheme C1 (subtraction cipher) |
 | NSH | SocksHTTP | `.nsh` | Yes | Yes — scheme D1 (AES-128-GCM + PBKDF2) |
 | VHD | V2Ray/NPV Tunnel | `.vhd` | Yes | Yes — scheme G1 (AES-128-CBC) |
+| LNK | (various) | `.lnk` | Unknown | Detected only (no decryptor yet) |
 | OVPN | OpenVPN | `.ovpn` | No | N/A (plain text, parser not yet implemented) |
 
-The `/api/formats` endpoint is the authoritative, machine-readable version of this table — it reflects the v0.4 implementation exactly, including the scheme IDs (`A1`–`G1`) the decrypt router dispatches to.
+The `/api/formats` endpoint is the authoritative, machine-readable version of this table — it reflects the v0.4 implementation exactly, including the scheme IDs (`A1`–`I1`) the decrypt router dispatches to.
 
 ## The Tunnelling App Ecosystem
 
@@ -78,7 +80,8 @@ researched from the open-source tools below. The current coverage:
 - **NPV** (`.npv4`, `.inpv`, `.npv`) — subtraction cipher (scheme C1).
 - **NSH** (`.nsh`) — AES-128-GCM + PBKDF2 (scheme D1).
 - **VHD** (`.vhd`) — AES-128-CBC (scheme G1).
-- **DARK** (`.dark`, `.drak`, `.dt`) — proprietary encryption, no public decryptor.
+- **DARK** (`.dark`, `.drak`, `.dt`) — base64 JSON envelope with optional DRM lock (scheme I1).
+- **ZIV** (`.ziv`) — AES-256-GCM + PBKDF2 (scheme H1, extracted from ZIVPN v2.1.5 APK).
 
 ### Research Sources
 
@@ -90,9 +93,10 @@ researched from the open-source tools below. The current coverage:
   SocksHTTP (`.nsh`), eProxy configs
 
 Neither upstream tool supports `.hat`, `.dark`, or `.tls` files. InjectX's
-HAT (E1) and TLS (F1) decryptors are native implementations written
-for this project; DARK remains unsupported (proprietary encryption with
-no known public algorithm).
+HAT (E1), DARK (I1), and TLS (F1) decryptors are native implementations written
+for this project. ZIV (H1) was reverse-engineered from the ZIVPN app APK
+(Session 15). TLS remains blocked on a rotated key gated behind DexProtector
+(Session 16 — dynamic Frida needed).
 
 Note: Newer app versions may not be supported yet (see
 [HCTools issue #4](https://github.com/HCTools/hcdecryptor/issues/4)).
@@ -111,6 +115,8 @@ injectx/
 │       ├── nsh/                 # .nsh files (SocksHTTP)
 │       ├── vhd/                 # .vhd files (V2Ray Tunnel)
 │       ├── dark/                # .dark / .drak / .dt files (DARK TUNNEL)
+│       ├── ziv/                 # .ziv files (ZIVPN)
+│       ├── lnk/                 # .lnk files (various, detected only)
 │       ├── ovpn/                # .ovpn files (OpenVPN)
 │       └── README.md            # Layout docs
 ├── backend/
@@ -120,14 +126,25 @@ injectx/
 │   │   ├── ehi_parser.py        # HTTP Injector (.ehi)
 │   │   ├── hc_parser.py         # HTTP Custom (.hc) — encrypted
 │   │   ├── hat_parser.py        # HA Tunnel Plus (.hat) — encrypted
-│   │   ├── dark_parser.py       # DARK TUNNEL VPN (.dark) — encrypted
 │   │   ├── tls_parser.py        # TLS Tunnel (.tls) — encrypted
 │   │   ├── npv_parser.py        # NapsternetV (.npv4) — encrypted
-│   │   └── nsh_parser.py        # SocksHTTP (.nsh) — encrypted
+│   │   ├── nsh_parser.py        # SocksHTTP (.nsh) — encrypted
+│   │   ├── ziv_parser.py        # ZIVPN (.ziv) — encrypted
+│   │   └── parse_engine.py      # Generic field mapping + normalization
 │   ├── decrypt/
 │   │   ├── hc_decrypt.py        # HC legacy A1-A4 (XOR + AES-128-ECB)
 │   │   ├── hc_v27_decrypt.py    # HC v2.7+ A5 (ChaCha20 + RST + JKL)
-│   │   └── ...                  # Other format decryptors
+│   │   ├── ehi_decrypt.py       # EHI B1 (2-stage AES + field XOR)
+│   │   ├── ehi_v2_decrypt.py    # EHI v2 B2 (Argon2id + XXTEA + ChaCha20)
+│   │   ├── hat_decrypt.py       # HAT E1 (AES-128-ECB)
+│   │   ├── dark_decrypt.py      # DARK I1 (base64 JSON envelope)
+│   │   ├── tls_decrypt.py       # TLS F1 (AES-256-GCM)
+│   │   ├── ziv_decrypt.py       # ZIV H1 (AES-256-GCM + PBKDF2)
+│   │   ├── npv_decrypt.py       # NPV C1 (subtraction cipher)
+│   │   ├── nsh_decrypt.py       # NSH D1 (AES-128-GCM + PBKDF2)
+│   │   ├── vhd_decrypt.py       # VHD G1 (AES-128-CBC)
+│   │   ├── keys.py              # KeyStore (default keys + keyfile loading)
+│   │   └── router.py            # Scheme dispatch router
 │   ├── audit/
 │   │   ├── trace.py             # Audit trail persistence
 │   │   └── live_log.py          # In-memory live log buffer (polled by UI)

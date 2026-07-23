@@ -75,3 +75,28 @@ block (and its "last verified" date) every time you run on it again.
   - **Env vars DO persist within a single Bash tool call** (`export X=y && cmd`) but the Claude Code harness starts a fresh shell per call, so exports do NOT carry across separate calls — same net effect as the Z.ai sandbox, different cause. Chain `export`s inline within one call, or set them on the same command line.
   - **`pkill -f "python main.py"` is unreliable for killing a backgrounded backend here** — a launched backend can survive the pkill and keep holding its port, so a restarted server fails to bind (`Errno 48 address already in use`) and you unknowingly keep testing the OLD process. **Verify the kill:** `lsof -iTCP:<port> -sTCP:LISTEN -n -P` and `kill -9 <pid>` the specific PID before restarting. Cost this session: ~1 wasted test cycle (tested a stale unpatched backend, saw the "fix" apparently fail).
   - Local wall-clock date can differ from `date -u`: this machine is PDT (UTC-7), so late-evening local time is already the next UTC day. Session dates follow `date -u +%F` (protocol Pitfall #41) → 2026-07-15 here even though local was 2026-07-14 evening. Session 1 (cloud) used the same UTC convention, so dates stay consistent.
+
+---
+## Local Windows dev machine (last verified 2026-07-26)
+
+- **Identify by:** `$env:USERNAME=tison`; repo cwd `C:\Users\tison\Dev\InjectX`; user home `C:\Users\tison`; PowerShell (not bash). Windows.
+- **OS:** Windows (PowerShell 5/7).
+- **Runtimes:** Python 3.13.1 (project venv at `backend\.venv\`); system Python also has 3.14.2. Node.js (via npm). git for Windows.
+- **Package managers:** `pip` inside the project venv (`backend\.venv\Scripts\pip.exe`); `npm` for frontend.
+- **Agent type:** LOCAL agent (GitHub Copilot IDE-integrated). Uses the user's existing git credentials — **no PAT, no cloning, no token dance.**
+- **⚠ Git identity — MUST verify before committing.** Set repo-locally: `git config user.name "Tisone Kironget" && git config user.email "tisonkironget@gmail.com"`. Check with `git config --local user.name`.
+- **Verified commands (all run successfully on InjectX):**
+  - Backend deps: `cd backend && python -m venv .venv && .venv\Scripts\pip install -r requirements.txt` — installs `fastapi`, `uvicorn`, `pycryptodome`, `pydantic`, `python-multipart`, `argon2-cffi`, `httpx`.
+  - Dev deps: `.venv\Scripts\pip install ruff mypy` — adds `ruff 0.16.0`, `mypy 2.3.0`.
+  - Lint: `.venv\Scripts\ruff.exe check .` — All checks passed. Note: `python -m ruff` does NOT work in this venv; use the full path `.venv\Scripts\ruff.exe` or activate the venv first.
+  - Tests: `cd backend && .venv\Scripts\python.exe -m pytest -q` → **91 passed** (snihunter Phase 1 baseline).
+  - Backend start: `cd backend && .venv\Scripts\python.exe main.py` — binds `127.0.0.1:8742`; `curl http://127.0.0.1:8742/api/health` → `{"status":"ok","version":"0.4.0","ir_version":"1.0"}`.
+  - Frontend start: `npm start` — launches Electron which auto-spawns the Python backend.
+  - Git pull: `git pull --rebase origin main` — handles large pulls (e.g. 53 files) cleanly.
+  - Git push: `git push origin main` — works with user's stored credentials.
+- **Quirks:**
+  - **Paths use backslashes** in PowerShell. In agent tool calls, use forward slashes or escaped backslashes — the agent layer normalizes.
+  - **`python -m ruff` does NOT work** in this venv (Windows quirk). Always invoke `ruff` via the full venv path (`.venv\Scripts\ruff.exe`) or activate the venv first.
+  - **pip install can be slow** on some networks (retries/timeouts observed). Use `--timeout 60` or `--retries 3` if needed.
+  - **PowerShell** is the default shell, not bash. Pipe syntax and env-var syntax differ from Linux/macOS.
+  - **Electron launches on Windows** — the app can be fully tested here (unlike Z.ai sandbox where no display is available).
