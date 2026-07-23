@@ -14,9 +14,11 @@ Key changes from v0.3:
 import os
 import sys
 import uuid
+import asyncio
 import logging
 from pathlib import Path
 from typing import Optional
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 import glob
 
@@ -39,6 +41,20 @@ from ir.models import (
     DecryptStatusEnum,
 )
 from audit.live_log import get_live_log
+
+# SNI Host Hunter (feature: discover + probe SNI bug hosts). Kept in its own
+# package sibling to parser/decrypt/audit — see .context/memory/features/
+# sni-host-hunter.md and ADR-6/7/8 in plans/decisions.md.
+from snihunter import (
+    SNI_MAX_CONCURRENCY,
+    discover as sni_discover,
+    load_seedlist,
+    list_bundled_seedlists,
+    scan as sni_scan,
+    sni_job_store,
+)
+from snihunter.models import SniCandidate, SniScanJob
+from snihunter.export import export_job
 
 logger = logging.getLogger("injectx")
 logging.basicConfig(
@@ -78,6 +94,28 @@ ALLOWED_EXTENSIONS: frozenset[str] = frozenset({
 
 # In-memory config store (keyed by ID → NormalizedConfig dict)
 config_store: dict[str, dict] = {}
+
+# ── SNI Host Hunter configuration ─────────────────────────────────────────────
+
+# Extensions accepted for user-supplied seed-list files. Kept SEPARATE from
+# ALLOWED_EXTENSIONS (which is config-file-only) so a seedlist path can't be
+# used to smuggle in a config-file read and vice-versa (ADR-1/ADR-5 spirit).
+ALLOWED_SEEDLIST_EXTENSIONS: frozenset[str] = frozenset({".txt", ".csv", ".json"})
+
+# Seedlists are kilobyte-scale; cap at 5 MiB so a hostile 50 MiB list can't
+# queue millions of probes (design doc §4.4).
+MAX_SEEDLIST_BYTES = 5 * 1024 * 1024
+
+# The feature is dual-use (design doc §7). It ships ENABLED by default (the app
+# is already a dual-use decrypt tool), but can be turned off wholesale by
+# setting INJECTX_ENABLE_SNI_HUNTER=0 — every /api/sni/* endpoint then 403s.
+SNI_HUNTER_ENABLED = os.environ.get("INJECTX_ENABLE_SNI_HUNTER", "1").strip().lower() not in (
+    "0", "false", "no", "off",
+)
+
+
+def _utcnow_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _validate_config_path(filepath: str) -> Path:
@@ -147,6 +185,68 @@ def _validate_config_path(filepath: str) -> Path:
         raise HTTPException(status_code=400, detail=f"File is empty: {filepath}")
 
     return resolved
+
+
+def _validate_seedlist_path(filepath: str) -> Path:
+    """Validate a user-supplied seed-list path for /api/sni/scan.
+
+    Mirrors `_validate_config_path` (absolute → allowlisted extension →
+    resolve(strict) → re-check resolved extension → size cap) but against the
+    seedlist extension set and the 5 MiB seedlist cap. The resolved-extension
+    re-check closes the same symlink bypass ADR-5 fixed for config paths: a
+    `.txt` symlink pointing at `/etc/passwd` must be rejected.
+    """
+    if not filepath or not filepath.strip():
+        raise HTTPException(status_code=400, detail="No seedlist path provided")
+
+    raw = Path(filepath)
+    if not raw.is_absolute():
+        raise HTTPException(status_code=400, detail=f"Path must be absolute: {filepath}")
+
+    ext = raw.suffix.lower()
+    if ext not in ALLOWED_SEEDLIST_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported seedlist extension '{ext}'. Allowed: {sorted(ALLOWED_SEEDLIST_EXTENSIONS)}",
+        )
+
+    try:
+        resolved = raw.resolve(strict=True)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Seedlist not found: {filepath}")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid path: {e}")
+
+    if resolved.suffix.lower() not in ALLOWED_SEEDLIST_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Symlink target has unsupported extension '{resolved.suffix.lower()}'",
+        )
+
+    if not resolved.is_file():
+        raise HTTPException(status_code=400, detail=f"Not a file: {filepath}")
+
+    try:
+        size = resolved.stat().st_size
+    except OSError:
+        raise HTTPException(status_code=500, detail=f"Could not stat file: {filepath}")
+    if size > MAX_SEEDLIST_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Seedlist too large ({size} bytes); max {MAX_SEEDLIST_BYTES} bytes",
+        )
+    if size == 0:
+        raise HTTPException(status_code=400, detail=f"Seedlist is empty: {filepath}")
+
+    return resolved
+
+
+def _require_sni_enabled() -> None:
+    if not SNI_HUNTER_ENABLED:
+        raise HTTPException(
+            status_code=403,
+            detail="SNI Host Hunter is disabled. Set INJECTX_ENABLE_SNI_HUNTER=1 to enable it.",
+        )
 
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
@@ -566,6 +666,208 @@ async def list_assets():
             "size": path.stat().st_size,
         })
     return {"files": files, "total": len(files), "dir": str(ASSETS_CONFIGS_DIR)}
+
+
+# ── SNI Host Hunter endpoints ─────────────────────────────────────────────────
+#
+# All under /api/sni/* — they inherit the existing CORS middleware (ADR-2). GET
+# for idempotent reads (jobs, seedlists); POST for state-changing ops (discover
+# pulls the network, scan starts a job, stop cancels one, export renders a file).
+# Every endpoint gates on SNI_HUNTER_ENABLED. See ADR-6/7/8.
+
+
+class SniDiscoverRequest(BaseModel):
+    domain: str
+
+
+class SniScanRequest(BaseModel):
+    seedlist_path: Optional[str] = None
+    candidates: list[str] = []
+    concurrency: int = 50
+    timeout_s: float = 5.0
+    cloudflare_only: bool = False
+
+
+class SniStopRequest(BaseModel):
+    job_id: str
+
+
+class SniExportRequest(BaseModel):
+    job_id: str
+    format: str = "txt"
+
+
+def _sni_job_summary(job: SniScanJob) -> dict:
+    """Compact job view for the jobs-list endpoint (omits full results)."""
+    return {
+        "job_id": job.job_id,
+        "status": job.status,
+        "total": job.total,
+        "done": job.done,
+        "found": job.found,
+        "created_at": job.created_at,
+        "finished_at": job.finished_at,
+        "seed_domain": job.seed_domain,
+        "seedlist_path": job.seedlist_path,
+    }
+
+
+async def _run_sni_scan(job: SniScanJob) -> None:
+    """Background runner: probe every candidate, streaming progress to the live
+    log (the UI polls /api/logs, so the scan shows up in the activity console
+    with no UI change — design doc §4.1)."""
+    live = get_live_log()
+    stop = sni_job_store.stop_flag(job.job_id)
+    job.status = "running"
+    job.started_at = _utcnow_iso()
+    live.add("SNI", f"Scan {job.job_id} started — {job.total} host(s), concurrency {job.concurrency}", "info")
+
+    def on_result(res) -> None:
+        job.done += 1
+        if res.verdict == "working":
+            job.found += 1
+        job.results.append(res)
+        status_str = f" ({res.http_status})" if res.http_status is not None else ""
+        live.add(
+            "SNI",
+            f"[{job.done}/{job.total}] {res.hostname} → {res.verdict}{status_str}",
+            "ok" if res.verdict == "working" else "info",
+        )
+
+    try:
+        hosts = [c.hostname for c in job.candidates]
+        await sni_scan(hosts, concurrency=job.concurrency, timeout=job.timeout_s,
+                       on_result=on_result, stop_flag=stop)
+        job.status = "stopped" if stop.is_set() else "done"
+    except Exception as e:  # a scan must never crash the event loop
+        job.status = "failed"
+        job.error = str(e)
+        live.add("SNI", f"Scan {job.job_id} failed: {e}", "err")
+    finally:
+        job.finished_at = _utcnow_iso()
+        live.add("SNI", f"Scan {job.job_id} {job.status} — {job.found} working / {job.total}", "info")
+
+
+@app.post("/api/sni/discover")
+async def sni_discover_endpoint(req: SniDiscoverRequest):
+    """Discover candidate hosts for a domain via crt.sh (Certificate Transparency)."""
+    _require_sni_enabled()
+    domain = (req.domain or "").strip()
+    if not domain:
+        raise HTTPException(status_code=400, detail="No domain provided")
+
+    live = get_live_log()
+    live.add("SNI", f"Discovering candidates for {domain} via crt.sh...", "info")
+    try:
+        candidates = await sni_discover(domain)
+    except Exception as e:
+        live.add("SNI", f"crt.sh discovery failed for {domain}: {e}", "err")
+        raise HTTPException(status_code=502, detail=f"crt.sh discovery failed: {e}")
+
+    live.add("SNI", f"Discovered {len(candidates)} candidate(s) for {domain}", "ok")
+    return {
+        "domain": domain,
+        "count": len(candidates),
+        "candidates": [c.model_dump() for c in candidates],
+    }
+
+
+@app.post("/api/sni/scan")
+async def sni_scan_endpoint(req: SniScanRequest):
+    """Start a scan job over a seedlist and/or an explicit candidate list.
+
+    Returns immediately with a job_id; poll /api/sni/jobs/{job_id} for progress
+    (or watch the activity log). Concurrency is clamped to ADR-6's ceiling.
+    """
+    _require_sni_enabled()
+
+    candidates: list[SniCandidate] = []
+    if req.seedlist_path:
+        path = _validate_seedlist_path(req.seedlist_path)
+        try:
+            candidates = load_seedlist(path, cloudflare_only=req.cloudflare_only)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    for h in req.candidates:
+        if h and h.strip():
+            candidates.append(SniCandidate(hostname=h.strip().lower().lstrip("*."), source="manual"))
+
+    if not candidates:
+        raise HTTPException(status_code=400, detail="No candidates — provide seedlist_path and/or candidates[]")
+
+    concurrency = max(1, min(int(req.concurrency), SNI_MAX_CONCURRENCY))
+    job_id = str(uuid.uuid4())[:8]
+    job = SniScanJob(
+        job_id=job_id,
+        seedlist_path=req.seedlist_path,
+        candidates=candidates,
+        concurrency=concurrency,
+        timeout_s=req.timeout_s,
+        cloudflare_only=req.cloudflare_only,
+        total=len(candidates),
+    )
+    sni_job_store.add(job)
+    # Fire-and-forget background task; the store holds the job by reference so
+    # progress is visible via the jobs endpoints while it runs.
+    asyncio.create_task(_run_sni_scan(job))
+    return {"job_id": job_id, "total": job.total, "concurrency": concurrency}
+
+
+@app.post("/api/sni/scan/stop")
+async def sni_scan_stop(req: SniStopRequest):
+    """Signal a running scan to stop (in-flight probes finish; queued ones skip)."""
+    _require_sni_enabled()
+    if not sni_job_store.request_stop(req.job_id):
+        raise HTTPException(status_code=404, detail=f"Job not found: {req.job_id}")
+    return {"status": "stopping", "job_id": req.job_id}
+
+
+@app.get("/api/sni/jobs")
+async def sni_jobs():
+    """List scan jobs (newest first), compact view."""
+    _require_sni_enabled()
+    return {"jobs": [_sni_job_summary(j) for j in sni_job_store.list()]}
+
+
+@app.get("/api/sni/jobs/{job_id}")
+async def sni_job(job_id: str):
+    """Full job state including all probe results."""
+    _require_sni_enabled()
+    job = sni_job_store.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+    return job.model_dump()
+
+
+@app.get("/api/sni/seedlists")
+async def sni_seedlists():
+    """List the bundled per-ISP seed lists shipped in-tree (ADR-8)."""
+    _require_sni_enabled()
+    return {"seedlists": list_bundled_seedlists()}
+
+
+@app.post("/api/sni/export")
+async def sni_export(req: SniExportRequest):
+    """Export a job's results as txt (working hosts), csv, or json.
+
+    Returns the rendered content in JSON (the frontend proxies via IPC and
+    turns `content` into a downloadable Blob — same pattern as config export).
+    """
+    _require_sni_enabled()
+    job = sni_job_store.get(req.job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Job not found: {req.job_id}")
+    try:
+        content, media_type, filename = export_job(job, req.format)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "job_id": req.job_id,
+        "format": req.format.lower(),
+        "filename": filename,
+        "media_type": media_type,
+        "content": content,
+    }
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

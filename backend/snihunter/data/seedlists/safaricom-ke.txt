@@ -1,0 +1,42 @@
+# Safaricom (Kenya) — SNI bug-host SEED list
+#
+# These are publicly documented zero-rated / Free-Basics / operator-portal
+# hostnames for Safaricom Kenya. They are CANDIDATES to probe, NOT a guarantee
+# any host currently passes zero-rating — that is exactly what `sni scan` tests.
+# Curated from public sources catalogued in the design doc §3.4/§11.5
+# (Techfoe, aimtuto, snihost.com, UNESCO/Advox zero-rating reports).
+#
+# Responsible use: probing public hosts is legitimate research/verification.
+# Using a working host to avoid paying for data may violate your ISP's terms —
+# that is your call, in your jurisdiction. See README.md "Responsible Use".
+#
+# One hostname per line. `#` starts a comment. Blank lines ignored.
+
+# Free Basics / internet.org (Facebook) — the core Safaricom zero-rated set
+free.facebook.com
+0.facebook.com
+m.facebook.com
+connect.facebook.net
+static.xx.fbcdn.net
+external.xx.fbcdn.net
+
+# Wikimedia (Wikipedia Zero legacy + current zero-rated education)
+en.wikipedia.org
+en.m.wikipedia.org
+upload.wikimedia.org
+
+# Safaricom operator + M-PESA portals
+www.safaricom.co.ke
+safaricom.co.ke
+m-pesa.safaricom.co.ke
+bonga.safaricom.co.ke
+selfcare.safaricom.co.ke
+
+# Zero-rated e-learning (per UNESCO zero-rating report)
+longhornpublishers.com
+www.longhornpublishers.com
+
+# Common CDN edges that often ride the same zero-rated IP ranges
+cdn.jsdelivr.net
+ajax.googleapis.com
+fonts.gstatic.com

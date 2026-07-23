@@ -1,0 +1,28 @@
+# Telkom (Kenya) — SNI bug-host SEED list
+#
+# Publicly documented operator-portal / zero-rated-education hostnames for
+# Telkom Kenya (sister brand to Telkom South Africa, which zero-rates TVET /
+# higher-learning portals). CANDIDATES to probe, not guaranteed working hosts.
+# Curated from the public sources in the design doc §3.4/§11.5
+# (group.telkom.co.za zero-rated portal, aimtuto, snihost.com).
+#
+# Responsible use: see README.md "Responsible Use".
+# One hostname per line. `#` starts a comment. Blank lines ignored.
+
+# Telkom operator + self-care portals
+www.telkom.co.ke
+telkom.co.ke
+selfcare.telkom.co.ke
+
+# Zero-rated education (TVET / higher-learning portals, per Telkom ZA model)
+www.tveta.go.ke
+tvetauthority.go.ke
+
+# Free Basics (widely zero-rated across Kenyan operators)
+free.facebook.com
+0.facebook.com
+en.wikipedia.org
+
+# Common CDN edges often on the same zero-rated ranges
+cdn.jsdelivr.net
+fonts.gstatic.com
