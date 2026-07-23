@@ -193,3 +193,21 @@ if literally nothing slowed you down.
 - **Cause:** (a) preview tool blocks file://; (b) CORS (correctly) blocks the preview origin, so the app's polling errors and its error path disturbs the view; (c) http.server caches JS.
 - **Workaround / fix:** Serve on a FRESH port after every JS/CSS edit (new origin = no cache). Before each injected render, run `for(let i=1;i<99999;i++){clearInterval(i);clearTimeout(i);}` and remove the boot overlay, so nothing re-renders under you. Inject a real config via `fetch('/_preview_X.json').then(...=>renderConfigDetail(cfg))` (copy the API's `/api/config/<id>` JSON into the frontend dir so it's same-origin) rather than relying on the app's own data load. Measure via DOM (`getBoundingClientRect`, row counts) — more reliable than screenshots, which can catch a transient pre-render/clobbered frame.
 - **Prevent next time:** For a faithful visual check, the cleanest option is the REAL Electron app (file:// origin reaches the backend fine). For quick iteration without Electron: fresh-port http.server + clear-all-timers + inject-real-JSON, and trust DOM measurements over screenshots. A tiny `frontend/_preview.html` harness that clears timers and loads a fixture could institutionalize this. Remember to delete any `frontend/_preview_*.json` fixtures before committing (they're temp).
+
+---
+## 2026-07-24 — Super Z / unknown (Session 23)
+
+- **Problem:** Fetching GitHub README pages via the `page_reader` function returns pages full of CSS noise and React data attributes (the GitHub SPA shell), not the rendered README. The signal-to-noise ratio was so low that the BugScanX PyPI page text came out as one giant CSS blob.
+- **Cost:** ~10 minutes wasted trying to parse noise before switching strategy.
+- **Cause:** `page_reader` returns the static HTML GitHub serves to non-JS clients, which is mostly stylesheet + JSON feature-flag payload — the actual README content is in a `<article>` tag buried in the noise.
+- **Workaround / fix:** For GitHub README content, `curl -s -L https://raw.githubusercontent.com/<owner>/<repo>/<branch>/README.md` returns the raw Markdown directly — clean, parseable, no noise. This worked perfectly for both BugScanX and SNIbugtester READMEs.
+- **Prevent next time:** Add to `system/environments.md` "Quirks" section: "For GitHub README content, prefer `curl https://raw.githubusercontent.com/...` over `page_reader` — page_reader returns GitHub's SPA shell, not the rendered README."
+
+---
+## 2026-07-24 — Super Z / unknown (Session 23)
+
+- **Problem:** The `web_search` function returns snippets that are sometimes truncated mid-sentence or strip the most important keywords (the "Missing: …" suffix the search engine adds is misleading).
+- **Cost:** ~5 minutes re-running searches with different query phrasing to confirm ECH had actually graduated from a draft to RFC 9849.
+- **Cause:** The underlying search engine truncates snippets to a fixed length and tags missing query terms with "Missing: …" — which initially made me think ECH RFC results were about something else.
+- **Workaround / fix:** When a search snippet shows "Missing: …" for terms that should be in the result, click through to the URL with `page_reader` (or `curl`) and read the actual page title — the snippet is misleading but the page itself is correct. For authoritative standards, prefer IETF Datatracker URLs (datatracker.ietf.org/doc/<rfc-number>) over blog posts — they have the canonical status.
+- **Prevent next time:** No protocol change needed — this is just a search-result-formatting quirk. Future Z.ai sandbox agents should treat "Missing: …" in a snippet as a hint to verify by reading the page, not as evidence the result is wrong.

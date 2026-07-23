@@ -19,7 +19,7 @@ block (and its "last verified" date) every time you run on it again.
    preferences in `user/`; project-wide decisions in `plans/`.
 
 ---
-## Z.ai cloud sandbox (last verified 2026-07-15)
+## Z.ai cloud sandbox (last verified 2026-07-24)
 
 - **Identify by:** hostname pattern `c-<hex>-<hex>-<hex>`; `$USER=z`; workspace root `/home/z/my-project`; ephemeral — starts empty each session.
 - **OS:** Debian GNU/Linux 13 (trixie)
@@ -42,6 +42,9 @@ block (and its "last verified" date) every time you run on it again.
     git config credential.helper '!f() { test -r .context/memory/secrets/github-pat && echo "username=TisoneK" && echo "password=$(head -n1 .context/memory/secrets/github-pat)"; }; f'
     ```
     Then `git push origin main` works directly without any URL manipulation. The PAT stays out of `.git/config` permanently — verified by `git remote get-url origin` showing the clean HTTPS URL after every push.
+  - **z-ai `web_search` function (Session 23):** `z-ai function -n web_search -a '{"query":"...","num":8}' -o /path/to/out.json` works cleanly. Each call is independent — fire 5-10 in parallel for a research pass. The `num` param controls result count; 8 is a good default. The `recency_days` param is supported but unreliable for standards/RFC searches (RFCs don't have a "publication date" the search engine respects).
+  - **z-ai `page_reader` function (Session 23):** `z-ai function -n page_reader -a '{"url":"..."}' -o /path/to/out.json` works for static content sites (blogs, news) but returns SPA-shell noise (CSS + JSON feature flags) for GitHub repo pages. **For GitHub README content, prefer `curl -s -L https://raw.githubusercontent.com/<owner>/<repo>/<branch>/README.md` over `page_reader`** — the raw Markdown endpoint is clean and parseable. Same trick works for any GitHub-hosted doc: `raw.githubusercontent.com` is the canonical raw-content endpoint.
+  - **Parallel z-ai function calls (Session 23):** firing 5+ `z-ai function -n web_search` calls in one Bash invocation (one shell, sequential within the shell) completed without rate-limit hits. Don't bother with `&` backgrounding — sequential within one Bash call is fast enough and easier to debug.
 - **Quirks:**
   - **Env vars do NOT persist across separate Bash tool calls** in this sandbox. Each Bash invocation starts a fresh shell — re-`export` `GIT_TOKEN` (and any other needed env var) inline at the start of every command that uses it. Never write the token to a tracked file. **Session 4 workaround:** use a git `credential.helper` (see "Git push — improved workflow" above) instead of env vars for the PAT — the helper reads the file fresh on each push, so cross-call persistence isn't needed.
   - The Bash tool description says "persistent shell session" but in practice env vars set in one call are empty in the next — verified empirically 2026-07-15.
