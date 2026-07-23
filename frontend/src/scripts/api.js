@@ -22,6 +22,17 @@ const API = {
   getLogs(since = 0) { return window.vpnAPI.getLogs(since); },
   importAssets() { return window.vpnAPI.importAssets(); },
   listAssets() { return window.vpnAPI.listAssets(); },
+
+  // SNI Host Hunter — discover + probe SNI bug hosts (all via IPC, ADR-7).
+  sni: {
+    discover(domain) { return window.vpnAPI.sniDiscover(domain); },
+    scan(opts) { return window.vpnAPI.sniScan(opts); },
+    stop(jobId) { return window.vpnAPI.sniScanStop(jobId); },
+    export(jobId, format) { return window.vpnAPI.sniExport(jobId, format); },
+    jobs() { return window.vpnAPI.sniJobs(); },
+    job(jobId) { return window.vpnAPI.sniJob(jobId); },
+    seedlists() { return window.vpnAPI.sniSeedlists(); },
+  },
   isDev() { return window.vpnAPI && window.vpnAPI.isDev ? window.vpnAPI.isDev() : Promise.resolve(false); },
   openFolderDialog() { return window.vpnAPI && window.vpnAPI.openFolderDialog ? window.vpnAPI.openFolderDialog() : Promise.resolve({ canceled: true, folder: null }); },
   listConfigFiles(folder) { return window.vpnAPI && window.vpnAPI.listConfigFiles ? window.vpnAPI.listConfigFiles(folder) : Promise.resolve({ files: [] }); },

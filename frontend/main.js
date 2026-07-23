@@ -261,6 +261,18 @@ function setupIPC() {
   ipcMain.handle("import-assets", async () => { try { return (await fetch(`${BACKEND_URL}/api/configs/import-assets`, { method: "POST" })).json(); } catch (err) { return { error: err.message }; } });
   ipcMain.handle("list-assets", proxyGet("/api/configs/assets"));
 
+  // ── SNI Host Hunter IPC (feature: discover + probe SNI bug hosts) ───────────
+  // Same proxy pattern as every other backend call (ADR-7): the renderer never
+  // fetches the backend directly; it goes renderer → API → preload → here.
+  const proxyPost = (endpoint) => async (_e, body) => { try { return (await fetch(`${BACKEND_URL}${endpoint}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) })).json(); } catch (err) { return { error: err.message }; } };
+  ipcMain.handle("sni-discover", proxyPost("/api/sni/discover"));
+  ipcMain.handle("sni-scan", proxyPost("/api/sni/scan"));
+  ipcMain.handle("sni-scan-stop", proxyPost("/api/sni/scan/stop"));
+  ipcMain.handle("sni-export", proxyPost("/api/sni/export"));
+  ipcMain.handle("sni-jobs", proxyGet("/api/sni/jobs"));
+  ipcMain.handle("sni-job", async (_e, jobId) => { try { return (await fetch(`${BACKEND_URL}/api/sni/jobs/${encodeURIComponent(jobId)}`)).json(); } catch (err) { return { error: err.message }; } });
+  ipcMain.handle("sni-seedlists", proxyGet("/api/sni/seedlists"));
+
   // ── Window Control IPC ─────────────────────────────────────────────────────
   // Dev-only surfaces (e.g. the "Import Assets" sample-config button) check
   // this. Unpackaged = running via `electron .` during development.

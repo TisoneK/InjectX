@@ -19,6 +19,15 @@ contextBridge.exposeInMainWorld("vpnAPI", {
   getLogs: (since) => ipcRenderer.invoke("get-logs", since),
   importAssets: () => ipcRenderer.invoke("import-assets"),
   listAssets: () => ipcRenderer.invoke("list-assets"),
+
+  // SNI Host Hunter
+  sniDiscover: (domain) => ipcRenderer.invoke("sni-discover", { domain }),
+  sniScan: (opts) => ipcRenderer.invoke("sni-scan", opts),
+  sniScanStop: (jobId) => ipcRenderer.invoke("sni-scan-stop", { job_id: jobId }),
+  sniExport: (jobId, format) => ipcRenderer.invoke("sni-export", { job_id: jobId, format }),
+  sniJobs: () => ipcRenderer.invoke("sni-jobs"),
+  sniJob: (jobId) => ipcRenderer.invoke("sni-job", jobId),
+  sniSeedlists: () => ipcRenderer.invoke("sni-seedlists"),
   isDev: () => ipcRenderer.invoke("is-dev"),
   openFolderDialog: () => ipcRenderer.invoke("open-folder-dialog"),
   listConfigFiles: (folder) => ipcRenderer.invoke("list-config-files", folder),

@@ -1606,6 +1606,7 @@ const CMD = {
       ["logs <sub>", "activity log — 'logs help'"],
       ["system <sub>", "backend + environment — 'system help'"],
       ["assets import", "import all bundled sample configs"],
+      ["sni <sub>", "discover + probe SNI bug hosts — 'sni help'"],
     ]);
   },
   version(args, io) { io.print("InjectX // CIPHER_OPS v0.5.0 — local-only, no telemetry."); },
@@ -1817,6 +1818,122 @@ const CMD = {
       io.print("Importing bundled assets...");
       await importAssets();
       io.print("Import complete. Run 'targets list'.");
+    },
+  },
+
+  // SNI HOST HUNTER — discover + probe candidate SNI "bug hosts".
+  sni: {
+    help(args, io) {
+      io.print("sni — discover and probe SNI bug hosts (research/verification):");
+      io.table(["SUBCOMMAND", "DESCRIPTION"], [
+        ["sni find <domain>", "discover candidates via crt.sh (Certificate Transparency)"],
+        ["sni scan <seedlist|host...>", "probe a bundled/seedlist path or inline host(s)"],
+        ["sni scan --cf-only <seedlist>", "scan only cloudflare:true entries (csv/json)"],
+        ["sni seedlists", "list bundled per-ISP seed lists"],
+        ["sni jobs", "list scan jobs"],
+        ["sni stop <jobId>", "stop a running scan"],
+        ["sni export <jobId> <txt|csv|json>", "download scan results"],
+      ]);
+    },
+    _default(args, io) { return CMD.sni.help(args, io); },
+    async find(args, io) {
+      const domain = (args[0] || "").trim();
+      if (!domain) { io.error("Usage: sni find <domain>"); return; }
+      io.print(`Querying crt.sh for ${domain} ...`);
+      const r = await API.sni.discover(domain);
+      if (!r || r.error) { io.error(r && r.error ? r.error : "Discovery failed."); return; }
+      const cands = r.candidates || [];
+      if (!cands.length) { io.print("No candidates found."); return; }
+      io.table(["#", "HOSTNAME"], cands.slice(0, 100).map((c, i) => [i + 1, c.hostname]));
+      io.print(`${r.count} candidate(s). Scan them with: sni scan ${domain > "" ? cands[0].hostname : ""} ...`);
+    },
+    async seedlists(args, io) {
+      const r = await API.sni.seedlists();
+      if (!r || r.error) { io.error(r && r.error ? r.error : "Could not list seedlists."); return; }
+      const lists = r.seedlists || [];
+      if (!lists.length) { io.print("No bundled seedlists."); return; }
+      io.table(["NAME", "HOSTS", "PATH"], lists.map((s) => [s.name, s.hosts, s.path]));
+    },
+    async jobs(args, io) {
+      const r = await API.sni.jobs();
+      if (!r || r.error) { io.error(r && r.error ? r.error : "Could not list jobs."); return; }
+      const jobs = r.jobs || [];
+      if (!jobs.length) { io.print("No scan jobs."); return; }
+      io.table(["JOB", "STATUS", "DONE", "FOUND"], jobs.map((j) => [
+        j.job_id, j.status, `${j.done}/${j.total}`, j.found,
+      ]));
+    },
+    async stop(args, io) {
+      const jid = (args[0] || "").trim();
+      if (!jid) { io.error("Usage: sni stop <jobId>"); return; }
+      const r = await API.sni.stop(jid);
+      if (!r || r.error) { io.error(r && r.error ? r.error : "Stop failed."); return; }
+      io.print(`Stopping ${jid} (in-flight probes finish; queued ones skip).`);
+    },
+    async export(args, io) {
+      const jid = (args[0] || "").trim();
+      const fmt = (args[1] || "txt").trim().toLowerCase();
+      if (!jid) { io.error("Usage: sni export <jobId> <txt|csv|json>"); return; }
+      const r = await API.sni.export(jid, fmt);
+      if (!r || r.error) { io.error(r && r.error ? r.error : "Export failed."); return; }
+      // Same Blob-download pattern as config export.
+      const blob = new Blob([r.content || ""], { type: r.media_type || "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = r.filename || `sni-${jid}.${fmt}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      io.print(`Exported ${r.filename}.`);
+    },
+    async scan(args, io) {
+      // Optional --cf-only flag anywhere in the args.
+      let cfOnly = false;
+      const rest = [];
+      for (const a of args) {
+        if (a === "--cf-only" || a === "--cloudflare-only") cfOnly = true;
+        else rest.push(a);
+      }
+      if (!rest.length) { io.error("Usage: sni scan <seedlist-path | seedlist-name | host...> [--cf-only]"); return; }
+
+      const opts = { concurrency: 50, timeout_s: 5.0, cloudflare_only: cfOnly };
+      const first = rest[0];
+      const hasSlash = /[\\/]/.test(first);
+      if (hasSlash) {
+        // An absolute path (possibly with spaces) — a seedlist file on disk.
+        opts.seedlist_path = rest.join(" ");
+      } else if (rest.length === 1 && /\.(txt|csv|json)$/i.test(first)) {
+        // A bundled seedlist by name (no slash) — resolve to its absolute path.
+        const sr = await API.sni.seedlists();
+        const match = (sr && sr.seedlists || []).find((s) => s.name === first);
+        if (!match) { io.error(`No bundled seedlist named '${first}'. Try 'sni seedlists'.`); return; }
+        opts.seedlist_path = match.path;
+      } else {
+        // One or more bare hostnames to probe directly.
+        opts.candidates = rest;
+      }
+
+      const started = await API.sni.scan(opts);
+      if (!started || started.error) { io.error(started && started.error ? started.error : "Scan failed to start."); return; }
+      const jid = started.job_id;
+      io.print(`Scan ${jid} started — ${started.total} host(s), concurrency ${started.concurrency}. Progress streams to the activity log.`);
+
+      // Poll until the job finishes (cap the wait so the terminal never hangs).
+      for (let i = 0; i < 600; i++) {
+        await new Promise((res) => setTimeout(res, 1000));
+        const j = await API.sni.job(jid);
+        if (!j || j.error) { io.error(j && j.error ? j.error : "Lost the job."); return; }
+        if (["done", "stopped", "failed"].includes(j.status)) {
+          if (j.status === "failed") { io.error(`Scan failed: ${j.error || "unknown"}`); return; }
+          const rows = (j.results || []).map((r) => [
+            r.hostname, r.verdict, r.http_status ?? "—", r.server_header || "—", r.target_ip || "—",
+          ]);
+          io.table(["HOSTNAME", "VERDICT", "HTTP", "SERVER", "IP"], rows);
+          io.print(`${j.status}: ${j.found} working / ${j.total}. Export with: sni export ${jid} txt`);
+          return;
+        }
+      }
+      io.print(`Still running — check 'sni jobs' or the activity log (job ${jid}).`);
     },
   },
 };
