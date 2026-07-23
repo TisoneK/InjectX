@@ -1,7 +1,15 @@
 # Feature Spec — SNI Host Hunter
 
-> **Status:** research + design — not yet implemented.
+> **Status:** **Phase 1 (MVP) shipped** (Session 24, 2026-07-23) — Phase 2 open.
 > **Added:** 2026-07-24 by Super Z (cloud, Session 23).
+> **Phase 1 shipped:** Session 24 (Claude Code / Opus 4.8, local). Backend
+> `backend/snihunter/` + 7 `/api/sni/*` endpoints + bundled seedlists +
+> `sni` terminal commands + 37 tests, all verified. See
+> `reviews/2026-07-23-feature-review.md` and ADR-6/7/8 in `plans/decisions.md`.
+> Deviations from this doc, all deliberate: frontend routes through Electron
+> IPC not renderer fetch (ADR-7); `dnspython` deferred to Phase 2 (stdlib DNS
+> covers the MVP); no ECH stub in Phase 1 (§9 Q5 answered "defer"); feature
+> ships enabled with an `INJECTX_ENABLE_SNI_HUNTER=0` kill switch (§9 Q4).
 > **Scope:** comprehensive technical + product design for an in-app SNI host
 > discovery and verification module. Captures the domain research, the InjectX
 > integration analysis, a phased implementation plan, and every primary
@@ -81,6 +89,25 @@ config's `sni` field.
 This section is the user-provided research context, augmented with what
 the web-search/page-reader pass turned up. Primary sources are listed in
 §11; raw JSON dumps are at `/home/z/my-project/scripts/sni-research/`.
+
+> **Session 24 research refresh (2026-07-23, local, WebSearch):** re-verified
+> the key claims before implementing.
+> - **crt.sh** JSON API (`?q=%.<domain>&output=json`) confirmed live and
+>   canonical in 2026; `name_value` multi-line SANs + wildcard filtering
+>   unchanged. Used as-is.
+> - **RFC 9849** (TLS ECH) confirmed real via IETF Datatracker + rfc-editor.
+>   **New find: RFC 9848** — "Bootstrapping TLS Encrypted ClientHello with DNS
+>   Service Bindings" (SVCB/HTTPS RRs). This is the concrete mechanism a
+>   Phase-2 ECH-detection probe should use: query the target's HTTPS RR and
+>   look for an `ech=` parameter to flag ECH-capable hosts.
+> - **BugScanX-Go** (`Ayanrajpoot10/bugscanx-go`) surfaced with a
+>   **DirectNon302** mode that excludes redirect responses — independent
+>   corroboration of Phase 1's redirect-vs-working verdict split (a working
+>   bug host returns a real response, not a 302 to a portal).
+> - Kenya/Safaricom/Airtel/Telkom seed sources (Techfoe, aimtuto, snihost.com,
+>   KOFnet, TemoVision) still active; bundled seedlists curated from the
+>   publicly documented zero-rated set (Free Basics / operator / education
+>   portals) per ADR-8 — candidates to probe, not guaranteed working hosts.
 
 ### 3.1 Discovery — passive (Certificate Transparency)
 

@@ -211,3 +211,39 @@ if literally nothing slowed you down.
 - **Cause:** The underlying search engine truncates snippets to a fixed length and tags missing query terms with "Missing: …" — which initially made me think ECH RFC results were about something else.
 - **Workaround / fix:** When a search snippet shows "Missing: …" for terms that should be in the result, click through to the URL with `page_reader` (or `curl`) and read the actual page title — the snippet is misleading but the page itself is correct. For authoritative standards, prefer IETF Datatracker URLs (datatracker.ietf.org/doc/<rfc-number>) over blog posts — they have the canonical status.
 - **Prevent next time:** No protocol change needed — this is just a search-result-formatting quirk. Future Z.ai sandbox agents should treat "Missing: …" in a snippet as a hint to verify by reading the page, not as evidence the result is wrong.
+
+---
+## 2026-07-23 — Claude Code / claude-opus-4-8 (Session 24)
+
+- **Problem:** Electron can't be launched on this machine for headless UI verification (no display server — same limit prior local sessions hit). The SNI Host Hunter frontend has real logic (terminal arg-routing, job polling, Blob export) that `node --check` alone doesn't exercise.
+- **Cost:** ~0 net — but a naive "syntax-check only" pass would have shipped a real bug: `looksLikePath("example.com")` returns true (its regex matches the `.com` suffix), so `sni scan example.com` would have misrouted a bare hostname into `seedlist_path` and 400'd.
+- **Cause:** No Electron GUI + a heuristic (`looksLikePath`) borrowed from the `targets` command that doesn't fit hostnames.
+- **Workaround / fix:** Built a small Node harness (`scratchpad/fe_harness.mjs`) that replicates the `main.js` IPC proxy handlers with `fetch` against the live backend, then `eval`s the real `frontend/src/scripts/api.js` (it only touches `window.vpnAPI`/`window.API`, no DOM) and drives `API.sni.*` end-to-end. This verified the api.js chain + response shapes and caught the arg-routing bug (fixed to a has-a-slash discriminator). Electron IPC *registration* + terminal DOM still need the packaged app — flagged for the user.
+- **Prevent next time:** For frontend backend-call logic on this repo, the Node-harness-over-live-backend trick (mock `window.vpnAPI` = fetch, eval api.js) is a cheap, reliable way to verify the renderer→api→IPC contract without Electron. Consider a committed `frontend/test/` harness. renderer.js itself can't be loaded standalone (heavy DOM deps at module scope), so review its handlers by eye.
+
+---
+## 2026-07-23 — Claude Code / claude-opus-4-8 (Session 24)
+
+- **Problem:** (minor) `python` is not on PATH on this machine (only `python3`), and each Bash tool call is a fresh shell — so a `curl | python -c ...` pipeline in a call that didn't `source .venv/bin/activate` failed with `python: command not found`, blanking a whole verification run.
+- **Cost:** ~2 min (one re-run).
+- **Cause:** Documented machine quirk (no bare `python`; venv gives `python` only when activated; exports don't cross Bash calls). I used `python` in a call that hadn't activated the venv.
+- **Workaround / fix:** Use `python3` explicitly in any call that isn't inside an activated venv (or activate the venv at the top of every call that needs `python`). Backgrounded backends DO survive across calls, so the server stayed up while the parsing shell failed.
+- **Prevent next time:** Already in `system/environments.md` (this machine's block). Reminder: default to `python3` in throwaway curl-parsing one-liners.
+
+---
+## 2026-07-23 — Claude Code / claude-opus-4-8 (Session 24)
+
+- **Problem:** crt.sh (the CT-log discovery source) intermittently returns HTTP 502 Bad Gateway under its own load — one query 200, the next 502/timeout within seconds. During live testing the `/api/sni/discover` call hit a 502.
+- **Cost:** ~0 — the endpoint's error path surfaced it cleanly (502 + logged), which is exactly the intended behaviour, so this doubled as verifying the error path. But it means "discover returned nothing" is ambiguous.
+- **Cause:** crt.sh is a free, frequently-overloaded public service; 502/timeout is common, not a bug in InjectX.
+- **Workaround / fix:** Treat crt.sh 502/timeout as transient — retry, or fall back to seedlist scanning. The prober half of the feature is independent of crt.sh, so a crt.sh outage never blocks `sni scan`.
+- **Prevent next time:** Documented here + in the feature report. A Phase-2 improvement: retry crt.sh a couple of times with backoff before surfacing the error.
+
+---
+## 2026-07-23 — Claude Code / claude-opus-4-8 (Session 24)
+
+- **Problem:** Session 23 (cloud) is logged 2026-07-24, but `date -u +%F` on this machine today is 2026-07-23 — so this session (24) legitimately *predates* session 23 by calendar date. Briefly confusing when picking the report filename and session date.
+- **Cost:** ~2 min deciding how to date honestly without contradicting the existing memory.
+- **Cause:** The Z.ai cloud sandbox clock ran ~a day ahead of real UTC during Session 23.
+- **Workaround / fix:** Followed protocol Pitfall #41 (use `date -u`) — dated this session/report 2026-07-23 (true), and noted the ordering anomaly in the session entry + report so the next agent isn't confused. Kept the ADR-6/7/8 + feature-doc "2026-07-24" labels for continuity with the design proposal.
+- **Prevent next time:** When session dates look out of order, check `date -u` on both environments — a cloud sandbox clock can drift. Trust `date -u`, document the skew, don't retro-edit prior entries.
