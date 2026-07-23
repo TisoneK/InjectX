@@ -578,4 +578,90 @@ npm start               # Electron auto-spawns backend via main.js
 
 ---
 
-*InjectX is a config inspection tool only. It does not facilitate unauthorized access to networks or circumvent carrier policies. All decryption algorithms are based on publicly available open-source reverse-engineering research.*
+## 13. SNI Host Hunter (`backend/snihunter/`)
+
+> Added 2026-07-24 (Phase 1). Design + rationale:
+> `.context/memory/features/sni-host-hunter.md`; constraints: ADR-6/7/8 in
+> `.context/memory/plans/decisions.md`.
+>
+> **Note:** the rest of this document predates several v0.4 changes and is
+> being reconciled with the implementation (backlog N1). This section is
+> written against the shipped Phase 1 code.
+
+SNI Host Hunter is an **additive** module — a sibling to `parser/`,
+`decrypt/`, and `audit/`. It reuses the FastAPI app, the live-log channel,
+and the terminal command tree; it does not touch the config-parsing
+pipeline or the `NormalizedConfig` IR.
+
+### 13.1 Purpose
+
+The parse pipeline decodes the `sni` bug host *out of* a config the user
+already has. SNI Host Hunter **finds** such hosts and verifies which ones
+pass an ISP's SNI-based zero-rating: discover → probe → export → paste back
+into a config's `sni` field.
+
+### 13.2 Module layout
+
+```
+backend/snihunter/
+├── models.py          # SniCandidate / SniProbeResult / SniScanJob (parallel IR)
+├── sources/
+│   ├── crtsh.py       # crt.sh Certificate Transparency JSON API client
+│   └── seedlist.py    # load bundled/user seed lists (.txt/.csv/.json)
+├── probe.py           # async TLS+HTTP+DNS prober; pure classify_http() verdict
+├── store.py           # in-memory scan-job store (mirrors config_store)
+├── export.py          # txt / csv / json exporters
+└── data/
+    ├── seedlists/     # bundled per-ISP seed lists (public hosts, ADR-8)
+    └── portal_indicators.txt  # captive-portal redirect substrings
+```
+
+`sources/` is the input side, `probe.py` the transform side, `store.py` the
+state side, `models.py` the IR — the same split as `parser/` + `decrypt/`.
+
+### 13.3 Parallel IR (why not extend `NormalizedConfig`)
+
+A scan produces a list of per-host results over time — different cardinality
+and lifecycle from a single parsed file. Folding it into `NormalizedConfig`
+would break that IR's "one file on disk" invariant, so the scan models live
+in `snihunter/models.py` instead. The only bridge is the existing `sni`
+field on `NormalizedConfig` (Phase 2 "use this host").
+
+### 13.4 Probe + verdict
+
+For each candidate: forward DNS → TLS handshake (SNI = hostname, cert
+captured) → HTTP GET → reverse-DNS consistency. `classify_http()` is a pure
+function (unit-tested): `2xx`/`4xx` → `working`, `3xx` to a captive/top-up
+portal → `blocked`, other `3xx` → `redirect`, DNS/TLS failure or `5xx` →
+`dead`.
+
+### 13.5 Security / abuse constraints (ADR-6)
+
+- Concurrency hard-capped at `SNI_MAX_CONCURRENCY = 200`; each hostname is
+  probed at most once per job (dedupe).
+- No IP-range enumeration — only explicit hostname lists / crt.sh results.
+- Seedlist paths go through `_validate_seedlist_path` — a mirror of
+  `_validate_config_path` with a `.txt/.csv/.json` allowlist, the resolved-
+  extension symlink re-check (ADR-5), and a 5 MiB cap.
+- `INJECTX_ENABLE_SNI_HUNTER=0` disables every `/api/sni/*` endpoint (403).
+
+### 13.6 Frontend
+
+Terminal-only in Phase 1 (`sni find/scan/jobs/stop/export/seedlists/help`),
+routed through the existing Electron IPC chain (renderer → `API.sni` →
+preload → `main.js` → backend) — no direct renderer fetch (ADR-7). Progress
+streams through the existing live-log channel, so the activity console shows
+scan progress with no UI change. A sidebar module is Phase 2.
+
+### 13.7 ECH — the sunset
+
+This technique depends on the cleartext SNI extension. RFC 9849 (TLS
+Encrypted Client Hello) and RFC 9848 (bootstrapping ECH via DNS) were
+published in 2026, with OpenSSL 4.0 / NGINX support landing. The module is
+built so its **discovery** half (CT logs) stays useful even after ECH makes
+the **verification** half (active SNI probing) unreliable — see the feature
+doc §3.3/§6.4.
+
+---
+
+*InjectX is a config inspection tool only. It does not facilitate unauthorized access to networks or circumvent carrier policies. All decryption algorithms are based on publicly available open-source reverse-engineering research. SNI Host Hunter probes public hosts for research and verification; see the README "Responsible Use" section.*

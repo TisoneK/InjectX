@@ -131,6 +131,13 @@ injectx/
 │   ├── audit/
 │   │   ├── trace.py             # Audit trail persistence
 │   │   └── live_log.py          # In-memory live log buffer (polled by UI)
+│   ├── snihunter/               # SNI Host Hunter (discover + probe bug hosts)
+│   │   ├── models.py            # Parallel IR (SniCandidate/ProbeResult/ScanJob)
+│   │   ├── sources/             # Discovery: crt.sh + seed lists
+│   │   ├── probe.py             # Async TLS+HTTP+DNS prober + verdict logic
+│   │   ├── store.py             # In-memory scan-job store
+│   │   ├── export.py            # txt / csv / json exporters
+│   │   └── data/seedlists/      # Bundled per-ISP seed lists (public hosts)
 │   ├── tunnel/
 │   │   └── __init__.py          # Future tunnel engine
 │   ├── main.py                  # FastAPI server
@@ -166,15 +173,82 @@ injectx/
 | GET | `/api/logs?since=N` | Live log stream (poll for entries with id > N) |
 | GET | `/api/configs/assets` | List files in `assets/configs/` (preview before import) |
 | POST | `/api/configs/import-assets` | Batch-import every file in `assets/configs/` |
+| POST | `/api/sni/discover` | Discover candidate SNI hosts for a domain (crt.sh) |
+| POST | `/api/sni/scan` | Start a scan job over a seedlist and/or host list |
+| POST | `/api/sni/scan/stop` | Stop a running scan job |
+| GET | `/api/sni/jobs` | List scan jobs |
+| GET | `/api/sni/jobs/{id}` | Get one job's state + results |
+| GET | `/api/sni/seedlists` | List bundled per-ISP seed lists |
+| POST | `/api/sni/export` | Export a job's results (txt / csv / json) |
 
 > **Note on `GET` vs `POST`:** `parse`, `detect`, and `export` are `GET`
 > because they are idempotent (no server state mutation). The frontend's
 > IPC handlers call them with default-fetch `GET`. See ADR-3 in
 > `.context/memory/plans/decisions.md` for the rationale.
 
+## SNI Host Hunter
+
+The existing pipeline decodes the `sni` "bug host" out of a config you already
+have. **SNI Host Hunter** finds those hosts for you and verifies which ones
+actually work — closing the discover → probe → use loop.
+
+- **Discover** candidate hostnames from **Certificate Transparency** logs
+  (crt.sh) for a domain, or from bundled **per-ISP seed lists**
+  (`backend/snihunter/data/seedlists/` — Safaricom / Airtel / Telkom Kenya to
+  start).
+- **Probe** each candidate: a real TLS handshake with the hostname as SNI, an
+  HTTP request, and forward/reverse DNS cross-checks. Each result is classified
+  `working` / `redirect` / `blocked` (ISP captive portal) / `dead`.
+- **Export** the working hosts as `.txt` (one per line — drop straight into a
+  config's `sni` field), `.csv`, or `.json`.
+
+### Using it (terminal)
+
+Open the **Terminal** module and run:
+
+```
+sni help                          # command reference
+sni seedlists                     # list bundled per-ISP seed lists
+sni find cloudflare.com           # discover candidates via crt.sh
+sni scan safaricom-ke.txt         # probe a bundled seed list
+sni scan example.com bbc.com      # probe hosts inline
+sni scan /path/to/hosts.txt       # probe a seed list on disk (.txt/.csv/.json)
+sni jobs                          # list scan jobs
+sni stop <jobId>                  # stop a running scan
+sni export <jobId> txt            # download working hosts
+```
+
+Progress streams to the activity log while a scan runs. Concurrency is
+hard-capped at 200 and each host is probed once per job (ADR-6) — it is a
+research/verification tool, **not** a network scanner.
+
+Set `INJECTX_ENABLE_SNI_HUNTER=0` to disable the feature wholesale (every
+`/api/sni/*` endpoint then returns `403`).
+
+### Responsible Use
+
+SNI Host Hunter is a research and verification tool for SNI-based zero-rating.
+Probing public hosts is legitimate; using a discovered zero-rated host to avoid
+paying for data you would otherwise consume may violate your ISP's terms of
+service, depending on your jurisdiction — that decision, and its consequences,
+are yours. The bundled seed lists contain only **publicly documented** hosts
+(Free Basics / operator / education portals); redistributing working bug-host
+lists may itself violate ISP terms.
+
+Context worth knowing: SNI inspection is a **closing window**.
+[RFC 9849 (TLS Encrypted Client Hello)](https://datatracker.ietf.org/doc/rfc9849/)
+and [RFC 9848 (bootstrapping ECH via DNS)](https://datatracker.ietf.org/doc/rfc9848/)
+were published in 2026, and OpenSSL 4.0 / NGINX have landed ECH support — as ECH
+adoption grows, the cleartext SNI that this technique depends on disappears. See
+the defensive perspective in
+[Compass Security: SNI Spoofing](https://blog.compass-security.com/2025/03/bypassing-web-filters-part-1-sni-spoofing/).
+
 ## Next Steps
 
-1. **Parser coverage for `.ovpn`** — the detector recognises OpenVPN files but the parser is a stub; add a real OpenVPN config parser.
-2. **Test infrastructure** — add per-format parser/decryptor tests with sample files (see backlog item N3 in `.context/memory/tasks/backlog.md`).
-3. **Build the tunnel engine** — add SSH, WebSocket, V2Ray/Xray, Hysteria tunneling support (currently `backend/tunnel/` is an empty package).
-4. **Package for distribution** — use electron-builder to create Windows/macOS/Linux installers.
+1. **SNI Host Hunter Phase 2** — a sidebar UI module, CertStream watch mode, ECH
+   capability detection (RFC 9848 HTTPS-RR lookup), reverse-IP + port checks,
+   and one-click "use this SNI in my config". See `.context/memory/features/sni-host-hunter.md`.
+2. **Parser coverage for `.ovpn`** — the detector recognises OpenVPN files but the parser is a stub; add a real OpenVPN config parser.
+3. **Test infrastructure** — extend per-format parser/decryptor tests with sample files (see backlog item N3 in `.context/memory/tasks/backlog.md`).
+4. **Build the tunnel engine** — add SSH, WebSocket, V2Ray/Xray, Hysteria tunneling support (currently `backend/tunnel/` is an empty package).
+5. **Package for distribution** — use electron-builder to create Windows/macOS/Linux installers.
