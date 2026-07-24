@@ -51,6 +51,7 @@ from snihunter import (
     check_ech as sni_check_ech,
     check_ports as sni_check_ports,
     discover as sni_discover,
+    probe_fronting as sni_probe_fronting,
     list_bundled_seedlists,
     load_seedlist,
     reverseip_lookup as sni_reverseip,
@@ -907,6 +908,13 @@ class SniApplyRequest(BaseModel):
     sni: str
 
 
+class SniFrontingRequest(BaseModel):
+    sni: str
+    host: str
+    port: int = 443
+    timeout_s: float = 5.0
+
+
 @app.post("/api/sni/watch")
 async def sni_watch(req: SniWatchRequest):
     """Watch the CertStream feed for `duration_s` and collect new hostnames
@@ -1040,6 +1048,28 @@ async def sni_apply(req: SniApplyRequest):
     config_store[config_id] = normalized.model_dump()
     live.add("SNI", f"Config {config_id} SNI → {new_sni}", "ok")
     return _ir_to_response(config_id, normalized)
+
+
+@app.post("/api/sni/fronting")
+async def sni_fronting(req: SniFrontingRequest):
+    """Phase-3 defensive probe: is an ISP's SNI-based zero-rating bypassable by
+    domain fronting? Connect with SNI=`sni`, send `Host: host`, and report
+    whether the mismatch was served (`bypassable`) or cross-checked
+    (`enforced`), plus a TLS-cert fingerprint comparison across SNIs.
+
+    Single-target, read-only, non-exploitative (ADR-9). See design doc §3.5.
+    """
+    _require_sni_enabled()
+    live = get_live_log()
+    live.add("SNI", f"Fronting probe: SNI '{req.sni}' vs Host '{req.host}'...", "info")
+    try:
+        result = await sni_probe_fronting(req.sni, req.host,
+                                          port=req.port, timeout=req.timeout_s)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    live.add("SNI", f"Fronting verdict for {req.host} via {req.sni}: {result.verdict}",
+             "ok" if result.verdict in ("enforced", "bypassable") else "info")
+    return result.model_dump()
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

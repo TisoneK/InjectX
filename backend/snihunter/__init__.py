@@ -25,8 +25,16 @@ Constraints: ADR-6/7/8 in `.context/memory/plans/decisions.md`.
 from __future__ import annotations
 
 from .apply import apply_sni, apply_sni_to_config_id
+from .defensive import classify_fronting, host_covered_by_cert, probe_fronting
 from .dns_check import check_ech, extract_ech_config, is_ech_capable
-from .models import SniCandidate, SniProbeResult, SniScanJob, Verdict
+from .models import (
+    FrontingVerdict,
+    SniCandidate,
+    SniFrontingResult,
+    SniProbeResult,
+    SniScanJob,
+    Verdict,
+)
 from .portcheck import check_ports, probe_port
 from .probe import SNI_MAX_CONCURRENCY, classify_http, probe_one, scan
 from .reverseip import lookup as reverseip_lookup
@@ -39,7 +47,12 @@ __all__ = [
     "SniCandidate",
     "SniProbeResult",
     "SniScanJob",
+    "SniFrontingResult",
     "Verdict",
+    "FrontingVerdict",
+    "classify_fronting",
+    "host_covered_by_cert",
+    "probe_fronting",
     "SNI_MAX_CONCURRENCY",
     "classify_http",
     "probe_one",
