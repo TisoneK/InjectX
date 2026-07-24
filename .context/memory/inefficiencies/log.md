@@ -262,3 +262,30 @@ if literally nothing slowed you down.
 - **Cause:** The Z.ai cloud sandbox clock ran ~a day ahead of real UTC during Session 23.
 - **Workaround / fix:** Followed protocol Pitfall #41 (use `date -u`) — dated this session/report 2026-07-23 (true), and noted the ordering anomaly in the session entry + report so the next agent isn't confused. Kept the ADR-6/7/8 + feature-doc "2026-07-24" labels for continuity with the design proposal.
 - **Prevent next time:** When session dates look out of order, check `date -u` on both environments — a cloud sandbox clock can drift. Trust `date -u`, document the skew, don't retro-edit prior entries.
+
+---
+## 2026-07-24 — Super Z / unknown (Session 26)
+
+- **Problem:** Backgrounded backend processes (`python backend/main.py &` with `disown` or even `setsid`) are killed by the Z.ai sandbox between Bash tool calls. The backend would start fine, respond to a health check in the same call, then be dead by the next call — making multi-call verification impossible.
+- **Cost:** ~10 minutes and 2-3 false "connection refused" failures before I switched strategy.
+- **Cause:** The sandbox reaps background processes when the Bash tool call returns, even with `setsid` + `disown`. The `nohup` trick from the inefficiencies log doesn't help either.
+- **Workaround / fix:** Run the backend AND the verification in a SINGLE Bash call. I wrote a self-contained Python script (`/home/z/my-project/scripts/verify_phase2.py`) that uses `subprocess.Popen` with `preexec_fn=os.setsid` to start the backend, runs every curl check in-process, and tears the backend down in a `finally` block. The backend stays alive for the duration of the script because the script itself is the foreground process. Same pattern for the Node harness (`verify_phase2_frontend.py`). This is the canonical way to do live backend verification in this sandbox.
+- **Prevent next time:** Already documented in `system/environments.md` "Quirks" since Session 1 ("Electron cannot launch in this sandbox"). Add a sub-note: "Backgrounded Python backends are also killed between Bash calls — use `subprocess.Popen` in a single-call Python script for live verification."
+
+---
+## 2026-07-24 — Super Z / unknown (Session 26)
+
+- **Problem:** dnspython's SVCB/HTTPS RR `params` dict is keyed by `ParamKey` enum instances, and `str(ParamKey.ECH)` returns `"5"` (the IANA numeric value), not `"ech"`. My first implementation of `extract_ech_config` matched on `str(k).lower() == "ech"`, which passed the unit tests (they used plain-string-keyed fixture objects) but missed every real ECH record. The live check against `crypto.cloudflare.com` returned `ech_capable=False` even though the host has a real `ech=` param.
+- **Cost:** ~15 minutes of debugging (inspecting the live RR, comparing against the unit-test fixture, realizing the key-shape mismatch).
+- **Cause:** Unit tests used synthetic RR objects with plain-string keys (`{"ech": "..."}`), which matched my string-comparison logic. The real dnspython RR uses enum-keyed params where `str(key)` is the numeric value. The unit tests couldn't catch this because they didn't use the real dnspython types.
+- **Workaround / fix:** Changed `extract_ech_config` to iterate `params.items()` and match on `k.name.lower() == "ech"` (the enum's `.name` attribute is "ECH"). Added a live check against `crypto.cloudflare.com` to the verification script to confirm the enum-keyed path works. The unit tests still pass (the plain-string-keyed fixtures fall into the `else` branch which also works).
+- **Prevent next time:** When unit-testing against a third-party library's types, include at least one integration test that uses the REAL type (not a synthetic stand-in). The protocol's "verify each fix end-to-end" preference caught this — the live curl against `crypto.cloudflare.com` surfaced the bug that the unit tests couldn't. Future agents: don't trust unit tests alone for third-party-type integration; always verify live.
+
+---
+## 2026-07-24 — Super Z / unknown (Session 26)
+
+- **Problem:** The `certstream` package wasn't installed in the cloud sandbox venv when I went to verify the WATCH endpoint. The endpoint correctly returned 503 with the install hint (which is the designed behavior), but I had to `pip install certstream` separately to confirm the happy path would work — and even then, CertStream's websocket feed is unreliable from cloud sandboxes (it needs a persistent outbound websocket which corporate proxies often block).
+- **Cost:** ~5 minutes; decided NOT to verify the certstream happy path live and instead rely on the unit tests for the parsing logic + the 503 path being curl-verified.
+- **Cause:** `certstream` is an optional dep by design (the module raises `ImportError` if absent, the API layer surfaces it as 503). The cloud sandbox can't reliably maintain a websocket to the public CertStream feed.
+- **Workaround / fix:** Documented in the review that the WATCH happy path is unit-tested but not live-verified, and that `pip install certstream` is the user's action to enable it. The 503 path IS live-verified.
+- **Prevent next time:** For optional-dep features, always verify the "dep absent" path live (the 503) and the "dep present" path via unit tests + a documented manual verification step. Don't block shipping on live verification of an optional feature that depends on external network conditions the sandbox can't reproduce.

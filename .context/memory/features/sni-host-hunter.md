@@ -1,6 +1,6 @@
 # Feature Spec — SNI Host Hunter
 
-> **Status:** **Phase 1 (MVP) shipped** (Session 24, 2026-07-23) — Phase 2 open.
+> **Status:** **Phase 2 shipped** (Session 26, 2026-07-24) — Phase 3 open.
 > **Added:** 2026-07-24 by Super Z (cloud, Session 23).
 > **Phase 1 shipped:** Session 24 (Claude Code / Opus 4.8, local). Backend
 > `backend/snihunter/` + 7 `/api/sni/*` endpoints + bundled seedlists +
@@ -10,6 +10,20 @@
 > IPC not renderer fetch (ADR-7); `dnspython` deferred to Phase 2 (stdlib DNS
 > covers the MVP); no ECH stub in Phase 1 (§9 Q5 answered "defer"); feature
 > ships enabled with an `INJECTX_ENABLE_SNI_HUNTER=0` kill switch (§9 Q4).
+> **Phase 2 shipped:** Session 26 (Super Z cloud). Sidebar "05 · SNI HUNTER"
+> module + live results table + verdict pills + click-to-filter; **"Use as
+> SNI"** (re-parse from disk, override `sni`, preserve original under
+> `raw_data._original_sni`, audit warning); **CertStream watch** mode
+> (`sources/certstream.py`, optional dep — 503 if absent); **ECH detection**
+> via RFC 9848 DNS HTTPS-RR (`dns_check.py`, `dnspython` added); **reverse-IP
+> lookup** via HackerTarget + PTR fallback (`reverseip.py`); **open-port
+> checker** (`portcheck.py`, 80/443/8080/8443, ADR-6 cap). Five new
+> `/api/sni/*` endpoints. 60 new tests (suite 91→151). All endpoints
+> curl-verified + a Node harness drove the real `api.js` `API.sni.*` namespace
+> against the live backend. See `reviews/2026-07-24-phase2-review.md`.
+> **Phase 3 open:** defensive mode — verify ISP zero-rating enforcement,
+> nDPI-style SNI/Host-header mismatch detection, per-host TLS fingerprint
+> comparison (§5.2 deferred items + §3.5 spoofing detection).
 > **Scope:** comprehensive technical + product design for an in-app SNI host
 > discovery and verification module. Captures the domain research, the InjectX
 > integration analysis, a phased implementation plan, and every primary
