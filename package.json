@@ -59,5 +59,8 @@
   "devDependencies": {
     "electron": "^43.1.1",
     "electron-builder": "^26.15.3"
+  },
+  "overrides": {
+    "fast-uri": "^3.1.4"
   }
 }
