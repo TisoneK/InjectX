@@ -32,6 +32,12 @@ const API = {
     jobs() { return window.vpnAPI.sniJobs(); },
     job(jobId) { return window.vpnAPI.sniJob(jobId); },
     seedlists() { return window.vpnAPI.sniSeedlists(); },
+    // Phase 2
+    watch(domain, durationS) { return window.vpnAPI.sniWatch(domain, durationS); },
+    ech(hostname) { return window.vpnAPI.sniEch(hostname); },
+    reverseIp(ip) { return window.vpnAPI.sniReverseIp(ip); },
+    portcheck(host, ports, timeoutS) { return window.vpnAPI.sniPortcheck(host, ports, timeoutS); },
+    apply(configId, sni) { return window.vpnAPI.sniApply(configId, sni); },
   },
   isDev() { return window.vpnAPI && window.vpnAPI.isDev ? window.vpnAPI.isDev() : Promise.resolve(false); },
   openFolderDialog() { return window.vpnAPI && window.vpnAPI.openFolderDialog ? window.vpnAPI.openFolderDialog() : Promise.resolve({ canceled: true, folder: null }); },

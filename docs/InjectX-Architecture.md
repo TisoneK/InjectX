@@ -580,13 +580,13 @@ npm start               # Electron auto-spawns backend via main.js
 
 ## 13. SNI Host Hunter (`backend/snihunter/`)
 
-> Added 2026-07-24 (Phase 1). Design + rationale:
+> Added 2026-07-24 (Phase 1); Phase 2 added 2026-07-24. Design + rationale:
 > `.context/memory/features/sni-host-hunter.md`; constraints: ADR-6/7/8 in
 > `.context/memory/plans/decisions.md`.
 >
 > **Note:** the rest of this document predates several v0.4 changes and is
 > being reconciled with the implementation (backlog N1). This section is
-> written against the shipped Phase 1 code.
+> written against the shipped Phase 1 + Phase 2 code.
 
 SNI Host Hunter is an **additive** module — a sibling to `parser/`,
 `decrypt/`, and `audit/`. It reuses the FastAPI app, the live-log channel,
@@ -607,8 +607,13 @@ backend/snihunter/
 ├── models.py          # SniCandidate / SniProbeResult / SniScanJob (parallel IR)
 ├── sources/
 │   ├── crtsh.py       # crt.sh Certificate Transparency JSON API client
-│   └── seedlist.py    # load bundled/user seed lists (.txt/.csv/.json)
+│   ├── seedlist.py    # load bundled/user seed lists (.txt/.csv/.json)
+│   └── certstream.py  # (Phase 2) real-time CT watch — optional dep
 ├── probe.py           # async TLS+HTTP+DNS prober; pure classify_http() verdict
+├── dns_check.py       # (Phase 2) ECH detection via RFC 9848 DNS HTTPS-RR
+├── reverseip.py       # (Phase 2) reverse-IP lookup (HackerTarget + PTR)
+├── portcheck.py       # (Phase 2) TCP connect probe (80/443/8080/8443)
+├── apply.py           # (Phase 2) "use as SNI" — override + re-parse
 ├── store.py           # in-memory scan-job store (mirrors config_store)
 ├── export.py          # txt / csv / json exporters
 └── data/
@@ -616,8 +621,11 @@ backend/snihunter/
     └── portal_indicators.txt  # captive-portal redirect substrings
 ```
 
-`sources/` is the input side, `probe.py` the transform side, `store.py` the
-state side, `models.py` the IR — the same split as `parser/` + `decrypt/`.
+`sources/` is the input side, `probe.py` + the Phase 2 checkers the
+transform side, `store.py` the state side, `models.py` the IR — the same
+split as `parser/` + `decrypt/`. `apply.py` is the bridge back to the
+config IR: it re-parses a config from disk and overrides its `sni` field,
+preserving the original under `raw_data._original_sni` for revert.
 
 ### 13.3 Parallel IR (why not extend `NormalizedConfig`)
 
@@ -647,13 +655,21 @@ portal → `blocked`, other `3xx` → `redirect`, DNS/TLS failure or `5xx` →
 
 ### 13.6 Frontend
 
-Terminal-only in Phase 1 (`sni find/scan/jobs/stop/export/seedlists/help`),
-routed through the existing Electron IPC chain (renderer → `API.sni` →
-preload → `main.js` → backend) — no direct renderer fetch (ADR-7). Progress
-streams through the existing live-log channel, so the activity console shows
-scan progress with no UI change. A sidebar module is Phase 2.
+Two surfaces, both routed through the existing Electron IPC chain (renderer
+→ `API.sni` → preload → `main.js` → backend) — no direct renderer fetch
+(ADR-7):
 
-### 13.7 ECH — the sunset
+- **Terminal** (`sni find/scan/jobs/stop/export/seedlists/help`) — Phase 1.
+- **Sidebar "05 · SNI HUNTER" module** — Phase 2. A scan-config panel on
+  the left (seedlist dropdown, FIND via crt.sh, WATCH via CertStream,
+  concurrency/timeout/cloudflare-only knobs), a live results table on the
+  right with verdict pills for click-to-filter (mirrors the Arsenal
+  dashboard pattern from Session 20). Each result row has four action
+  buttons: **Use as SNI** (calls `/api/sni/apply`), **ECH** (`/api/sni/ech`),
+  **PORTS** (`/api/sni/portcheck`), **REV-IP** (`/api/sni/reverseip`).
+  Progress streams through the existing live-log channel.
+
+### 13.7 ECH — the sunset (and Phase 2 detection)
 
 This technique depends on the cleartext SNI extension. RFC 9849 (TLS
 Encrypted Client Hello) and RFC 9848 (bootstrapping ECH via DNS) were
@@ -661,6 +677,12 @@ published in 2026, with OpenSSL 4.0 / NGINX support landing. The module is
 built so its **discovery** half (CT logs) stays useful even after ECH makes
 the **verification** half (active SNI probing) unreliable — see the feature
 doc §3.3/§6.4.
+
+**Phase 2 ships ECH detection** (`dns_check.py`): for each probed host, the
+UI can query the host's DNS HTTPS-RR (RFC 9848) for an `ech=` parameter. If
+present, the host is ECH-capable — flagged as *less useful* as a bug host
+(the ISP can't see the SNI to whitelist-match it). Detection is best-effort:
+DNS failures return `error` strings, never raise, and never break a scan.
 
 ---
 

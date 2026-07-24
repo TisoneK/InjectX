@@ -197,6 +197,11 @@ injectx/
 | GET | `/api/sni/jobs/{id}` | Get one job's state + results |
 | GET | `/api/sni/seedlists` | List bundled per-ISP seed lists |
 | POST | `/api/sni/export` | Export a job's results (txt / csv / json) |
+| POST | `/api/sni/watch` | Watch the CertStream feed for new hosts (Phase 2) |
+| POST | `/api/sni/ech` | Check a host's ECH capability via DNS HTTPS-RR (RFC 9848) |
+| POST | `/api/sni/reverseip` | Reverse-IP lookup — sibling hostnames on an IP |
+| POST | `/api/sni/portcheck` | Probe a small fixed set of common web ports on a host |
+| POST | `/api/sni/apply` | Apply a discovered bug host to a parsed config ("use as SNI") |
 
 > **Note on `GET` vs `POST`:** `parse`, `detect`, and `export` are `GET`
 > because they are idempotent (no server state mutation). The frontend's
@@ -235,6 +240,29 @@ sni stop <jobId>                  # stop a running scan
 sni export <jobId> txt            # download working hosts
 ```
 
+### Using it (sidebar UI)
+
+The sidebar's **05 · SNI Hunter** module is the visual companion — it mirrors
+the Arsenal dashboard pattern: a scan-config panel on the left, a live results
+table on the right with verdict pills for click-to-filter. Three input modes:
+
+1. **Seedlist dropdown** — pick one of the bundled per-ISP lists and START SCAN.
+2. **FIND** — discover candidates via crt.sh, then auto-scan them.
+3. **WATCH** — subscribe to the live CertStream feed for 60s and scan whatever
+   new hostnames appear for the domain.
+
+Each result row has four action buttons (working hosts only get the first):
+
+- **Use as SNI** — apply this hostname to the currently-selected target config.
+  The original SNI is preserved under `raw_data._original_sni` for revert, and
+  a warning is added to the config's audit trail.
+- **ECH** — check whether the host advertises ECH via its DNS HTTPS-RR (RFC
+  9848). ECH-capable hosts are flagged as *less useful* bug-host candidates
+  (the ISP can't see the SNI to whitelist-match it).
+- **PORTS** — quick TCP probe of 80/443/8080/8443.
+- **REV-IP** — reverse-IP lookup of sibling hostnames on the same IP
+  (HackerTarget's free API, falling back to PTR).
+
 Progress streams to the activity log while a scan runs. Concurrency is
 hard-capped at 200 and each host is probed once per job (ADR-6) — it is a
 research/verification tool, **not** a network scanner.
@@ -262,9 +290,11 @@ the defensive perspective in
 
 ## Next Steps
 
-1. **SNI Host Hunter Phase 2** — a sidebar UI module, CertStream watch mode, ECH
-   capability detection (RFC 9848 HTTPS-RR lookup), reverse-IP + port checks,
-   and one-click "use this SNI in my config". See `.context/memory/features/sni-host-hunter.md`.
+1. **SNI Host Hunter Phase 3** — defensive mode: verify an ISP's zero-rating
+   enforcement, nDPI-style SNI/Host-header mismatch detection, per-host TLS
+   fingerprint comparison. Phase 1 (terminal MVP) and Phase 2 (sidebar UI +
+   CertStream + ECH + reverse-IP + port checks + "use as SNI") are shipped —
+   see `.context/memory/features/sni-host-hunter.md`.
 2. **Parser coverage for `.ovpn`** — the detector recognises OpenVPN files but the parser is a stub; add a real OpenVPN config parser.
 3. **Test infrastructure** — extend per-format parser/decryptor tests with sample files (see backlog item N3 in `.context/memory/tasks/backlog.md`).
 4. **Build the tunnel engine** — add SSH, WebSocket, V2Ray/Xray, Hysteria tunneling support (currently `backend/tunnel/` is an empty package).

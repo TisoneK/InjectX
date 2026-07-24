@@ -5,3 +5,4 @@ pydantic>=2.0.0
 pycryptodome>=3.20.0
 argon2-cffi>=23.1.0
 httpx>=0.27.0        # async HTTP client for SNI Host Hunter (crt.sh + probing)
+dnspython>=2.6.0     # DNS SVCB/HTTPS RR queries for ECH detection (RFC 9848) — Phase 2

@@ -28,6 +28,12 @@ contextBridge.exposeInMainWorld("vpnAPI", {
   sniJobs: () => ipcRenderer.invoke("sni-jobs"),
   sniJob: (jobId) => ipcRenderer.invoke("sni-job", jobId),
   sniSeedlists: () => ipcRenderer.invoke("sni-seedlists"),
+  // Phase 2: watch (CertStream), ech (RFC 9848), reverseip, portcheck, apply.
+  sniWatch: (domain, durationS) => ipcRenderer.invoke("sni-watch", { domain, duration_s: durationS }),
+  sniEch: (hostname) => ipcRenderer.invoke("sni-ech", { hostname }),
+  sniReverseIp: (ip) => ipcRenderer.invoke("sni-reverseip", { ip }),
+  sniPortcheck: (host, ports, timeoutS) => ipcRenderer.invoke("sni-portcheck", { host, ports, timeout_s: timeoutS }),
+  sniApply: (configId, sni) => ipcRenderer.invoke("sni-apply", { config_id: configId, sni }),
   isDev: () => ipcRenderer.invoke("is-dev"),
   openFolderDialog: () => ipcRenderer.invoke("open-folder-dialog"),
   listConfigFiles: (folder) => ipcRenderer.invoke("list-config-files", folder),

@@ -23,6 +23,15 @@ const state = {
   sessionStart: Date.now(),
   liveLogSince: 0,        // last seen log id from backend
   liveLogPolling: null,   // interval id for /api/logs polling
+  // SNI Host Hunter (Phase 2)
+  sni: {
+    seedlists: [],          // bundled seedlist descriptors from /api/sni/seedlists
+    currentJobId: null,     // job_id of the scan in progress (or last viewed)
+    currentJob: null,       // full SniScanJob dict (polled while running)
+    verdictFilter: "all",   // "all" | "working" | "redirect" | "blocked" | "dead"
+    pollTimer: null,        // setInterval id for job polling
+    discoveredCandidates: [],  // from a `find` (crt.sh) — fed into the next scan
+  },
 };
 
 // Persisted archive (in-memory only; cleared on restart)
@@ -355,6 +364,7 @@ function showView(viewName) {
 
   if (viewName === "archive") renderArchive();
   if (viewName === "system") renderSystemView();
+  if (viewName === "snihunter") renderSniHunterView();
   if (viewName === "terminal") {
     const ti = $("#terminal-input");
     if (ti) setTimeout(() => ti.focus(), 60);
@@ -2072,6 +2082,436 @@ function setupTerminal() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//   SNI HOST HUNTER VIEW (Phase 2)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Sidebar "05 · SNI HUNTER" module. The visual companion to the `sni`
+// terminal command tree (Phase 1). Mirrors the Arsenal dashboard pattern
+// (Session 20): a config panel on the left, a results table on the right
+// with verdict pills for click-to-filter. Every backend call goes through
+// the IPC chain (ADR-7).
+//
+// All backend I/O is verified live via the Node harness; the DOM rendering
+// needs a packaged Electron run to confirm visually (same caveat as every
+// other frontend change in this cloud-sandbox environment).
+
+const SNI_VERDICT_META = {
+  working:  { label: "WORKING",  cls: "ok"     },
+  redirect: { label: "REDIRECT", cls: "warn"   },
+  blocked:  { label: "BLOCKED",  cls: "danger" },
+  dead:     { label: "DEAD",     cls: "muted"  },
+  unknown:  { label: "UNKNOWN",  cls: "muted"  },
+};
+
+async function loadSniSeedlists() {
+  try {
+    const r = await API.sni.seedlists();
+    state.sni.seedlists = r.seedlists || [];
+  } catch (e) {
+    state.sni.seedlists = [];
+  }
+  const sel = $("#sni-seedlist-select");
+  if (!sel) return;
+  // Keep the first (placeholder) option, replace the rest.
+  while (sel.options.length > 1) sel.remove(1);
+  for (const sl of state.sni.seedlists) {
+    const o = document.createElement("option");
+    o.value = sl.name;
+    o.textContent = `${sl.name} (${sl.host_count} hosts)`;
+    sel.appendChild(o);
+  }
+}
+
+function renderSniHunterView() {
+  // Seed the seedlist dropdown if it's empty.
+  if (!state.sni.seedlists.length) {
+    loadSniSeedlists();
+  }
+  // Render the current job (if any) so navigating away and back preserves state.
+  if (state.sni.currentJob) {
+    renderSniResults(state.sni.currentJob);
+  }
+  renderSniJobsList();
+}
+
+async function sniStartScan(opts) {
+  const btn = $("#btn-sni-scan");
+  if (btn) btn.disabled = true;
+  try {
+    const r = await API.sni.scan(opts);
+    if (r.error) {
+      showToast(`Scan failed: ${r.error}`, "error");
+      return;
+    }
+    state.sni.currentJobId = r.job_id;
+    state.sni.currentJob = null;
+    showToast(`Scan started — ${r.total} host(s)`, "info");
+    logEvent("SNI", `Scan ${r.job_id} started — ${r.total} host(s)`, "info");
+    // Show progress bar + enable STOP.
+    $("#sni-progress-wrap")?.classList.remove("hidden");
+    $("#btn-sni-stop")?.removeAttribute("disabled");
+    $("#btn-sni-export")?.setAttribute("disabled", "true");
+    // Poll for progress.
+    if (state.sni.pollTimer) clearInterval(state.sni.pollTimer);
+    state.sni.pollTimer = setInterval(() => sniPollJob(r.job_id), 1000);
+  } catch (e) {
+    showToast(`Scan failed: ${e.message}`, "error");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function sniPollJob(jobId) {
+  try {
+    const j = await API.sni.job(jobId);
+    if (j.error) return;
+    state.sni.currentJob = j;
+    renderSniResults(j);
+    // Update progress bar.
+    const fill = $("#sni-progress-fill");
+    const txt = $("#sni-progress-text");
+    if (fill && j.total > 0) {
+      fill.style.width = `${Math.round((j.done / j.total) * 100)}%`;
+    }
+    if (txt) txt.textContent = `${j.done} / ${j.total}  ·  ${j.found} working`;
+    if (j.status !== "running" && j.status !== "queued") {
+      // Done — stop polling, enable EXPORT, update badge.
+      if (state.sni.pollTimer) { clearInterval(state.sni.pollTimer); state.sni.pollTimer = null; }
+      $("#btn-sni-stop")?.setAttribute("disabled", "true");
+      if (j.found > 0) $("#btn-sni-export")?.removeAttribute("disabled");
+      updateSniFoundBadge();
+      renderSniJobsList();
+      logEvent("SNI", `Scan ${jobId} ${j.status} — ${j.found} working / ${j.total}`, "ok");
+    }
+  } catch (e) { /* keep polling */ }
+}
+
+function renderSniResults(job) {
+  const table = $("#sni-results-table");
+  if (!table) return;
+  const results = job.results || [];
+  const filtered = state.sni.verdictFilter === "all"
+    ? results
+    : results.filter((r) => r.verdict === state.sni.verdictFilter);
+
+  // Update verdict pill counts.
+  const counts = { all: results.length, working: 0, redirect: 0, blocked: 0, dead: 0 };
+  for (const r of results) {
+    if (counts[r.verdict] !== undefined) counts[r.verdict]++;
+  }
+  $$(".sni-pill").forEach((pill) => {
+    const v = pill.dataset.verdict;
+    const cnt = pill.querySelector(".sni-pill-count");
+    if (cnt && counts[v] !== undefined) cnt.textContent = counts[v];
+  });
+
+  // Meta line.
+  const meta = $("#sni-results-meta");
+  if (meta) {
+    meta.textContent = `${job.status} · ${job.done}/${job.total} probed · ${job.found} working`;
+  }
+
+  if (!filtered.length) {
+    table.innerHTML = "";
+    table.appendChild(el("div", { className: "sni-empty" }, [
+      results.length ? `No ${state.sni.verdictFilter} results — try a different filter.`
+                     : "Run a scan to discover working SNI bug hosts.",
+    ]));
+    return;
+  }
+
+  table.innerHTML = "";
+  // Header row.
+  const header = el("div", { className: "sni-row sni-row-header" }, [
+    el("span", { className: "sni-col-host" }, ["HOST"]),
+    el("span", { className: "sni-col-ip" }, ["IP"]),
+    el("span", { className: "sni-col-status" }, ["HTTP"]),
+    el("span", { className: "sni-col-verdict" }, ["VERDICT"]),
+    el("span", { className: "sni-col-actions" }, ["ACTIONS"]),
+  ]);
+  table.appendChild(header);
+
+  // Result rows.
+  for (const r of filtered) {
+    const vm = SNI_VERDICT_META[r.verdict] || SNI_VERDICT_META.unknown;
+    const row = el("div", { className: `sni-row sni-row-${vm.cls}` }, [
+      el("span", { className: "sni-col-host", title: r.hostname }, [r.hostname]),
+      el("span", { className: "sni-col-ip", title: r.target_ip || "" }, [r.target_ip || "—"]),
+      el("span", { className: "sni-col-status" }, [r.http_status != null ? String(r.http_status) : "—"]),
+      el("span", { className: `sni-col-verdict sni-verdict-pill ${vm.cls}` }, [vm.label]),
+      el("span", { className: "sni-col-actions" }, [
+        r.verdict === "working"
+          ? el("button", { className: "sni-action-btn",
+              onClick: () => sniUseAsSni(r.hostname) }, ["Use as SNI"])
+          : el("span", { className: "sni-action-spacer" }, [""]),
+        el("button", { className: "sni-action-btn sni-action-secondary",
+            title: "Check ECH (RFC 9848)",
+            onClick: () => sniCheckEch(r.hostname) }, ["ECH"]),
+        el("button", { className: "sni-action-btn sni-action-secondary",
+            title: "Check open ports",
+            onClick: () => sniCheckPorts(r.hostname) }, ["PORTS"]),
+        r.target_ip
+          ? el("button", { className: "sni-action-btn sni-action-secondary",
+              title: "Reverse-IP lookup",
+              onClick: () => sniReverseIp(r.target_ip) }, ["REV-IP"])
+          : el("span", { className: "sni-action-spacer" }, [""]),
+      ]),
+    ]);
+    table.appendChild(row);
+  }
+}
+
+function renderSniJobsList() {
+  const list = $("#sni-jobs-list");
+  if (!list) return;
+  list.innerHTML = "";
+  const jobs = state.sni.currentJob ? [state.sni.currentJob] : [];
+  for (const j of jobs) {
+    list.appendChild(el("div", { className: "sni-job-row" }, [
+      el("span", { className: "sni-job-id" }, [j.job_id]),
+      el("span", { className: `sni-job-status sni-job-${j.status}` }, [j.status]),
+      el("span", { className: "sni-job-progress" }, [`${j.done}/${j.total} · ${j.found} working`]),
+    ]));
+  }
+}
+
+function updateSniFoundBadge() {
+  const badge = $("#sni-found-count");
+  if (!badge) return;
+  const n = state.sni.currentJob ? state.sni.currentJob.found : 0;
+  if (n > 0) {
+    badge.textContent = n;
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+}
+
+// ── SNI action handlers ──────────────────────────────────────────────────────
+
+async function sniUseAsSni(hostname) {
+  // The user needs a target config to apply the SNI to. If one is selected,
+  // use it; otherwise prompt them to pick one first.
+  if (!state.selectedConfig) {
+    showToast("Pick a target config first (Targets → click a card)", "info");
+    showView("targets");
+    return;
+  }
+  const cfgId = state.selectedConfig.id;
+  if (!confirm(`Apply "${hostname}" as the SNI for config ${cfgId}?\n\nThe original SNI is preserved for revert.`)) return;
+  try {
+    const r = await API.sni.apply(cfgId, hostname);
+    if (r.error) { showToast(`Apply failed: ${r.error}`, "error"); return; }
+    showToast(`SNI applied: ${hostname}`, "success");
+    logEvent("SNI", `Config ${cfgId} SNI → ${hostname}`, "ok");
+    // Refresh the detail view so the new SNI shows.
+    state.selectedConfig = r;
+    if (state.currentView === "targets") renderConfigDetail(r);
+  } catch (e) {
+    showToast(`Apply failed: ${e.message}`, "error");
+  }
+}
+
+async function sniCheckEch(hostname) {
+  try {
+    const r = await API.sni.ech(hostname);
+    if (r.error) { showToast(`ECH check failed: ${r.error}`, "error"); return; }
+    if (r.ech_capable) {
+      showToast(`${hostname}: ECH-capable (RFC 9848) — less useful as a bug host`, "info");
+    } else if (r.error) {
+      showToast(`${hostname}: ECH check error — ${r.error}`, "error");
+    } else {
+      showToast(`${hostname}: NOT ECH-capable (good bug-host candidate)`, "success");
+    }
+    logEvent("SNI", `ECH ${hostname}: ${r.ech_capable ? "capable" : "not capable"} (${r.https_rr_count} HTTPS RR)`, "info");
+  } catch (e) {
+    showToast(`ECH check failed: ${e.message}`, "error");
+  }
+}
+
+async function sniCheckPorts(hostname) {
+  try {
+    const r = await API.sni.portcheck(hostname, [], 4.0);
+    if (r.error) { showToast(`Port check failed: ${r.error}`, "error"); return; }
+    const open = (r.open || []).join(", ") || "none";
+    showToast(`${hostname}: open ports = ${open}`, "info");
+    logEvent("SNI", `PORTS ${hostname}: open=[${r.open || []}] closed=[${r.closed || []}]`, "info");
+  } catch (e) {
+    showToast(`Port check failed: ${e.message}`, "error");
+  }
+}
+
+async function sniReverseIp(ip) {
+  try {
+    const r = await API.sni.reverseIp(ip);
+    if (r.error) { showToast(`Reverse-IP failed: ${r.error}`, "error"); return; }
+    const n = (r.hostnames || []).length;
+    showToast(`${ip}: ${n} sibling host(s) via ${r.source}`, "info");
+    logEvent("SNI", `REV-IP ${ip}: ${n} host(s) via ${r.source}${n ? " — " + r.hostnames.slice(0, 3).join(", ") : ""}`, "info");
+  } catch (e) {
+    showToast(`Reverse-IP failed: ${e.message}`, "error");
+  }
+}
+
+async function sniDiscover(domain) {
+  if (!domain || !domain.trim()) { showToast("Enter a domain first", "info"); return; }
+  try {
+    const r = await API.sni.discover(domain.trim());
+    if (r.error) { showToast(`Discover failed: ${r.error}`, "error"); return; }
+    state.sni.discoveredCandidates = (r.candidates || []).map((c) => c.hostname);
+    showToast(`Discovered ${r.count} candidate(s) via crt.sh`, "success");
+    logEvent("SNI", `FIND ${domain}: ${r.count} candidate(s)`, "ok");
+    // Immediately start a scan over the discovered candidates so the user
+    // sees results without an extra click.
+    if (state.sni.discoveredCandidates.length) {
+      const conc = parseInt($("#sni-concurrency-input")?.value || "50", 10);
+      const to = parseFloat($("#sni-timeout-input")?.value || "5");
+      await sniStartScan({
+        candidates: state.sni.discoveredCandidates,
+        concurrency: conc,
+        timeout_s: to,
+      });
+    }
+  } catch (e) {
+    showToast(`Discover failed: ${e.message}`, "error");
+  }
+}
+
+async function sniWatch(domain) {
+  if (!domain || !domain.trim()) { showToast("Enter a domain first", "info"); return; }
+  const btn = $("#btn-sni-watch");
+  if (btn) { btn.disabled = true; btn.textContent = "WATCHING..."; }
+  try {
+    const r = await API.sni.watch(domain.trim(), 60);
+    if (r.error) { showToast(`Watch failed: ${r.error}`, "error"); return; }
+    if (r.count === 0) {
+      showToast(`Watch done — no new hosts in ${r.duration_s}s`, "info");
+    } else {
+      state.sni.discoveredCandidates = (r.candidates || []).map((c) => c.hostname);
+      showToast(`Watch found ${r.count} new host(s) — starting scan`, "success");
+      const conc = parseInt($("#sni-concurrency-input")?.value || "50", 10);
+      const to = parseFloat($("#sni-timeout-input")?.value || "5");
+      await sniStartScan({
+        candidates: state.sni.discoveredCandidates,
+        concurrency: conc,
+        timeout_s: to,
+      });
+    }
+  } catch (e) {
+    showToast(`Watch failed: ${e.message}`, "error");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "WATCH"; }
+  }
+}
+
+async function sniStartScanFromForm() {
+  const sel = $("#sni-seedlist-select");
+  const conc = parseInt($("#sni-concurrency-input")?.value || "50", 10);
+  const to = parseFloat($("#sni-timeout-input")?.value || "5");
+  const cfOnly = $("#sni-cf-only")?.checked || false;
+
+  // Three input modes: seedlist dropdown, discovered candidates, or neither.
+  if (state.sni.discoveredCandidates.length) {
+    await sniStartScan({
+      candidates: state.sni.discoveredCandidates,
+      concurrency: conc, timeout_s: to, cloudflare_only: cfOnly,
+    });
+    return;
+  }
+  const slName = sel?.value;
+  if (slName) {
+    const sl = state.sni.seedlists.find((s) => s.name === slName);
+    if (!sl) { showToast("Pick a seedlist or enter a domain", "info"); return; }
+    await sniStartScan({
+      seedlist_path: sl.path,
+      concurrency: conc, timeout_s: to, cloudflare_only: cfOnly,
+    });
+    return;
+  }
+  showToast("Pick a seedlist or run FIND/WATCH first", "info");
+}
+
+async function sniExportCurrent() {
+  if (!state.sni.currentJobId) { showToast("No job to export", "info"); return; }
+  try {
+    const r = await API.sni.export(state.sni.currentJobId, "txt");
+    if (r.error) { showToast(`Export failed: ${r.error}`, "error"); return; }
+    // Turn the content into a downloadable Blob (same pattern as config export).
+    const blob = new Blob([r.content || ""], { type: r.media_type || "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = r.filename || `sni-${state.sni.currentJobId}.txt`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+    showToast(`Exported working hosts (${r.filename})`, "success");
+  } catch (e) {
+    showToast(`Export failed: ${e.message}`, "error");
+  }
+}
+
+async function sniStopCurrent() {
+  if (!state.sni.currentJobId) return;
+  try {
+    const r = await API.sni.stop(state.sni.currentJobId);
+    if (r.error) { showToast(`Stop failed: ${r.error}`, "error"); return; }
+    showToast("Stop signalled — in-flight probes will finish", "info");
+  } catch (e) {
+    showToast(`Stop failed: ${e.message}`, "error");
+  }
+}
+
+function setupSniHunter() {
+  // Wire up every SNI Hunter button. Called once from DOMContentLoaded.
+  const scanBtn = $("#btn-sni-scan");
+  if (scanBtn) scanBtn.addEventListener("click", sniStartScanFromForm);
+
+  const discoverBtn = $("#btn-sni-discover");
+  if (discoverBtn) discoverBtn.addEventListener("click", () => {
+    const d = $("#sni-domain-input")?.value || "";
+    sniDiscover(d);
+  });
+  // Enter key in the domain field also triggers discover.
+  const domainInput = $("#sni-domain-input");
+  if (domainInput) domainInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sniDiscover(domainInput.value);
+  });
+
+  const watchBtn = $("#btn-sni-watch");
+  if (watchBtn) watchBtn.addEventListener("click", () => {
+    const d = $("#sni-watch-input")?.value || "";
+    sniWatch(d);
+  });
+  const watchInput = $("#sni-watch-input");
+  if (watchInput) watchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sniWatch(watchInput.value);
+  });
+
+  const stopBtn = $("#btn-sni-stop");
+  if (stopBtn) stopBtn.addEventListener("click", sniStopCurrent);
+
+  const exportBtn = $("#btn-sni-export");
+  if (exportBtn) exportBtn.addEventListener("click", sniExportCurrent);
+
+  const refreshBtn = $("#btn-sni-refresh");
+  if (refreshBtn) refreshBtn.addEventListener("click", async () => {
+    await loadSniSeedlists();
+    if (state.sni.currentJobId) await sniPollJob(state.sni.currentJobId);
+    renderSniJobsList();
+    showToast("SNI Hunter refreshed", "info");
+  });
+
+  // Verdict pill click-to-filter.
+  $$(".sni-pill").forEach((pill) => {
+    pill.addEventListener("click", () => {
+      $$(".sni-pill").forEach((p) => p.classList.remove("active"));
+      pill.classList.add("active");
+      state.sni.verdictFilter = pill.dataset.verdict;
+      if (state.sni.currentJob) renderSniResults(state.sni.currentJob);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //   INIT
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -2123,6 +2563,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderArchive();
   setupConsoleInput();
   setupTerminal();
+  setupSniHunter();
 
   // "Import Assets" loads the bundled dev sample configs — hide it in the
   // packaged app so real users work only from their own file selections.

@@ -272,6 +272,13 @@ function setupIPC() {
   ipcMain.handle("sni-jobs", proxyGet("/api/sni/jobs"));
   ipcMain.handle("sni-job", async (_e, jobId) => { try { return (await fetch(`${BACKEND_URL}/api/sni/jobs/${encodeURIComponent(jobId)}`)).json(); } catch (err) { return { error: err.message }; } });
   ipcMain.handle("sni-seedlists", proxyGet("/api/sni/seedlists"));
+  // Phase 2 endpoints — watch (CertStream), ech (RFC 9848), reverseip,
+  // portcheck, apply (use as SNI).
+  ipcMain.handle("sni-watch", proxyPost("/api/sni/watch"));
+  ipcMain.handle("sni-ech", proxyPost("/api/sni/ech"));
+  ipcMain.handle("sni-reverseip", proxyPost("/api/sni/reverseip"));
+  ipcMain.handle("sni-portcheck", proxyPost("/api/sni/portcheck"));
+  ipcMain.handle("sni-apply", proxyPost("/api/sni/apply"));
 
   // ── Window Control IPC ─────────────────────────────────────────────────────
   // Dev-only surfaces (e.g. the "Import Assets" sample-config button) check

@@ -1365,3 +1365,284 @@ svg { display: block; }
 
 /* Selection */
 ::selection { background: rgba(0,255,156,0.3); color: var(--tx-bright); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SNI HOST HUNTER VIEW (Phase 2)
+   ═══════════════════════════════════════════════════════════════════════════
+   Two-panel layout: scan config on the left, results table on the right.
+   Uses the existing color variables (--c-matrix, --c-amber, --c-blood,
+   --c-ice) so it matches the rest of the CIPHER_OPS theme.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sni-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 14px;
+  padding: 14px;
+  height: calc(100% - 56px);
+  overflow: hidden;
+}
+
+/* ── Left: config panel ─────────────────────────────────────────────────── */
+.sni-config-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--bd-dim);
+  border-radius: 6px;
+  padding: 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sni-panel-title {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--tx-secondary);
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--bd-dim);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.sni-results-meta {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--tx-muted);
+  text-transform: none;
+}
+
+.sni-field { display: flex; flex-direction: column; gap: 4px; }
+.sni-field label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--tx-secondary);
+  text-transform: uppercase;
+}
+.sni-field input,
+.sni-field select {
+  background: var(--bg-inset);
+  border: 1px solid var(--bd-dim);
+  color: var(--tx-primary);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  border-radius: 3px;
+  outline: none;
+}
+.sni-field input:focus,
+.sni-field select:focus { border-color: var(--c-matrix-dim); }
+
+.sni-input-row { display: flex; gap: 6px; }
+.sni-input-row input { flex: 1; min-width: 0; }
+
+.sni-mini-btn {
+  background: var(--bg-active);
+  border: 1px solid var(--bd-dim);
+  color: var(--c-matrix);
+  padding: 0 10px;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  border-radius: 3px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.sni-mini-btn:hover { background: var(--bg-hover); border-color: var(--c-matrix-dim); }
+.sni-mini-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.sni-field-row { display: flex; gap: 10px; align-items: center; }
+.sni-field-small { flex: 1; }
+.sni-field-small input { width: 100%; box-sizing: border-box; }
+
+.sni-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--tx-secondary);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.sni-checkbox input { accent-color: var(--c-matrix); }
+
+.sni-scan-btn {
+  background: linear-gradient(135deg, var(--c-matrix-dim), var(--c-matrix));
+  border: none;
+  color: #000;
+  padding: 11px;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  font-weight: 800;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.sni-scan-btn:hover { filter: brightness(1.15); }
+.sni-scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.sni-progress-wrap { display: flex; flex-direction: column; gap: 5px; }
+.sni-progress-bar {
+  height: 4px;
+  background: var(--bg-inset);
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--bd-dim);
+}
+.sni-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--c-matrix-dim), var(--c-matrix));
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.sni-progress-text {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--tx-secondary);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.sni-jobs-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.sni-job-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
+  padding: 6px 8px;
+  background: var(--bg-inset);
+  border: 1px solid var(--bd-dim);
+  border-radius: 3px;
+}
+.sni-job-id { color: var(--c-ice); font-family: monospace; }
+.sni-job-status { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; }
+.sni-job-running { color: var(--c-matrix); }
+.sni-job-done    { color: var(--tx-secondary); }
+.sni-job-stopped { color: var(--c-amber); }
+.sni-job-failed  { color: var(--c-blood); }
+.sni-job-progress { margin-left: auto; color: var(--tx-muted); font-family: monospace; }
+
+/* ── Right: results panel ───────────────────────────────────────────────── */
+.sni-results-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--bd-dim);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.sni-verdict-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.sni-pill {
+  background: var(--bg-inset);
+  border: 1px solid var(--bd-dim);
+  color: var(--tx-secondary);
+  padding: 5px 10px;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  border-radius: 3px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.sni-pill:hover { border-color: var(--bd-bright); color: var(--tx-bright); }
+.sni-pill.active { background: var(--bg-active); color: var(--c-matrix); border-color: var(--c-matrix-dim); }
+.sni-pill-count {
+  display: inline-block;
+  margin-left: 5px;
+  background: var(--bg-active);
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-size: 9px;
+  color: var(--tx-bright);
+}
+
+.sni-results-table {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg-inset);
+  border: 1px solid var(--bd-dim);
+  border-radius: 3px;
+  min-height: 200px;
+}
+.sni-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--tx-muted);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.sni-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 2fr) minmax(110px, 1fr) 60px 90px minmax(220px, 1.5fr);
+  gap: 8px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--bd-dim);
+  font-size: 11px;
+  align-items: center;
+}
+.sni-row:last-child { border-bottom: none; }
+.sni-row-header {
+  background: var(--bg-panel);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  color: var(--tx-secondary);
+  text-transform: uppercase;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.sni-col-host { font-family: monospace; color: var(--tx-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sni-col-ip { font-family: monospace; color: var(--c-ice); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sni-col-status { color: var(--tx-secondary); text-align: center; }
+.sni-col-verdict { display: flex; }
+.sni-col-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.sni-verdict-pill {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+.sni-verdict-pill.ok      { background: rgba(0,255,156,0.15); color: var(--c-matrix); border: 1px solid var(--c-matrix-dim); }
+.sni-verdict-pill.warn    { background: rgba(255,176,0,0.15); color: var(--c-amber); border: 1px solid var(--c-amber-dim); }
+.sni-verdict-pill.danger  { background: rgba(255,59,59,0.15); color: var(--c-blood); border: 1px solid var(--c-blood-dim); }
+.sni-verdict-pill.muted   { background: rgba(74,93,84,0.15); color: var(--tx-muted); border: 1px solid var(--tx-faint); }
+
+.sni-row-ok      { border-left: 2px solid var(--c-matrix-dim); }
+.sni-row-warn    { border-left: 2px solid var(--c-amber-dim); }
+.sni-row-danger  { border-left: 2px solid var(--c-blood-dim); }
+.sni-row-muted   { border-left: 2px solid var(--tx-faint); }
+
+.sni-action-btn {
+  background: var(--bg-active);
+  border: 1px solid var(--bd-dim);
+  color: var(--c-matrix);
+  padding: 3px 8px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  border-radius: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.sni-action-btn:hover { background: var(--bg-hover); border-color: var(--c-matrix-dim); }
+.sni-action-secondary { color: var(--c-ice); }
+.sni-action-secondary:hover { border-color: var(--c-ice-dim); }
+.sni-action-spacer { display: inline-block; width: 1px; }
+
+.hidden { display: none !important; }
+
+/* ── SNI sidebar badge (uses existing .sb-nav-badge styles) ─────────────── */
+#sni-found-count { background: var(--c-matrix-dim); color: #000; }

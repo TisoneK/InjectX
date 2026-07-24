@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **SNI Host Hunter Phase 2** — the SNI Hunter is now a full sidebar module
+  (05 · SNI HUNTER), not just terminal commands. A scan-config panel on the
+  left, a live results table on the right with verdict pills (working /
+  redirect / blocked / dead) for click-to-filter. Three input modes: pick a
+  bundled seedlist, discover via crt.sh (FIND), or watch the live CertStream
+  feed for 60s (WATCH). Each result row has four actions: **Use as SNI**
+  (apply the host to your currently-selected config — the original SNI is
+  preserved for revert), **ECH** (check whether the host advertises Encrypted
+  Client Hello via its DNS HTTPS-RR per RFC 9848 — ECH-capable hosts are less
+  useful as bug hosts), **PORTS** (quick 80/443/8080/8443 probe), and
+  **REV-IP** (sibling hostnames on the same IP via HackerTarget). New
+  backend modules: `snihunter/dns_check.py` (ECH detection), `sources/certstream.py`
+  (real-time CT watch), `reverseip.py`, `portcheck.py`, `apply.py` ("use as
+  SNI"). Five new `/api/sni/*` endpoints. 60 new tests (suite 91→151).
+  `dnspython` added to requirements for SVCB/HTTPS-RR queries.
 - **SNI Host Hunter** — InjectX can now *find* working bug hosts, not just
   read the ones you already have. From the Terminal, `sni find <domain>`
   looks up candidate hosts for a domain, and `sni scan` checks a list of

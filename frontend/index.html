@@ -102,8 +102,14 @@
             <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M7 9l3 3-3 3"/><line x1="12" y1="15" x2="16" y2="15"/></svg>
             <span class="sb-nav-label">Terminal</span>
           </li>
-          <li class="sb-nav-item" data-view="system">
+          <li class="sb-nav-item" data-view="snihunter">
             <span class="sb-nav-idx">05</span>
+            <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            <span class="sb-nav-label">SNI Hunter</span>
+            <span class="sb-nav-badge hidden" id="sni-found-count">0</span>
+          </li>
+          <li class="sb-nav-item" data-view="system">
+            <span class="sb-nav-idx">06</span>
             <svg class="sb-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
             <span class="sb-nav-label">System</span>
           </li>
@@ -324,6 +330,98 @@
               <span class="ci-prompt">&gt;</span>
               <input type="text" id="terminal-input" placeholder="enter command" autocomplete="off" spellcheck="false" />
               <span class="ci-cursor"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─── SNI Hunter View ───────────────────────────────────────────── -->
+        <section id="view-snihunter" class="view">
+          <div class="view-toolbar">
+            <div class="vt-left">
+              <h2 class="vt-title">SNI HUNTER</h2>
+              <span class="vt-sub">discover + probe SNI bug hosts · research/verification tool</span>
+            </div>
+            <div class="vt-right">
+              <button id="btn-sni-refresh" class="vt-btn" title="Refresh jobs list">REFRESH</button>
+              <button id="btn-sni-stop" class="vt-btn" title="Stop the running scan" disabled>STOP</button>
+              <button id="btn-sni-export" class="vt-btn" title="Export the current job's working hosts" disabled>EXPORT</button>
+            </div>
+          </div>
+
+          <div class="sni-layout">
+            <!-- Left: scan config + actions -->
+            <div class="sni-config-panel">
+              <div class="sni-panel-title">SCAN CONFIG</div>
+
+              <div class="sni-field">
+                <label for="sni-seedlist-select">Seedlist</label>
+                <select id="sni-seedlist-select">
+                  <option value="">— pick a bundled list —</option>
+                </select>
+              </div>
+
+              <div class="sni-field">
+                <label for="sni-domain-input">or discover via crt.sh</label>
+                <div class="sni-input-row">
+                  <input type="text" id="sni-domain-input" placeholder="example.com" autocomplete="off" spellcheck="false" />
+                  <button id="btn-sni-discover" class="sni-mini-btn" title="Discover candidates via Certificate Transparency">FIND</button>
+                </div>
+              </div>
+
+              <div class="sni-field">
+                <label for="sni-watch-input">or watch CertStream (live)</label>
+                <div class="sni-input-row">
+                  <input type="text" id="sni-watch-input" placeholder="example.com" autocomplete="off" spellcheck="false" />
+                  <button id="btn-sni-watch" class="sni-mini-btn" title="Watch the live CT feed for 60s">WATCH</button>
+                </div>
+              </div>
+
+              <div class="sni-field-row">
+                <div class="sni-field sni-field-small">
+                  <label for="sni-concurrency-input">Concurrency</label>
+                  <input type="number" id="sni-concurrency-input" value="50" min="1" max="200" />
+                </div>
+                <div class="sni-field sni-field-small">
+                  <label for="sni-timeout-input">Timeout (s)</label>
+                  <input type="number" id="sni-timeout-input" value="5" min="1" max="30" step="0.5" />
+                </div>
+              </div>
+
+              <div class="sni-field-row">
+                <label class="sni-checkbox">
+                  <input type="checkbox" id="sni-cf-only" />
+                  <span>Cloudflare only (csv/json)</span>
+                </label>
+              </div>
+
+              <button id="btn-sni-scan" class="sni-scan-btn">
+                <span class="sni-scan-btn-text">START SCAN</span>
+              </button>
+
+              <div class="sni-progress-wrap hidden" id="sni-progress-wrap">
+                <div class="sni-progress-bar"><div class="sni-progress-fill" id="sni-progress-fill"></div></div>
+                <div class="sni-progress-text" id="sni-progress-text">0 / 0</div>
+              </div>
+
+              <div class="sni-jobs-list" id="sni-jobs-list"></div>
+            </div>
+
+            <!-- Right: results table -->
+            <div class="sni-results-panel">
+              <div class="sni-panel-title">
+                RESULTS
+                <span class="sni-results-meta" id="sni-results-meta">no scan yet</span>
+              </div>
+              <div class="sni-verdict-pills" id="sni-verdict-pills">
+                <button class="sni-pill active" data-verdict="all">ALL <span class="sni-pill-count">0</span></button>
+                <button class="sni-pill" data-verdict="working">WORKING <span class="sni-pill-count">0</span></button>
+                <button class="sni-pill" data-verdict="redirect">REDIRECT <span class="sni-pill-count">0</span></button>
+                <button class="sni-pill" data-verdict="blocked">BLOCKED <span class="sni-pill-count">0</span></button>
+                <button class="sni-pill" data-verdict="dead">DEAD <span class="sni-pill-count">0</span></button>
+              </div>
+              <div class="sni-results-table" id="sni-results-table">
+                <div class="sni-empty">Run a scan to discover working SNI bug hosts.</div>
+              </div>
             </div>
           </div>
         </section>

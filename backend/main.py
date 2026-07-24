@@ -47,11 +47,16 @@ from audit.live_log import get_live_log
 # sni-host-hunter.md and ADR-6/7/8 in plans/decisions.md.
 from snihunter import (
     SNI_MAX_CONCURRENCY,
+    apply_sni_to_config_id,
+    check_ech as sni_check_ech,
+    check_ports as sni_check_ports,
     discover as sni_discover,
-    load_seedlist,
     list_bundled_seedlists,
+    load_seedlist,
+    reverseip_lookup as sni_reverseip,
     scan as sni_scan,
     sni_job_store,
+    watch_certstream as sni_watch_certstream,
 )
 from snihunter.models import SniCandidate, SniScanJob
 from snihunter.export import export_job
@@ -868,6 +873,173 @@ async def sni_export(req: SniExportRequest):
         "media_type": media_type,
         "content": content,
     }
+
+
+# ── SNI Host Hunter — Phase 2 endpoints ───────────────────────────────────────
+#
+# Five new endpoints covering: real-time CT watch (CertStream), ECH capability
+# detection (RFC 9848 DNS HTTPS-RR), reverse-IP lookup, open-port checker, and
+# "use as SNI" (apply a discovered bug host to a parsed config). All gate on
+# SNI_HUNTER_ENABLED and inherit the existing CORS middleware (ADR-2).
+
+
+class SniWatchRequest(BaseModel):
+    domain: str
+    duration_s: float = 60.0
+
+
+class SniEchRequest(BaseModel):
+    hostname: str
+
+
+class SniReverseIpRequest(BaseModel):
+    ip: str
+
+
+class SniPortCheckRequest(BaseModel):
+    host: str
+    ports: list[int] = []
+    timeout_s: float = 3.0
+
+
+class SniApplyRequest(BaseModel):
+    config_id: str
+    sni: str
+
+
+@app.post("/api/sni/watch")
+async def sni_watch(req: SniWatchRequest):
+    """Watch the CertStream feed for `duration_s` and collect new hostnames
+    for `domain`. Returns the deduped SniCandidate list.
+
+    CertStream is an OPTIONAL dep — if the `certstream` package isn't
+    installed this returns 503 with a clear install hint. The watch runs
+    synchronously within the request (the websocket feed is in a background
+    thread); for durations > ~120s the UI should background this.
+    """
+    _require_sni_enabled()
+    domain = (req.domain or "").strip().lower().lstrip("*.")
+    if not domain:
+        raise HTTPException(status_code=400, detail="No domain provided")
+    # Clamp duration to a sane window — CertStream is a firehose; a 1-hour
+    # watch would collect thousands of hostnames and saturate the request.
+    duration = max(1.0, min(float(req.duration_s), 300.0))
+
+    live = get_live_log()
+    live.add("SNI", f"Watching CertStream for {domain} ({duration:.0f}s)...", "info")
+
+    def on_candidate(cand) -> None:
+        live.add("SNI", f"CT new: {cand.hostname}", "info")
+
+    try:
+        candidates = await sni_watch_certstream(domain, duration_s=duration,
+                                                 on_candidate=on_candidate)
+    except ImportError as e:
+        live.add("SNI", f"CertStream unavailable: {e}", "err")
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        live.add("SNI", f"CertStream watch failed: {e}", "err")
+        raise HTTPException(status_code=502, detail=f"CertStream watch failed: {e}")
+
+    live.add("SNI", f"CertStream watch done — {len(candidates)} new host(s) for {domain}", "ok")
+    return {
+        "domain": domain,
+        "duration_s": duration,
+        "count": len(candidates),
+        "candidates": [c.model_dump() for c in candidates],
+    }
+
+
+@app.post("/api/sni/ech")
+async def sni_ech(req: SniEchRequest):
+    """Check whether a hostname advertises ECH (Encrypted Client Hello) via
+    its DNS SVCB/HTTPS RR (RFC 9848).
+
+    ECH-capable hosts hide their real SNI from the network path, which makes
+    them *less useful* as bug hosts — an ISP doing SNI-based zero-rating
+    can't see the hostname to match against its whitelist. The UI flags
+    ECH-capable hosts distinctly in the results.
+    """
+    _require_sni_enabled()
+    hostname = (req.hostname or "").strip().lower().lstrip("*.")
+    if not hostname:
+        raise HTTPException(status_code=400, detail="No hostname provided")
+    result = await sni_check_ech(hostname)
+    return result
+
+
+@app.post("/api/sni/reverseip")
+async def sni_reverseip_endpoint(req: SniReverseIpRequest):
+    """Reverse-IP lookup: what other domains are hosted on this IP?
+
+    Uses public APIs (HackerTarget's free reverse-IP endpoint, falling back
+    to PTR) per ADR-6 — no active scanning. Useful because an ISP's zero-
+    rating whitelist is often the whole IP, so sibling hostnames on the same
+    IP can surface more bug-host candidates.
+    """
+    _require_sni_enabled()
+    ip = (req.ip or "").strip()
+    if not ip:
+        raise HTTPException(status_code=400, detail="No IP provided")
+    result = await sni_reverseip(ip)
+    return result
+
+
+@app.post("/api/sni/portcheck")
+async def sni_portcheck(req: SniPortCheckRequest):
+    """Probe a small fixed set of common web ports on a host (BugScanX #7).
+
+    ADR-6 backstop: at most MAX_PORTS_PER_HOST ports per call (default set
+    is 80/443/8080/8443). The probe is a plain TCP connect — no banner
+    grabbing, no fingerprinting.
+    """
+    _require_sni_enabled()
+    host = (req.host or "").strip().lower().lstrip("*.")
+    if not host:
+        raise HTTPException(status_code=400, detail="No host provided")
+    ports = req.ports or None  # empty list → default set
+    result = await sni_check_ports(host, ports=ports, timeout=req.timeout_s)
+    return result
+
+
+@app.post("/api/sni/apply")
+async def sni_apply(req: SniApplyRequest):
+    """Apply a discovered bug host to an existing parsed config ("use as SNI").
+
+    Re-parses the config from disk (so the decrypt trace is fresh), overrides
+    the `sni` field with the new hostname, preserves the original SNI under
+    `raw_data._original_sni` for revert, and stores the result back into
+    config_store under the same config_id. Returns the new ConfigInfo.
+
+    This closes the discover→probe→use loop: scan a seedlist, find a working
+    host, click "Use as SNI" on a target config, and the config is updated
+    in place.
+    """
+    _require_sni_enabled()
+    config_id = (req.config_id or "").strip()
+    new_sni = (req.sni or "").strip()
+    if not config_id:
+        raise HTTPException(status_code=400, detail="No config_id provided")
+    if not new_sni:
+        raise HTTPException(status_code=400, detail="No SNI hostname provided")
+
+    live = get_live_log()
+    live.add("SNI", f"Applying SNI '{new_sni}' to config {config_id}...", "info")
+    try:
+        normalized = apply_sni_to_config_id(config_store, config_id, new_sni)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Config not found: {config_id}")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        # A re-parse failure (e.g. the file was moved) is a 500 — the config
+        # is in the store but its filepath no longer parses.
+        live.add("SNI", f"Apply failed for {config_id}: {e}", "err")
+        raise HTTPException(status_code=500, detail=f"Re-parse failed: {e}")
+
+    config_store[config_id] = normalized.model_dump()
+    live.add("SNI", f"Config {config_id} SNI → {new_sni}", "ok")
+    return _ir_to_response(config_id, normalized)
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
