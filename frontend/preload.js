@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld("vpnAPI", {
   sniReverseIp: (ip) => ipcRenderer.invoke("sni-reverseip", { ip }),
   sniPortcheck: (host, ports, timeoutS) => ipcRenderer.invoke("sni-portcheck", { host, ports, timeout_s: timeoutS }),
   sniApply: (configId, sni) => ipcRenderer.invoke("sni-apply", { config_id: configId, sni }),
+  sniFronting: (sni, host) => ipcRenderer.invoke("sni-fronting", { sni, host }),
   isDev: () => ipcRenderer.invoke("is-dev"),
   openFolderDialog: () => ipcRenderer.invoke("open-folder-dialog"),
   listConfigFiles: (folder) => ipcRenderer.invoke("list-config-files", folder),

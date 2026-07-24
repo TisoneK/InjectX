@@ -1843,9 +1843,29 @@ const CMD = {
         ["sni jobs", "list scan jobs"],
         ["sni stop <jobId>", "stop a running scan"],
         ["sni export <jobId> <txt|csv|json>", "download scan results"],
+        ["sni fronting <sni> <host>", "defensive: is SNI/Host zero-rating bypassable?"],
       ]);
     },
     _default(args, io) { return CMD.sni.help(args, io); },
+    async fronting(args, io) {
+      const sni = (args[0] || "").trim();
+      const host = (args[1] || "").trim();
+      if (!sni || !host) { io.error("Usage: sni fronting <sni> <host>"); return; }
+      io.print(`Probing: SNI '${sni}' vs Host '${host}' ...`);
+      const r = await API.sni.fronting(sni, host);
+      if (!r || r.error) { io.error(r && r.error ? r.error : "Fronting probe failed."); return; }
+      io.print(`verdict: ${(r.verdict || "?").toUpperCase()}`);
+      io.table(["FIELD", "VALUE"], [
+        ["http", `${r.http_status ?? "—"} ${r.http_reason || ""}`.trim()],
+        ["server", r.server_header || "—"],
+        ["tls handshake", r.tls_handshake_ok ? "ok" : "failed"],
+        ["sni cert CN", r.sni_cert_cn || "—"],
+        ["host covered by cert", r.host_covered_by_sni_cert == null ? "—" : String(r.host_covered_by_sni_cert)],
+        ["cert changes w/ SNI", r.cert_changes_with_sni == null ? "—" : String(r.cert_changes_with_sni)],
+        ["dns consistent", r.dns_consistent == null ? "—" : String(r.dns_consistent)],
+      ]);
+      (r.notes || []).forEach((n) => io.print(`  · ${n}`));
+    },
     async find(args, io) {
       const domain = (args[0] || "").trim();
       if (!domain) { io.error("Usage: sni find <domain>"); return; }

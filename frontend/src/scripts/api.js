@@ -38,6 +38,7 @@ const API = {
     reverseIp(ip) { return window.vpnAPI.sniReverseIp(ip); },
     portcheck(host, ports, timeoutS) { return window.vpnAPI.sniPortcheck(host, ports, timeoutS); },
     apply(configId, sni) { return window.vpnAPI.sniApply(configId, sni); },
+    fronting(sni, host) { return window.vpnAPI.sniFronting(sni, host); },
   },
   isDev() { return window.vpnAPI && window.vpnAPI.isDev ? window.vpnAPI.isDev() : Promise.resolve(false); },
   openFolderDialog() { return window.vpnAPI && window.vpnAPI.openFolderDialog ? window.vpnAPI.openFolderDialog() : Promise.resolve({ canceled: true, folder: null }); },

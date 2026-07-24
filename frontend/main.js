@@ -279,6 +279,7 @@ function setupIPC() {
   ipcMain.handle("sni-reverseip", proxyPost("/api/sni/reverseip"));
   ipcMain.handle("sni-portcheck", proxyPost("/api/sni/portcheck"));
   ipcMain.handle("sni-apply", proxyPost("/api/sni/apply"));
+  ipcMain.handle("sni-fronting", proxyPost("/api/sni/fronting"));
 
   // ── Window Control IPC ─────────────────────────────────────────────────────
   // Dev-only surfaces (e.g. the "Import Assets" sample-config button) check
