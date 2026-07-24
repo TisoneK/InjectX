@@ -260,3 +260,12 @@ outcome:
 - **Open items:** N16 new (Phase 3 — defensive mode: ISP zero-rating enforcement verification, nDPI-style SNI/Host-header mismatch, TLS fingerprint comparison). N1-N14 unchanged (N1 architecture doc further advanced by §13.2/§13.6 updates). N3/N4 still the highest-leverage open items.
 - **Report:** .context/memory/reviews/2026-07-24-phase2-review.md
 - **Note:** no PAT to rotate (the user's own git credentials are used via the local agent's `credential.helper` pattern from Session 4; the cloud sandbox's PAT from Session 23 should already have been rotated).
+
+---
+## 2026-07-26 — Session 27
+- **Agent:** Super Z | **Model:** unknown (GLM family) | **Platform:** Z.ai cloud sandbox — Debian 13 trixie, Python 3.12.13, Node v24.18.0 | **Role:** engineer | **Core:** 0.3.0
+- **Task:** User (chat) forwarded the dependabot alert: "fast-uri vulnerable to host confusion via literal backslash authority delimiter" (high severity, GHSA on fast-uri <=3.1.3). Fix it.
+- **Commits:** 1 product (`fix(deps)`) + 1 `chore(context)`.
+- **Outcome:** done — closed the alert. Added an npm `overrides` block to `package.json` forcing `fast-uri` to `^3.1.4`. `npm audit` now 0 vulnerabilities (was 1 high). Surgical: +3 lines package.json, 3 lines lockfile (version 3.1.3→3.1.4, resolved URL, integrity hash). Assessment: `fast-uri` is a build-time-only transitive dep (`electron-builder → app-builder-lib → ajv@^8.18.0 → fast-uri@^3.0.1`); InjectX's runtime code (Python httpx backend + Electron main-process fetch) doesn't use `fast-uri` or `ajv` at all, so the practical runtime risk was zero — this was supply-chain hygiene, not a live vuln. Considered bumping `electron-builder` to 26.15.7 (latest) but verified that doesn't fix it (ajv 8.20.0 still pins `^3.0.1` which resolves to 3.1.3). The override is the dependabot-recommended fix and stays in the 3.x line (no major-version risk). Verified: `npm install` clean, `npm audit` 0 vulns, `node --check frontend/main.js` OK, backend 151 tests still pass. **Not verified:** `npm run dist` (packaging) — sandbox can't produce a Windows/macOS installer; user should run it once locally.
+- **Open items:** none new. User confirmations still pending from prior sessions: (a) Phase 2 sidebar module in packaged Electron app (Session 26), (b) `npm run dist` still works after the fast-uri override (this session). N16 (Phase 3) still next up.
+- **Report:** .context/memory/reviews/2026-07-26-deps-review.md
