@@ -101,3 +101,17 @@ relitigating them. To reverse one, append a new ADR that supersedes it.
 - **Consequences:**
   - Seedlists ship with every release; updating them is a normal product commit, not a separate-repo pull. A separate `injectx-seedlists` repo remains an option if the lists grow large or need frequent updates (revisit then).
   - Seedlists must never contain credentials, tokens, or per-user data — only public hostnames. Enforced by review, not code.
+
+---
+## ADR-9: Phase-3 defensive probe is single-target, read-only, and non-exploitative (2026-07-26)
+
+- **Status:** accepted (Session 28 — governs SNI Host Hunter Phase 3 / backlog N16)
+- **Context:** Phase 3 adds a *defensive* capability: detect whether an ISP's SNI-based zero-rating is bypassable by domain fronting (sending a TLS SNI that differs from the HTTP `Host` header) and compare the TLS cert served when the SNI changes. This is active — it opens real TLS connections to a public host and sends a mismatched `Host` header. Without bounds, "send a mismatched Host to any host" is one step from an exploitation/relay tool. It must inherit ADR-6's loopback-bound, no-scanning stance and stay a *detector*, not an *exploiter*.
+- **Decision:**
+  1. The probe is **single-target per call**: exactly the two hostnames the user supplies (`sni`, `host`). No lists, no enumeration, no ranges — the ADR-6 concurrency machinery is not involved.
+  2. It is **read-only / observational**: one TLS handshake with SNI=`sni`, a small set of cert-capturing handshakes to compare fingerprints, and a single raw `GET /` with `Host: host`. It does NOT tunnel user traffic, relay, POST, follow redirects, or send more than a couple of requests. It reports what the server did; it does not use the result to move traffic.
+  3. It **reuses the ADR-6 timeout/verify posture** (cert validation on for the fingerprint capture; a short per-connection timeout) and gates on `INJECTX_ENABLE_SNI_HUNTER` like every other `/api/sni/*` endpoint.
+  4. Verdict framing is **defensive**: `enforced` (the ISP/CDN cross-checks SNI vs Host — a 421 or rejection), `bypassable` (the mismatch was served — zero-rating would leak), `indeterminate`, `error`. The README frames it as "verify enforcement", not "bypass a filter".
+- **Consequences:**
+  - Future agents MUST NOT turn the defensive probe into a bulk/list operation or a traffic relay without a new superseding ADR — the "detector not exploiter" line is what keeps Phase 3 on the research/defensive side of the dual-use framing (§7).
+  - The probe's raw-HTTP-over-TLS helper lives in `backend/snihunter/defensive.py`; treat changes to it as security-sensitive (it is the one place that deliberately decouples SNI from Host).
