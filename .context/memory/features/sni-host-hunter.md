@@ -1,6 +1,6 @@
 # Feature Spec — SNI Host Hunter
 
-> **Status:** **Phase 3 shipped** (Session 28, 2026-07-24) — feature complete (all 3 phases); UI follow-on N17 open.
+> **Status:** **Feature complete** (Session 29, 2026-07-24) — all 3 phases + sidebar UI for the fronting probe shipped.
 > **Added:** 2026-07-24 by Super Z (cloud, Session 23).
 > **Phase 1 shipped:** Session 24 (Claude Code / Opus 4.8, local). Backend
 > `backend/snihunter/` + 7 `/api/sni/*` endpoints + bundled seedlists +
@@ -30,8 +30,18 @@
 > tests (suite 151→166). ADR-9 (single-target, read-only, non-exploitative).
 > Live-verified (cloudflare-vs-example mismatch → cert changes + 403;
 > wikipedia same-tenant → bypassable). See `reviews/2026-07-24-phase3-review.md`.
-> **Follow-on N17:** expose the fronting probe in the sidebar UI (terminal + API
-> only so far).
+> **Follow-on N17 — DONE Session 29 (Super Z cloud):** sidebar UI for the
+> fronting probe. A "DEFENSIVE PROBE — FRONTING" panel at the bottom of the
+> 05 · SNI Hunter module, below the scan-config/results two-column layout. Two
+> inputs (SNI + Host) + PROBE button, then a color-coded verdict banner
+> (green=enforced, red=bypassable, amber=indeterminate, muted=error) + a detail
+> grid (HTTP status, server header, TLS handshake, both cert CNs, cert-changes-
+> with-SNI, host-covered-by-cert, DNS consistency, target IP, elapsed) + the
+> backend's plain-language notes. Frontend-only (no backend change — the
+> IPC/preload/api plumbing was already there from Session 28). Verified via a
+> Node harness driving the real `api.js` `API.sni.fronting()` against the live
+> backend. See `reviews/2026-07-24-n17-review.md`. **SNI Host Hunter is now
+> feature-complete across all three phases + the full UI surface.**
 > **Scope:** comprehensive technical + product design for an in-app SNI host
 > discovery and verification module. Captures the domain research, the InjectX
 > integration analysis, a phased implementation plan, and every primary

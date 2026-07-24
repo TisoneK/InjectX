@@ -9,7 +9,7 @@ accordingly).
 
 | Agent | Model | First seen | Last seen | Sessions |
 |---|---|---|---|---|
-| Super Z | unknown (GLM family; system prompt states "GLM model developed by Z.ai" without a specific version — recorded as `unknown` per the protocol's no-guess rule) | 2026-07-15 | 2026-07-26 | 5 |
+| Super Z | unknown (GLM family; system prompt states "GLM model developed by Z.ai" without a specific version — recorded as `unknown` per the protocol's no-guess rule) | 2026-07-15 | 2026-07-24 | 6 |
 | Claude Code | claude-fable-5 (Claude Fable 5; exact model ID stated in the system prompt) | 2026-07-15 | 2026-07-16 | many (Sessions 2, 11–22) |
 | Claude Code | claude-opus-4-8 (Claude Opus 4.8; exact model ID stated in the system prompt) | 2026-07-23 | 2026-07-24 | 2 (Sessions 24, 28) |
 | GitHub Copilot | DeepSeek V4 Flash Free (exact model ID from the session log) | 2026-07-26 | 2026-07-26 | 1 (Session 25) |
