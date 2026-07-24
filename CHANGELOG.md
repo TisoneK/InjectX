@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **SNI Host Hunter — defensive mode.** A new check, `sni fronting <sni>
+  <host>`, turns the tool around: instead of finding a bug host, it tells you
+  whether an ISP's SNI-based free-data trick can be *bypassed* by "domain
+  fronting" — connecting under one hostname but asking for another. It reports
+  a clear verdict (the filter holds, or it leaks), whether the site's security
+  certificate changes when the name changes, and whether the two names live on
+  the same server. It only looks — it never moves any traffic. Handy for
+  checking whether a provider's setup actually enforces what it claims.
 - **SNI Host Hunter Phase 2** — the SNI Hunter is now a full sidebar module
   (05 · SNI HUNTER), not just terminal commands. A scan-config panel on the
   left, a live results table on the right with verdict pills (working /
