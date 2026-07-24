@@ -202,6 +202,7 @@ injectx/
 | POST | `/api/sni/reverseip` | Reverse-IP lookup — sibling hostnames on an IP |
 | POST | `/api/sni/portcheck` | Probe a small fixed set of common web ports on a host |
 | POST | `/api/sni/apply` | Apply a discovered bug host to a parsed config ("use as SNI") |
+| POST | `/api/sni/fronting` | Defensive: is SNI/Host zero-rating bypassable by domain fronting? (Phase 3) |
 
 > **Note on `GET` vs `POST`:** `parse`, `detect`, and `export` are `GET`
 > because they are idempotent (no server state mutation). The frontend's
@@ -238,6 +239,7 @@ sni scan /path/to/hosts.txt       # probe a seed list on disk (.txt/.csv/.json)
 sni jobs                          # list scan jobs
 sni stop <jobId>                  # stop a running scan
 sni export <jobId> txt            # download working hosts
+sni fronting <sni> <host>         # defensive: is SNI/Host zero-rating bypassable?
 ```
 
 ### Using it (sidebar UI)
@@ -270,6 +272,27 @@ research/verification tool, **not** a network scanner.
 Set `INJECTX_ENABLE_SNI_HUNTER=0` to disable the feature wholesale (every
 `/api/sni/*` endpoint then returns `403`).
 
+### Defensive mode (Phase 3)
+
+The offensive half finds hosts whose *SNI* an ISP zero-rates. The defensive half
+asks the mirror question: **is that zero-rating bypassable by domain fronting?**
+`sni fronting <sni> <host>` (or `POST /api/sni/fronting`) opens a TLS handshake
+with `sni` in the SNI extension but sends a mismatched `Host: host` HTTP header,
+and reports:
+
+- **verdict** — `enforced` (the server/CDN cross-checks SNI vs Host — e.g. a
+  `421 Misdirected Request`), `bypassable` (the mismatch was served — the filter
+  leaks), `indeterminate`, or `error`.
+- **TLS fingerprint comparison** — whether the cert served changes when the SNI
+  changes (SNI-based virtual hosting, harder to front) or stays a single default
+  cert (fronting-friendly), plus whether the SNI's cert already covers the host.
+- **DNS consistency** — whether `sni` and `host` resolve to a shared IP.
+
+It is single-target, read-only, and non-exploitative (ADR-9) — a detector that
+observes what the server does with a mismatched Host; it never tunnels or relays
+traffic. References: nDPI issue #2573 (SNI/Host mismatch + domain fronting),
+Compass Security's SNI-spoofing write-up.
+
 ### Responsible Use
 
 SNI Host Hunter is a research and verification tool for SNI-based zero-rating.
@@ -290,11 +313,11 @@ the defensive perspective in
 
 ## Next Steps
 
-1. **SNI Host Hunter Phase 3** — defensive mode: verify an ISP's zero-rating
-   enforcement, nDPI-style SNI/Host-header mismatch detection, per-host TLS
-   fingerprint comparison. Phase 1 (terminal MVP) and Phase 2 (sidebar UI +
-   CertStream + ECH + reverse-IP + port checks + "use as SNI") are shipped —
-   see `.context/memory/features/sni-host-hunter.md`.
+1. **SNI Host Hunter** — Phase 1 (terminal MVP), Phase 2 (sidebar UI + CertStream
+   + ECH + reverse-IP + port checks + "use as SNI"), and Phase 3 (defensive
+   fronting probe) are all shipped. Follow-ons: expose the fronting probe in the
+   sidebar UI, and tune the captive-portal indicator list against live ISP
+   portals. See `.context/memory/features/sni-host-hunter.md`.
 2. **Parser coverage for `.ovpn`** — the detector recognises OpenVPN files but the parser is a stub; add a real OpenVPN config parser.
 3. **Test infrastructure** — extend per-format parser/decryptor tests with sample files (see backlog item N3 in `.context/memory/tasks/backlog.md`).
 4. **Build the tunnel engine** — add SSH, WebSocket, V2Ray/Xray, Hysteria tunneling support (currently `backend/tunnel/` is an empty package).

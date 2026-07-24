@@ -684,6 +684,30 @@ present, the host is ECH-capable — flagged as *less useful* as a bug host
 (the ISP can't see the SNI to whitelist-match it). Detection is best-effort:
 DNS failures return `error` strings, never raise, and never break a scan.
 
+### 13.8 Defensive mode (`defensive.py`, Phase 3)
+
+The offensive half finds hosts whose SNI an ISP zero-rates; the defensive
+half (`defensive.py`, `POST /api/sni/fronting`, `sni fronting <sni> <host>`)
+asks whether that zero-rating is **bypassable by domain fronting**. One
+`probe_fronting(sni, host)` answers all three N16 angles:
+
+1. **SNI/Host mismatch** — a raw `GET / HTTP/1.1` with `Host: host` sent over
+   a TLS connection whose SNI is `sni`. Raw asyncio+ssl is used because httpx
+   couples SNI and Host to the URL; decoupling them is the whole point. The
+   `host` header is sanitised (`_safe_hostname`) so it can't inject CRLF into
+   the raw request line.
+2. **TLS fingerprint comparison** — a second handshake to the same IP with
+   SNI=`host` reads the cert served for a different SNI. If it differs from the
+   SNI cert, the server does SNI-based virtual hosting; if not, one default
+   cert answers every SNI (fronting-friendly).
+3. **Enforcement verdict** — `classify_fronting()` (pure, unit-tested):
+   `enforced` (421 Misdirected Request), `bypassable` (2xx/3xx served),
+   `indeterminate` (other 4xx/5xx), `error` (TLS/DNS failed).
+
+Per **ADR-9** the probe is single-target, read-only, and non-exploitative —
+a detector, not an exploiter, and not wired into the ADR-6 scan machinery.
+Reference: ntop/nDPI issue #2573, Compass Security "SNI Spoofing" (2025).
+
 ---
 
 *InjectX is a config inspection tool only. It does not facilitate unauthorized access to networks or circumvent carrier policies. All decryption algorithms are based on publicly available open-source reverse-engineering research. SNI Host Hunter probes public hosts for research and verification; see the README "Responsible Use" section.*
