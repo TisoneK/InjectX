@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **SNI Host Hunter — defensive fronting probe in the sidebar UI.** The
+  `sni fronting` defensive check now has a visual panel at the bottom of the
+  05 · SNI Hunter module: enter an SNI and a Host, hit PROBE, and get a
+  color-coded verdict banner (green = enforced, red = bypassable) plus a
+  detail grid showing every field the backend captured (HTTP status, cert
+  CNs, cert-changes-with-SNI, DNS consistency, target IP, elapsed) and the
+  backend's plain-language notes. Single-target, read-only, non-exploitative
+  (ADR-9) — the capability was already available from the terminal; this
+  exposes it in the UI. SNI Host Hunter is now feature-complete across all
+  three phases.
 - **SNI Host Hunter — defensive mode.** A new check, `sni fronting <sni>
   <host>`, turns the tool around: instead of finding a bug host, it tells you
   whether an ISP's SNI-based free-data trick can be *bypassed* by "domain

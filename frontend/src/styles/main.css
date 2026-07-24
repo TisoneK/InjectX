@@ -1646,3 +1646,170 @@ svg { display: block; }
 
 /* ── SNI sidebar badge (uses existing .sb-nav-badge styles) ─────────────── */
 #sni-found-count { background: var(--c-matrix-dim); color: #000; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SNI HOST HUNTER — DEFENSIVE FRONTING PROBE PANEL (Phase 3, N17)
+   ═══════════════════════════════════════════════════════════════════════════
+   Sits below the two-column scan-config/results layout. Single-target,
+   read-only, non-exploitative (ADR-9). Two inputs (SNI + Host) + a PROBE
+   button, then a verdict banner + detail grid + notes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sni-defensive-panel {
+  margin: 14px 14px 0 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--bd-dim);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sni-defensive-intro {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--tx-secondary);
+  padding: 10px 12px;
+  background: var(--bg-inset);
+  border-left: 2px solid var(--c-violet-dim);
+  border-radius: 3px;
+}
+.sni-defensive-intro code {
+  background: var(--bg-active);
+  color: var(--c-matrix);
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 10px;
+}
+
+.sni-fronting-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  padding: 1px 5px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+.sni-fronting-tag.tag-bypassable { background: rgba(255,59,59,0.15); color: var(--c-blood); }
+.sni-fronting-tag.tag-enforced   { background: rgba(0,255,156,0.15); color: var(--c-matrix); }
+
+.sni-defensive-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+.sni-field-defensive { display: flex; flex-direction: column; gap: 4px; }
+.sni-field-defensive label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--tx-secondary);
+  text-transform: uppercase;
+}
+.sni-field-defensive input {
+  background: var(--bg-inset);
+  border: 1px solid var(--bd-dim);
+  color: var(--tx-primary);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: monospace;
+  border-radius: 3px;
+  outline: none;
+}
+.sni-field-defensive input:focus { border-color: var(--c-violet-dim); }
+
+.sni-fronting-btn {
+  background: linear-gradient(135deg, var(--c-violet-dim), var(--c-violet));
+  padding: 9px 18px;
+  height: 36px;
+}
+.sni-fronting-btn:hover { filter: brightness(1.15); }
+
+/* ── Result rendering ────────────────────────────────────────────────────── */
+.sni-fronting-result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.sni-fronting-running {
+  padding: 14px;
+  text-align: center;
+  color: var(--c-violet);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-family: monospace;
+}
+
+.sni-fronting-verdict {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 4px;
+  border-left: 3px solid;
+}
+.sni-fronting-verdict-ok      { background: rgba(0,255,156,0.06); border-color: var(--c-matrix); }
+.sni-fronting-verdict-danger  { background: rgba(255,59,59,0.06); border-color: var(--c-blood); }
+.sni-fronting-verdict-warn    { background: rgba(255,176,0,0.06); border-color: var(--c-amber); }
+.sni-fronting-verdict-muted   { background: rgba(74,93,84,0.06); border-color: var(--tx-muted); }
+
+.sni-fronting-verdict .sni-verdict-pill { font-size: 11px; padding: 4px 10px; }
+.sni-fronting-verdict-blurb {
+  font-size: 11px;
+  color: var(--tx-secondary);
+  line-height: 1.5;
+}
+
+.sni-fronting-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--bd-dim);
+  border: 1px solid var(--bd-dim);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.sni-fronting-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 10px;
+  background: var(--bg-inset);
+}
+.sni-fronting-detail-key {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--tx-muted);
+  text-transform: uppercase;
+}
+.sni-fronting-detail-val {
+  font-size: 12px;
+  color: var(--tx-bright);
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.sni-fronting-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 12px;
+  background: var(--bg-inset);
+  border-radius: 3px;
+  border-left: 2px solid var(--c-violet-dim);
+}
+.sni-fronting-note {
+  font-size: 11px;
+  color: var(--tx-secondary);
+  line-height: 1.5;
+}
+
+/* ── Responsive: stack the defensive form on narrow windows ──────────────── */
+@media (max-width: 900px) {
+  .sni-defensive-form { grid-template-columns: 1fr; }
+  .sni-fronting-detail { grid-template-columns: 1fr; }
+}

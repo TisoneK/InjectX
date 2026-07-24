@@ -424,6 +424,36 @@
               </div>
             </div>
           </div>
+
+          <!-- Defensive fronting probe (Phase 3, N17) — single-target, ADR-9 -->
+          <div class="sni-defensive-panel" id="sni-defensive-panel">
+            <div class="sni-panel-title">
+              DEFENSIVE PROBE — FRONTING
+              <span class="sni-results-meta">verify SNI/Host enforcement · ADR-9</span>
+            </div>
+            <div class="sni-defensive-intro">
+              Connect with TLS SNI = <code>&lt;sni&gt;</code> but send HTTP <code>Host: &lt;host&gt;</code>.
+              If the server serves the mismatched Host (<span class="sni-fronting-tag tag-bypassable">bypassable</span>),
+              the SNI-based zero-rating filter leaks. If it rejects with 421 (<span class="sni-fronting-tag tag-enforced">enforced</span>),
+              the cross-check holds. Read-only — it reports what the server does; it never tunnels traffic.
+            </div>
+            <div class="sni-defensive-form">
+              <div class="sni-field sni-field-defensive">
+                <label for="sni-fronting-sni">SNI (TLS handshake)</label>
+                <input type="text" id="sni-fronting-sni" placeholder="www.cloudflare.com" autocomplete="off" spellcheck="false" />
+              </div>
+              <div class="sni-field sni-field-defensive">
+                <label for="sni-fronting-host">Host (HTTP header)</label>
+                <input type="text" id="sni-fronting-host" placeholder="example.com" autocomplete="off" spellcheck="false" />
+              </div>
+              <button id="btn-sni-fronting" class="sni-scan-btn sni-fronting-btn" title="Run the defensive fronting probe (ADR-9: single-target, read-only)">
+                <span class="sni-scan-btn-text">PROBE</span>
+              </button>
+            </div>
+            <div class="sni-fronting-result hidden" id="sni-fronting-result">
+              <!-- Filled by renderSniFrontingResult() -->
+            </div>
+          </div>
         </section>
 
       </main>

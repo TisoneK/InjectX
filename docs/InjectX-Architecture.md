@@ -660,14 +660,19 @@ Two surfaces, both routed through the existing Electron IPC chain (renderer
 (ADR-7):
 
 - **Terminal** (`sni find/scan/jobs/stop/export/seedlists/help`) — Phase 1.
-- **Sidebar "05 · SNI HUNTER" module** — Phase 2. A scan-config panel on
-  the left (seedlist dropdown, FIND via crt.sh, WATCH via CertStream,
+- **Sidebar "05 · SNI HUNTER" module** — Phase 2 (scan/probe surface) +
+  Phase 3 (defensive surface). The Phase 2 scan-config panel sits on the
+  left (seedlist dropdown, FIND via crt.sh, WATCH via CertStream,
   concurrency/timeout/cloudflare-only knobs), a live results table on the
   right with verdict pills for click-to-filter (mirrors the Arsenal
   dashboard pattern from Session 20). Each result row has four action
   buttons: **Use as SNI** (calls `/api/sni/apply`), **ECH** (`/api/sni/ech`),
   **PORTS** (`/api/sni/portcheck`), **REV-IP** (`/api/sni/reverseip`).
-  Progress streams through the existing live-log channel.
+  Below both, the Phase 3 **DEFENSIVE PROBE — FRONTING** panel (N17): two
+  inputs (SNI + Host) + PROBE button, a color-coded verdict banner
+  (enforced/bypassable/indeterminate/error), and a detail grid rendering
+  every field the backend's `probe_fronting` returns. Progress streams
+  through the existing live-log channel.
 
 ### 13.7 ECH — the sunset (and Phase 2 detection)
 

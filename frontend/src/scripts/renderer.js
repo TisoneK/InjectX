@@ -31,6 +31,7 @@ const state = {
     verdictFilter: "all",   // "all" | "working" | "redirect" | "blocked" | "dead"
     pollTimer: null,        // setInterval id for job polling
     discoveredCandidates: [],  // from a `find` (crt.sh) — fed into the next scan
+    fronting: null,         // last SniFrontingResult (Phase 3 defensive probe)
   },
 };
 
@@ -2151,6 +2152,10 @@ function renderSniHunterView() {
   if (state.sni.currentJob) {
     renderSniResults(state.sni.currentJob);
   }
+  // Re-render the last fronting probe result if any (Phase 3, N17).
+  if (state.sni.fronting) {
+    renderSniFrontingResult(state.sni.fronting);
+  }
   renderSniJobsList();
 }
 
@@ -2480,6 +2485,116 @@ async function sniStopCurrent() {
   }
 }
 
+// ── Phase 3 defensive fronting probe (N17) ──────────────────────────────────
+//
+// Single-target, read-only, non-exploitative (ADR-9). The user enters two
+// hostnames: the SNI to send in the TLS handshake and the Host to send in
+// the HTTP header. The backend (`probe_fronting`) opens one TLS connection
+// with the SNI, sends `GET / HTTP/1.1` with the mismatched Host, and reports
+// whether the server served it (bypassable) or rejected it (enforced), plus
+// a TLS-cert fingerprint comparison across SNIs. This UI renders that result.
+
+const SNIFRONTING_VERDICT_META = {
+  bypassable:    { label: "BYPASSABLE",    cls: "danger",  blurb: "Server served the mismatched Host — the SNI-based zero-rating filter would leak." },
+  enforced:      { label: "ENFORCED",      cls: "ok",      blurb: "Server rejected the mismatch (421) — the SNI/Host cross-check holds." },
+  indeterminate: { label: "INDETERMINATE", cls: "warn",    blurb: "Server returned a status that doesn't clearly indicate either way." },
+  error:         { label: "ERROR",         cls: "muted",   blurb: "TLS handshake or DNS failed — the probe couldn't complete." },
+};
+
+async function sniRunFronting() {
+  const sniEl = $("#sni-fronting-sni");
+  const hostEl = $("#sni-fronting-host");
+  const sni = (sniEl?.value || "").trim();
+  const host = (hostEl?.value || "").trim();
+  if (!sni || !host) {
+    showToast("Enter both an SNI and a Host", "info");
+    return;
+  }
+
+  const btn = $("#btn-sni-fronting");
+  const btnText = btn?.querySelector(".sni-scan-btn-text");
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.textContent = "PROBING...";
+
+  // Show a "running" state in the result panel.
+  const resultEl = $("#sni-fronting-result");
+  if (resultEl) {
+    resultEl.classList.remove("hidden");
+    resultEl.innerHTML = "";
+    resultEl.appendChild(el("div", { className: "sni-fronting-running" }, [
+      `Probing: SNI '${sni}' vs Host '${host}' ...`,
+    ]));
+  }
+
+  logEvent("SNI", `Fronting probe: SNI '${sni}' vs Host '${host}'`, "info");
+  try {
+    const r = await API.sni.fronting(sni, host);
+    if (r.error) {
+      showToast(`Probe failed: ${r.error}`, "error");
+      resultEl?.classList.add("hidden");
+      return;
+    }
+    state.sni.fronting = r;
+    renderSniFrontingResult(r);
+    const vm = SNIFRONTING_VERDICT_META[r.verdict] || SNIFRONTING_VERDICT_META.indeterminate;
+    showToast(`Fronting: ${vm.label} — ${r.http_status || "no HTTP"}`, vm.cls === "ok" ? "success" : vm.cls === "danger" ? "error" : "info");
+    logEvent("SNI", `Fronting ${sni} vs ${host}: ${r.verdict} (${r.http_status || "—"})`, vm.cls === "ok" ? "ok" : "info");
+  } catch (e) {
+    showToast(`Probe failed: ${e.message}`, "error");
+    resultEl?.classList.add("hidden");
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.textContent = "PROBE";
+  }
+}
+
+function renderSniFrontingResult(r) {
+  const container = $("#sni-fronting-result");
+  if (!container) return;
+  container.classList.remove("hidden");
+  container.innerHTML = "";
+
+  const vm = SNIFRONTING_VERDICT_META[r.verdict] || SNIFRONTING_VERDICT_META.indeterminate;
+
+  // Verdict banner.
+  container.appendChild(el("div", { className: `sni-fronting-verdict sni-fronting-verdict-${vm.cls}` }, [
+    el("span", { className: `sni-verdict-pill ${vm.cls}` }, [vm.label]),
+    el("span", { className: "sni-fronting-verdict-blurb" }, [vm.blurb]),
+  ]));
+
+  // Detail grid: the same fields the terminal `sni fronting` command shows.
+  const detail = el("div", { className: "sni-fronting-detail" });
+  const rows = [
+    ["SNI → Host", `${r.sni}  →  ${r.host_header}`],
+    ["HTTP status", r.http_status != null ? `${r.http_status} ${r.http_reason || ""}`.trim() : "—"],
+    ["Server header", r.server_header || "—"],
+    ["TLS handshake", r.tls_handshake_ok ? "ok" : "failed"],
+    ["SNI cert CN", r.sni_cert_cn || "—"],
+    ["Control cert CN", r.control_cert_cn || "—"],
+    ["Cert changes w/ SNI", r.cert_changes_with_sni == null ? "—" : (r.cert_changes_with_sni ? "yes (SNI-based vhost)" : "no (one default cert)")],
+    ["Host covered by SNI cert", r.host_covered_by_sni_cert == null ? "—" : (r.host_covered_by_sni_cert ? "yes" : "no")],
+    ["DNS consistent (shared IP)", r.dns_consistent == null ? "—" : (r.dns_consistent ? "yes — co-located" : "no")],
+    ["Target IP", r.target_ip || "—"],
+    ["Elapsed", r.elapsed_ms != null ? `${Math.round(r.elapsed_ms)} ms` : "—"],
+  ];
+  for (const [k, v] of rows) {
+    detail.appendChild(el("div", { className: "sni-fronting-detail-row" }, [
+      el("span", { className: "sni-fronting-detail-key" }, [k]),
+      el("span", { className: "sni-fronting-detail-val" }, [v]),
+    ]));
+  }
+  container.appendChild(detail);
+
+  // Notes (the backend's plain-language interpretation).
+  if (r.notes && r.notes.length) {
+    const notesEl = el("div", { className: "sni-fronting-notes" });
+    for (const n of r.notes) {
+      notesEl.appendChild(el("div", { className: "sni-fronting-note" }, [`· ${n}`]));
+    }
+    container.appendChild(notesEl);
+  }
+}
+
 function setupSniHunter() {
   // Wire up every SNI Hunter button. Called once from DOMContentLoaded.
   const scanBtn = $("#btn-sni-scan");
@@ -2528,6 +2643,18 @@ function setupSniHunter() {
       state.sni.verdictFilter = pill.dataset.verdict;
       if (state.sni.currentJob) renderSniResults(state.sni.currentJob);
     });
+  });
+
+  // Phase 3 defensive fronting probe (N17).
+  const frontingBtn = $("#btn-sni-fronting");
+  if (frontingBtn) frontingBtn.addEventListener("click", sniRunFronting);
+  const frontingSniInput = $("#sni-fronting-sni");
+  const frontingHostInput = $("#sni-fronting-host");
+  if (frontingSniInput) frontingSniInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sniRunFronting();
+  });
+  if (frontingHostInput) frontingHostInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sniRunFronting();
   });
 }
 

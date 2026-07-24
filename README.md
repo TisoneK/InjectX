@@ -276,9 +276,10 @@ Set `INJECTX_ENABLE_SNI_HUNTER=0` to disable the feature wholesale (every
 
 The offensive half finds hosts whose *SNI* an ISP zero-rates. The defensive half
 asks the mirror question: **is that zero-rating bypassable by domain fronting?**
-`sni fronting <sni> <host>` (or `POST /api/sni/fronting`) opens a TLS handshake
-with `sni` in the SNI extension but sends a mismatched `Host: host` HTTP header,
-and reports:
+`sni fronting <sni> <host>` (or `POST /api/sni/fronting`, or the **DEFENSIVE
+PROBE — FRONTING** panel at the bottom of the sidebar SNI Hunter module) opens a
+TLS handshake with `sni` in the SNI extension but sends a mismatched
+`Host: host` HTTP header, and reports:
 
 - **verdict** — `enforced` (the server/CDN cross-checks SNI vs Host — e.g. a
   `421 Misdirected Request`), `bypassable` (the mismatch was served — the filter
@@ -287,6 +288,11 @@ and reports:
   changes (SNI-based virtual hosting, harder to front) or stays a single default
   cert (fronting-friendly), plus whether the SNI's cert already covers the host.
 - **DNS consistency** — whether `sni` and `host` resolve to a shared IP.
+
+The sidebar panel renders the verdict as a color-coded banner (green = enforced,
+red = bypassable) with a detail grid showing every field the backend captured
+plus the backend's plain-language notes. The terminal command prints the same
+fields as a table.
 
 It is single-target, read-only, and non-exploitative (ADR-9) — a detector that
 observes what the server does with a mismatched Host; it never tunnels or relays
@@ -315,9 +321,9 @@ the defensive perspective in
 
 1. **SNI Host Hunter** — Phase 1 (terminal MVP), Phase 2 (sidebar UI + CertStream
    + ECH + reverse-IP + port checks + "use as SNI"), and Phase 3 (defensive
-   fronting probe) are all shipped. Follow-ons: expose the fronting probe in the
-   sidebar UI, and tune the captive-portal indicator list against live ISP
-   portals. See `.context/memory/features/sni-host-hunter.md`.
+   fronting probe, with sidebar UI) are all shipped — the feature is
+   feature-complete. Follow-on: tune the captive-portal indicator list against
+   live ISP portals. See `.context/memory/features/sni-host-hunter.md`.
 2. **Parser coverage for `.ovpn`** — the detector recognises OpenVPN files but the parser is a stub; add a real OpenVPN config parser.
 3. **Test infrastructure** — extend per-format parser/decryptor tests with sample files (see backlog item N3 in `.context/memory/tasks/backlog.md`).
 4. **Build the tunnel engine** — add SSH, WebSocket, V2Ray/Xray, Hysteria tunneling support (currently `backend/tunnel/` is an empty package).
