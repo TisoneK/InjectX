@@ -21,6 +21,14 @@ minversion = "8.0"
 testpaths = ["tests"]
 # Show short tracebacks + summary of failures only — keeps CI logs readable.
 addopts = "-ra --strict-markers"
+# `async def test_*` run automatically under pytest-asyncio (a dev dependency —
+# `pip install pytest-asyncio` alongside pytest/ruff; not a runtime dep so it's
+# not in requirements.txt). Auto mode means the SNI Hunter async probe tests
+# (portcheck, dns_check, defensive, …) don't each need @pytest.mark.asyncio.
+# pytest-asyncio registers the `asyncio` marker itself, so --strict-markers is
+# satisfied. Without this plugin the async tests are collected but never awaited
+# (silent false-pass) — see .context/memory/inefficiencies/log.md (Session 28).
+asyncio_mode = "auto"
 # Treat unregistered markers as errors so a typo doesn't silently skip tests.
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
