@@ -103,7 +103,7 @@ relitigating them. To reverse one, append a new ADR that supersedes it.
   - Seedlists must never contain credentials, tokens, or per-user data — only public hostnames. Enforced by review, not code.
 
 ---
-## ADR-9: Phase-3 defensive probe is single-target, read-only, and non-exploitative (2026-07-26)
+## ADR-9: Phase-3 defensive probe is single-target, read-only, and non-exploitative (2026-07-24)
 
 - **Status:** accepted (Session 28 — governs SNI Host Hunter Phase 3 / backlog N16)
 - **Context:** Phase 3 adds a *defensive* capability: detect whether an ISP's SNI-based zero-rating is bypassable by domain fronting (sending a TLS SNI that differs from the HTTP `Host` header) and compare the TLS cert served when the SNI changes. This is active — it opens real TLS connections to a public host and sends a mismatched `Host` header. Without bounds, "send a mismatched Host to any host" is one step from an exploitation/relay tool. It must inherit ADR-6's loopback-bound, no-scanning stance and stay a *detector*, not an *exploiter*.

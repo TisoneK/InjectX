@@ -56,7 +56,7 @@ block (and its "last verified" date) every time you run on it again.
   - **`mypy 1.18+` requires `python_version >= 3.10`** as the target. Even though the project claims Python 3.8+ in the README, the mypy `python_version` setting in `pyproject.toml` must be `3.10` or higher (mypy will refuse to run otherwise). The runtime target stays 3.8+ — mypy's `python_version` is the version it assumes for type-checking semantics, not the runtime requirement.
 
 ---
-## Local macOS dev machine (last verified 2026-07-23)
+## Local macOS dev machine (last verified 2026-07-24)
 
 - **Identify by:** `$USER=bao`; repo cwd `/Users/bao/Code/InjectX`; package clone sibling at `/Users/bao/Code/context` (canonical name, NOT `.context`); shell reports `PDT`/`PST` timezone. macOS.
 - **OS:** Darwin 24.6.0 (macOS).
@@ -72,6 +72,8 @@ block (and its "last verified" date) every time you run on it again.
   - `git push origin main` — works out of the box with the user's credentials (no PAT).
   - **SNI Host Hunter deps (Session 24):** `pip install "httpx>=0.27"` into the venv (installs httpx 0.28.1). Only new hard dep for the feature — the prober uses stdlib `ssl`/`socket`/`asyncio` for TLS + DNS, so `dnspython` is NOT needed until Phase 2. Full suite after the feature: `python -m pytest -q` → **91 passed** (was 54); `ruff check .` → clean.
   - **SNI backend live test (Session 24):** `INJECTX_PORT=8791 INJECTX_UPLOAD_DIR=<scratch> python main.py` then `curl` the `/api/sni/*` endpoints. `/api/sni/scan` with `{"candidates":["example.com"],...}` classifies real hosts; `/api/sni/seedlists` lists the 3 bundled lists; `INJECTX_ENABLE_SNI_HUNTER=0` makes every `/api/sni/*` return 403.
+  - **Dev deps are unpinned — install into the venv by hand (Session 28):** `pip install pytest ruff mypy pytest-asyncio` (none are in requirements.txt, which is runtime-only). **pytest-asyncio is REQUIRED** to run the suite now — Session 26 shipped `@pytest.mark.asyncio` async tests, and pyproject sets `asyncio_mode="auto"`; without the plugin `--strict-markers` breaks collection. Full suite after Phase 3: `python -m pytest -q` → **166 passed**; `ruff check .` → clean.
+  - **SNI Phase-3 defensive probe live test (Session 28):** `curl -X POST $B/api/sni/fronting -d '{"sni":"www.cloudflare.com","host":"example.com"}'` returns the fronting verdict (mismatch → cert_changes_with_sni=true, 403; co-located pair → bypassable). Single-target, read-only (ADR-9).
   - **Frontend backend-call verification WITHOUT Electron (Session 24):** a Node harness that mocks `global.window.vpnAPI` with `fetch(BACKEND_URL...)` handlers (a copy of `main.js`'s IPC proxies), then `eval`s `frontend/src/scripts/api.js` (no DOM deps) and drives `API.sni.*` against a live backend on Node 24's global `fetch`. Verifies the renderer→api→IPC contract + response shapes end-to-end. `renderer.js` can't be loaded this way (module-scope DOM deps) — review its handlers by eye + `node --check`.
 - **Quirks:**
   - **Env vars DO persist within a single Bash tool call** (`export X=y && cmd`) but the Claude Code harness starts a fresh shell per call, so exports do NOT carry across separate calls — same net effect as the Z.ai sandbox, different cause. Chain `export`s inline within one call, or set them on the same command line.

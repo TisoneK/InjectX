@@ -289,3 +289,30 @@ if literally nothing slowed you down.
 - **Cause:** `certstream` is an optional dep by design (the module raises `ImportError` if absent, the API layer surfaces it as 503). The cloud sandbox can't reliably maintain a websocket to the public CertStream feed.
 - **Workaround / fix:** Documented in the review that the WATCH happy path is unit-tested but not live-verified, and that `pip install certstream` is the user's action to enable it. The 503 path IS live-verified.
 - **Prevent next time:** For optional-dep features, always verify the "dep absent" path live (the 503) and the "dep present" path via unit tests + a documented manual verification step. Don't block shipping on live verification of an optional feature that depends on external network conditions the sandbox can't reproduce.
+
+---
+## 2026-07-24 — Claude Code / claude-opus-4-8 (Session 28)
+
+- **Problem:** After pulling, the test suite failed COLLECTION in a clean venv: `test_portcheck.py` (shipped by Session 26, cloud) uses `@pytest.mark.asyncio`, but `pytest-asyncio` was never pinned (not in requirements.txt, not in pyproject) and the `asyncio` marker was unregistered — so `--strict-markers` errored on collection and NO tests ran. It only "passed 151" in Session 26 because the cloud sandbox happened to have pytest-asyncio installed.
+- **Cost:** ~5 min diagnosing (the error names the marker, not the missing plugin) + a decision on whether to fix inherited breakage.
+- **Cause:** Dev dependencies on this repo are unpinned/ad-hoc (ruff/mypy are installed into the venv by hand per environments.md; pytest-asyncio was never added anywhere). A cloud session's env masked the gap.
+- **Workaround / fix:** `pip install pytest-asyncio` into the venv + `asyncio_mode = "auto"` in `[tool.pytest.ini_options]` (so async `test_*` run without per-test marks, and pytest-asyncio registers the `asyncio` marker to satisfy --strict-markers). Committed as `710890d`. Documented the dev-dep requirement in the pyproject comment + environments.md.
+- **Prevent next time:** A `dev-requirements.txt` (or a `[project.optional-dependencies] dev` group) pinning pytest/pytest-asyncio/ruff/mypy would stop this recurring — tracked under N3/N4. Until then: a clean-venv `pytest` at Step 8 catches it. Lesson: don't trust a prior session's "N passed" if its env differs — re-run the suite yourself.
+
+---
+## 2026-07-24 — Claude Code / claude-opus-4-8 (Session 28)
+
+- **Problem:** My first `_parse_http_head` status-line regex was `^HTTP/\d\.\d\s+...`, which rejects `HTTP/2` (no minor version) — a unit test caught it. Harmless in practice (the probe sends `GET / HTTP/1.1` with no ALPN, so servers answer in 1.1), but a lenient defensive parser shouldn't assume.
+- **Cost:** ~1 min (one test failure + a one-line regex widen to `HTTP/\d(?:\.\d)?`).
+- **Cause:** Assumed the HTTP/1.x status-line shape without accounting for the `HTTP/2` textual form.
+- **Workaround / fix:** Broadened the regex; test passes. A response head parser should be permissive about the version token.
+- **Prevent next time:** No protocol change — routine. Writing the failing test first surfaced it immediately.
+
+---
+## 2026-07-24 — Claude Code / claude-opus-4-8 (Session 28)
+
+- **Problem:** Date confusion again. `date -u` on this real-hardware machine was 2026-07-23 at session start (core.lock verify stamped it) and 2026-07-24 by session end (crossed UTC midnight). But the immediately-prior Session 27 (cloud) is logged 2026-07-26 — its sandbox clock ran ~2 days ahead. I initially stamped ADR-9 + current.md "2026-07-26" (matching Session 27's date, to look "after" it) before running `date -u`, then had to correct all my artifacts to the honest 2026-07-24.
+- **Cost:** ~5 min correcting ADR-9's date + current.md + reconciling the report/session dates.
+- **Cause:** Cloud sandbox clock skew (Session 26=07-24, Session 27=07-26, real=07-23/24) makes the session log's dates non-monotonic. I anchored to the last logged date instead of `date -u`.
+- **Workaround / fix:** Corrected to `date -u` (2026-07-24) everywhere; documented the skew in the session entry + report so the next agent isn't misled. This is the SECOND time cloud clock skew bit a local session (Session 24 vs 23 was the first).
+- **Prevent next time:** ALWAYS run `date -u +%F` before writing any date this session (Pitfall #41), and NEVER anchor to the previous session's logged date — cloud sessions on this repo have repeatedly run days ahead of real UTC. If a fresh session's date would sort before the last-logged one, that's expected here, not an error.

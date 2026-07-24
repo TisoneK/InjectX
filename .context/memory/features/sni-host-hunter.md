@@ -1,6 +1,6 @@
 # Feature Spec — SNI Host Hunter
 
-> **Status:** **Phase 2 shipped** (Session 26, 2026-07-24) — Phase 3 open.
+> **Status:** **Phase 3 shipped** (Session 28, 2026-07-24) — feature complete (all 3 phases); UI follow-on N17 open.
 > **Added:** 2026-07-24 by Super Z (cloud, Session 23).
 > **Phase 1 shipped:** Session 24 (Claude Code / Opus 4.8, local). Backend
 > `backend/snihunter/` + 7 `/api/sni/*` endpoints + bundled seedlists +
@@ -21,9 +21,17 @@
 > `/api/sni/*` endpoints. 60 new tests (suite 91→151). All endpoints
 > curl-verified + a Node harness drove the real `api.js` `API.sni.*` namespace
 > against the live backend. See `reviews/2026-07-24-phase2-review.md`.
-> **Phase 3 open:** defensive mode — verify ISP zero-rating enforcement,
-> nDPI-style SNI/Host-header mismatch detection, per-host TLS fingerprint
-> comparison (§5.2 deferred items + §3.5 spoofing detection).
+> **Phase 3 shipped:** Session 28 (Claude Code / Opus 4.8, local). Defensive
+> mode — `backend/snihunter/defensive.py` `probe_fronting(sni, host)` covers all
+> three angles in one probe: SNI/Host-header mismatch (domain-fronting) test via
+> raw HTTP-over-TLS, TLS-cert fingerprint comparison across SNIs, and an
+> enforcement verdict (`enforced`/`bypassable`/`indeterminate`/`error`). `POST
+> /api/sni/fronting` + `sni fronting <sni> <host>` terminal command. 15 new
+> tests (suite 151→166). ADR-9 (single-target, read-only, non-exploitative).
+> Live-verified (cloudflare-vs-example mismatch → cert changes + 403;
+> wikipedia same-tenant → bypassable). See `reviews/2026-07-24-phase3-review.md`.
+> **Follow-on N17:** expose the fronting probe in the sidebar UI (terminal + API
+> only so far).
 > **Scope:** comprehensive technical + product design for an in-app SNI host
 > discovery and verification module. Captures the domain research, the InjectX
 > integration analysis, a phased implementation plan, and every primary
