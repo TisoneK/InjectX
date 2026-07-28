@@ -48,6 +48,15 @@ if literally nothing slowed you down.
 - **Workaround / fix:** Applied the fixes manually (multi_replace_string_in_file). README now matches v0.4.
 - **Prevent next time:** Add a Pitfall to the protocol: "After adding/changing any decryptor or format support, verify the README Supported Formats table, Key Finding section, Research Sources section, and Project Structure tree are in sync before closing the session." Or add an automated check: grep the README for stale scheme ranges vs actual `decrypt/` files.
 
+---
+## 2026-07-28 — GitHub Copilot / DeepSeek V4 Flash Free
+
+- **Problem:** `pip install -e .` failed because `backend/pyproject.toml` had no `[build-system]` or `[project]` section — only dev-tool config (pytest/ruff/mypy). The file itself had a comment saying "Adding packaging is backlog work," but a user trying to pip install hits a hard error before they can do anything else.
+- **Cost:** ~2 minutes to diagnose + fix + push.
+- **Cause:** The pyproject.toml was set up for dev tools only; no build system was declared.
+- **Workaround / fix:** Added `[build-system]`, `[project]`, and `[tool.setuptools.packages.find]` with explicit package include list. Also added `*.egg-info/` to `.gitignore`.
+- **Prevent next time:** Any `pyproject.toml` in a Python project should have at minimum `[build-system]` + `[project]` so `pip install -e .` works out of the box, even if the package name and version are placeholders.
+
 - **Problem 2: `python -m ruff` fails on Windows venv.** The ruff entry point is at `.venv\Scripts\ruff.exe` but `python -m ruff` raises `ModuleNotFoundError` even with ruff installed. This is a Windows-specific venv quirk.
 - **Cost:** ~3 minutes figuring out the correct invocation, then recording it in environments.md.
 - **Cause:** On Windows, `python -m` looks for `__main__.py` in the ruff package's site-packages directory, but pip-installed ruff on this Python 3.13.1 venv doesn't expose a `__main__` module (ruff is installed as a console-script entry point, not a module).

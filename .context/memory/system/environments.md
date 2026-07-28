@@ -19,6 +19,17 @@ block (and its "last verified" date) every time you run on it again.
    preferences in `user/`; project-wide decisions in `plans/`.
 
 ---
+## Windows dev machine — tison@DESKTOP (last verified 2026-07-28)
+
+- **Identify by:** OS `Windows`; `$env:USERNAME` matches `tison`; repo root `C:\Users\tison\Dev\InjectX`
+- **OS:** Windows 11 (PowerShell 5.1+/7.x)
+- **Runtimes:** Python 3.10+ (via `.venv`), Node.js (via `frontend/`), git, pip
+- **Package manager:** `pip` for Python (inside `.venv`); `npm` for Node.js
+- **Verified commands (all run successfully this session on InjectX):**
+  - `pip install -e .` succeeds after `pyproject.toml` build-system fix (commit `78d012a`)
+  - `cd backend ; python -m pip install -e .` works inside the existing `.venv`
+
+---
 ## Z.ai cloud sandbox (last verified 2026-07-26)
 
 - **Identify by:** hostname pattern `c-<hex>-<hex>-<hex>`; `$USER=z`; workspace root `/home/z/my-project`; ephemeral — starts empty each session.

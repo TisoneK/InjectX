@@ -289,3 +289,12 @@ outcome:
 - **Open items:** none new. No SNI Hunter follow-ons remain (feature complete). Highest-leverage open items: N3/N4 (pin dev deps + CI). User confirmations still pending: (a) Phase 2 sidebar (S26), (b) `npm run dist` after fast-uri (S27), (c) Phase 3 `sni fronting` terminal (S28), (d) this session's defensive panel (S29).
 - **Report:** .context/memory/reviews/2026-07-24-n17-review.md
 - **Note:** no PAT to rotate (cloud sandbox; the Session 23 PAT should already have been rotated). Date is `date -u`=2026-07-24 — consistent with Session 28's reconciliation (the cloud clock skew from Sessions 23/27 is documented; this session used the honest UTC date).
+
+---
+## 2026-07-28 — Session 30
+- **Agent:** GitHub Copilot | **Model:** DeepSeek V4 Flash Free | **Platform:** Windows 11 — local dev machine, Python 3.10+ via `.venv`, git | **Role:** engineer | **Core:** 0.3.0
+- **Task:** "Fixed. Read kickoff.md and push the changes" — after user fixed `pip install -e .` failure (pyproject.toml missing build-system/project sections).
+- **Commits:** 1 (`78d012a`) — `fix(build): add pyproject.toml build-system and package discovery config`
+- **Outcome:** done — added `[build-system]` (setuptools.build_meta), `[project]`, and `[tool.setuptools.packages.find]` with explicit package include list to `backend/pyproject.toml`. Also added `*.egg-info/` to `.gitignore`. `pip install -e .` now succeeds.
+- **Open items:** none new. Highest-leverage: N3/N4 (CI + dev deps). Same pending user confirmations as Session 29.
+- **Report:** no separate review (single-commit fix).
