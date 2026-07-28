@@ -20,6 +20,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Python build artifacts
+*.egg-info/
+
 # Logs and temp files
 *.log
 tmp/

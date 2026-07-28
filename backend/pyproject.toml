@@ -1,17 +1,18 @@
 # InjectX — Python project configuration
-#
-# This file configures pytest, ruff, and mypy for backend/. It does NOT
-# declare InjectX as an installable package (no [project] section) — the
-# backend is run directly from source via `python main.py`, and deps are
-# pinned in requirements.txt. Adding packaging is backlog work.
-#
-# Advances backlog item N3 (test infrastructure) — configures the tooling
-# so a future session can drop test files in backend/tests/ and they'll be
-# picked up automatically with consistent rules. The selected rule sets
-# are deliberately conservative: they pass against the current codebase
-# so CI can adopt them without a separate cleanup commit. Tightening the
-# rules (adding I isort, UP pyupgrade, B bugbear, removing F401 ignore)
-# is a follow-up N3/N6 sub-task — see backlog.
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "injectx"
+version = "0.1.0"
+description = "Proxy config decryption, parsing, and SNI analysis toolkit"
+requires-python = ">=3.8"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["ir", "audit", "parser", "tunnel", "decrypt", "snihunter", "snihunter.*"]
 
 [tool.pytest.ini_options]
 # Tests live in backend/tests/. Run from backend/ with `pytest` (or
