@@ -298,3 +298,13 @@ outcome:
 - **Outcome:** done — added `[build-system]` (setuptools.build_meta), `[project]`, and `[tool.setuptools.packages.find]` with explicit package include list to `backend/pyproject.toml`. Also added `*.egg-info/` to `.gitignore`. `pip install -e .` now succeeds.
 - **Open items:** none new. Highest-leverage: N3/N4 (CI + dev deps). Same pending user confirmations as Session 29.
 - **Report:** no separate review (single-commit fix).
+
+---
+## 2026-08-01 — Session 31
+- **Agent:** Buffy (Freebuff) | **Model:** deepseek-v4-flash (exact ID from system prompt) | **Platform:** local macOS (Darwin 24.6.0), Python 3.9.6, Node v24.17.0 | **Role:** engineer | **Core:** 0.5.0 (updated from 0.3.0 this session)
+- **Task:** User (chat target): "Start kickoff.md Target: Sync .context then initialize InjectX" — (1) sync `.context/`: pull + update vendored core + regenerate kickoff/AGENTS from new templates; (2) initialize InjectX: deps check, baseline health, live backend boot verification.
+- **Commits:** 1 context (`2c831ab` chore(context): update core to 0.5.0) + this Phase-5 `chore(context)` log. No product code.
+- **Outcome:** done — pulled clean (fast-forward), updated core 0.3.0→0.5.0 (same MAJOR; 0.4.0 added Windows `context-sync.ps1`, 0.5.0 added the `memory/sessions/` module + session-data-is-disposable principle + Step 17 context promotion), verified integrity, regenerated `.context/kickoff.md` + `AGENTS.md` from the materially-changed templates (facts unchanged; placeholder scan clean). **InjectX initialized and healthy:** venv + node_modules present/current (fastapi 0.128.8, pydantic 2.13.4, pytest-asyncio, ruff, mypy all in); baseline **166/166 pytest pass**, ruff clean, `node --check` clean on all 4 JS files; live boot on `INJECTX_PORT=8799` served `/api/health` (`v0.4.0`), `/api/formats`, `/api/sni/seedlists`, and decoded a real HC sample (`bypass.hc`, scheme A5, success). First session on core 0.5.0 — created `memory/sessions/` (README/SUMMARY/notes per the new module).
+- **Open items:** none new. N3/N4 (dev deps pinning + CI) remain highest-leverage. Pending USER confirmations unchanged (packaged-app checks: Phase 2 sidebar S26, `npm run dist` S27, `sni fronting` terminal S28, defensive panel S29).
+- **Report:** no separate review file (sync/initialize session, no product code). Session notes: .context/memory/sessions/2026-08-01-31/notes.md
+- **Note:** no PAT to rotate (local agent, user's own credentials). `date -u`=2026-08-01.

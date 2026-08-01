@@ -325,3 +325,12 @@ if literally nothing slowed you down.
 - **Cause:** Cloud sandbox clock skew (Session 26=07-24, Session 27=07-26, real=07-23/24) makes the session log's dates non-monotonic. I anchored to the last logged date instead of `date -u`.
 - **Workaround / fix:** Corrected to `date -u` (2026-07-24) everywhere; documented the skew in the session entry + report so the next agent isn't misled. This is the SECOND time cloud clock skew bit a local session (Session 24 vs 23 was the first).
 - **Prevent next time:** ALWAYS run `date -u +%F` before writing any date this session (Pitfall #41), and NEVER anchor to the previous session's logged date — cloud sessions on this repo have repeatedly run days ahead of real UTC. If a fresh session's date would sort before the last-logged one, that's expected here, not an error.
+
+---
+## 2026-08-01 — Buffy (Freebuff) / deepseek-v4-flash (Session 31)
+
+- **Problem:** Re-verified the documented dev-server kill trap — this time with plain `kill $PID` (SIGTERM), not `pkill`. After the live backend boot test on port 8799, `kill $PID` returned success but the uvicorn process kept LISTENing: `lsof -iTCP:8799 -sTCP:LISTEN` showed it alive. Only `kill -9 <pid>` + a re-check freed the port.
+- **Cost:** ~1 min (one extra basher call to kill -9 and confirm the port).
+- **Cause:** Same root as the Session 2 entry: a backgrounded `python main.py` (uvicorn) on this machine doesn't die promptly on SIGTERM; the harness's fresh-shell-per-call model makes the orphan harder to track.
+- **Workaround / fix:** `kill -9 <pid>` then confirm with `lsof -iTCP:<port> -sTCP:LISTEN -n -P` before restarting or ending the session.
+- **Prevent next time:** The existing environments.md Quirks entry already warns about `pkill`; extend it to note plain `kill` (SIGTERM) is equally unreliable for this dev server — always `kill -9` + `lsof` verify. This is the third session to hit a variant of this trap (Session 2, Session 12, now 31); it belongs in Step 8's baseline too.
