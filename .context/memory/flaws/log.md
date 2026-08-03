@@ -69,3 +69,12 @@ Friction caused by the `.context/` system or the protocol itself. See
 - **Root cause:** The protocol's cloud edition was written assuming the only way to authenticate a push is to bake the token into the remote URL (and then strip it). Git's `credential.helper` mechanism is older and cleaner but not mentioned anywhere in the protocol.
 - **Suggested fix:** Add a sub-step to the cloud edition's Step 2 (clone) and Step 12 (push) recommending the `credential.helper` pattern as the preferred way to handle the PAT across multiple pushes. Something like: "After cloning and stripping the token from `.git/config`, configure a `credential.helper` that reads the PAT from `.context/memory/secrets/github-pat` on demand: `git config credential.helper '!f() { test -r .context/memory/secrets/github-pat && echo "username=<owner>" && echo "password=$(head -n1 .context/memory/secrets/github-pat)"; }; f'`. Subsequent `git push` commands work transparently without re-adding the token to the URL. This is cleaner than the re-add-strip dance and works in non-persistent-shell environments (where `export GIT_TOKEN=...` doesn't survive across Bash calls)." Cross-reference the existing `system/environments.md` Quirks block.
 - **Status:** open (the protocol works without this, but the helper pattern is strictly better for cloud/sandbox agents)
+
+---
+## 2026-08-03 — Buffy (Freebuff) / openai/gpt-5.6-luna (Session 32)
+
+- **Flaw:** The core-sync workflow's operational version fact in `memory/workflows/active.md` remained at 0.3.0 after the prior session had updated the vendored core to 0.5.0.
+- **Symptom:** Kickoff read the active workflow as claiming the wrong protocol version even though `core/VERSION`, `core.lock`, and `context-sync status` all reported 0.5.0.
+- **Root cause:** Session 31 updated the vendored core and lock but did not refresh the standing workflow's human-readable protocol-location line.
+- **Suggested fix:** Treat `memory/workflows/active.md`'s protocol-location/version line as a required post-`context-sync update` refresh, and add a consistency check comparing it with `core/VERSION` during kickoff.
+- **Status:** open

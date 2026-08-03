@@ -334,3 +334,12 @@ if literally nothing slowed you down.
 - **Cause:** Same root as the Session 2 entry: a backgrounded `python main.py` (uvicorn) on this machine doesn't die promptly on SIGTERM; the harness's fresh-shell-per-call model makes the orphan harder to track.
 - **Workaround / fix:** `kill -9 <pid>` then confirm with `lsof -iTCP:<port> -sTCP:LISTEN -n -P` before restarting or ending the session.
 - **Prevent next time:** The existing environments.md Quirks entry already warns about `pkill`; extend it to note plain `kill` (SIGTERM) is equally unreliable for this dev server — always `kill -9` + `lsof` verify. This is now the second documented session to hit a variant of this trap (Session 2, now 31); it belongs in Step 8's baseline too.
+
+---
+## 2026-08-03 — Buffy (Freebuff) / openai/gpt-5.6-luna (Session 32)
+
+- **Problem:** None this session. Existing dependencies and dev tools were already installed in `backend/.venv` and `node_modules`, so kickoff validation ran without installation or environment repair.
+- **Cost:** None.
+- **Cause:** N/A.
+- **Workaround / fix:** Reused the existing verified environment and ran the documented checks directly.
+- **Prevent next time:** Keep the environment record current so future sessions can skip unnecessary installs when the venv and node modules are present.
