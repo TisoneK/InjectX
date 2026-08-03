@@ -13,14 +13,14 @@ accordingly).
 | Claude Code | claude-fable-5 (Claude Fable 5; exact model ID stated in the system prompt) | 2026-07-15 | 2026-07-16 | many (Sessions 2, 11–22) |
 | Claude Code | claude-opus-4-8 (Claude Opus 4.8; exact model ID stated in the system prompt) | 2026-07-23 | 2026-07-24 | 2 (Sessions 24, 28) |
 | GitHub Copilot | DeepSeek V4 Flash Free (exact model ID from the session log) | 2026-07-26 | 2026-07-28 | 2 (Sessions 25, 30) |
-| Buffy (Freebuff) | openai/gpt-5.6-luna (exact model ID stated in the system prompt) | 2026-08-01 | 2026-08-03 | 2 (Sessions 31–32) |
+| Buffy (Freebuff) | openai/gpt-5.6-luna (exact model ID stated in the system prompt) | 2026-08-01 | 2026-08-03 | 3 (Sessions 31–33) |
 
 ## Observations
 
 Concrete, evidence-based capabilities and limits — things demonstrated
 in this repo's sessions, not marketing claims or self-assessment.
 
-- **Buffy (Freebuff) / openai/gpt-5.6-luna (Sessions 31–32):** Ran the local-edition kickoff and context initialization twice, including the core 0.3.0→0.5.0 update, template regeneration, and baseline verification. Demonstrated: clean context-core verification, project pull synchronization, and repeatable baseline checks (166 tests, Ruff clean, JavaScript syntax clean, npm audit clean). No capability gaps observed in these sync/init sessions — no crypto/UI work to judge.
+- **Buffy (Freebuff) / openai/gpt-5.6-luna (Sessions 31–33):** Ran the local-edition kickoff and context initialization three times, including the core 0.3.0→0.5.0 update, template regeneration, baseline verification, and a live initialization smoke check. Demonstrated: clean context-core verification, project pull synchronization, and repeatable baseline checks (166 tests, Ruff clean, JavaScript syntax clean, npm audit clean). No capability gaps observed in these sync/init sessions — no crypto/UI work to judge.
 Update in place when a newer session contradicts an old observation.
 
 - **Super Z / unknown:** The Bash tool wraps commands in a non-persistent shell — env vars (`export GIT_TOKEN=...`) do NOT survive between Bash calls. Re-export inline each call. (2026-07-15)
