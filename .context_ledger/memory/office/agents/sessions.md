@@ -409,3 +409,18 @@ outcome:
 - **Next:** sample-less schemes (hat/npv/nsh/vhd/legacy hc-ehi/tls) still blocked on **N3** (no goldens); `:app` UI (Phase 6) + APK (Phase 8) need the **Android SDK**.
 - **Report:** none (porting; `android/` is product).
 - **Notes:** Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: Android SDK + Compose UI + APK)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User chose "Set up Android SDK (UI)" — install the SDK user-level and build the app UI.
+- **Outcome:** A runnable app now wraps the verified decode core.
+  - **Android SDK installed user-level** (no sudo): `~/.local/android-sdk` via cmdline-tools — platform-tools, platforms;android-34, build-tools;34.0.0 (498 MB; no emulator images, to respect disk — ~4 GB free). Gradle points at it via `android/local.properties` (gitignored).
+  - **Compose UI** (`app/MainActivity.kt`, Material3 dark): SAF file pick → read bytes → `ParseEngine.parseConfig` off the main thread → render key fields + full normalized JSON + share-sheet export.
+  - **core**: added bytes-based `Detector.detect` / `ParseEngine.parseConfig` (SAF Uri → bytes + name); File overloads delegate. kotlinx-serialization-json moved to `api` (public return type).
+  - **build**: added the Kotlin 2.0 Compose Compiler plugin (required) + coroutines; dropped `kotlinCompilerExtensionVersion`.
+  - **`:app:assembleDebug` → app-debug.apk (13 MB) builds green**; `:core` 6 suites still green. Commit 036836e.
+- **Not done / honest limits:** runtime behaviour UNVERIFIED — no device/emulator on this host (can't boot one on ~4 GB free / Intel). APK is confirmed to assemble + link against the verified core only. Release signing not set up.
+- **Next:** runtime test on a device/emulator; release signing (Phase 8); SNI Hunter (Phase 7); sample-less schemes (N3).
+- **Report:** none (porting/build; `android/` is product).
+- **Notes:** `local.properties` is gitignored (machine-specific sdk.dir). Roster kept Working. `date -u`=2026-11-14.

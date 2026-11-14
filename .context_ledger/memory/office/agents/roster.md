@@ -61,7 +61,7 @@ is your stable session tag.
 
 | Name | Codename | Model | Doing | Status | Status detail |
 |------|----------|-------|-------|--------|---------------|
-| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: detect→decrypt→normalize pipeline done, full-pipeline parity | Working | :core 6 green suites; FullPipelineTest 31/31 (…6617220). Decode pipeline verified end-to-end. Next: :app UI (needs Android SDK), sample-less schemes (N3), SNI/APK |
+| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: SDK installed, Compose UI, debug APK builds | Working | :core 6 green; :app assembleDebug → app-debug.apk 13MB (…036836e). UI runtime UNVERIFIED (no device/emulator). Next: runtime test, release signing, SNI (Phase 7), N3 schemes |
 
 **Keep your Status cells current — that is what the board is for.** The
 next live worker reads it to know at a glance what a peer has finished,
