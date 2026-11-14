@@ -8,12 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,13 +39,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
@@ -57,6 +54,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.injectx.app.ui.HexLogo
+import com.injectx.app.ui.Pill
+import com.injectx.app.ui.SectionCard
+import com.injectx.app.ui.SegmentedTabs
 import com.injectx.app.ui.formatColor
 import com.injectx.app.ui.statusColor
 import com.injectx.app.ui.theme.InjectXTheme
@@ -70,11 +70,11 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-private sealed interface UiState {
-    data object Idle : UiState
-    data class Loading(val name: String) : UiState
-    data class Loaded(val name: String, val config: JsonObject, val pretty: String) : UiState
-    data class Failed(val name: String, val message: String) : UiState
+private sealed interface Decode {
+    data object Idle : Decode
+    data class Loading(val name: String) : Decode
+    data class Loaded(val name: String, val config: JsonObject, val pretty: String) : Decode
+    data class Failed(val name: String, val message: String) : Decode
 }
 
 private val SUPPORTED = listOf("ehi", "hc", "ziv", "dark", "tls", "npv", "nsh", "vhd", "hat")
@@ -89,8 +89,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InjectXApp() {
-    val prettyJson = remember { Json { prettyPrint = true } }
-    var state by remember { mutableStateOf<UiState>(UiState.Idle) }
+    var tab by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val clipboard = LocalClipboardManager.current
@@ -99,23 +98,6 @@ private fun InjectXApp() {
     fun copy(label: String, value: String) {
         clipboard.setText(AnnotatedString(value))
         scope.launch { snackbar.showSnackbar("Copied $label") }
-    }
-
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val name = displayName(ctx, uri)
-        state = UiState.Loading(name)
-        scope.launch {
-            state = try {
-                val cfg = withContext(Dispatchers.IO) {
-                    val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("could not read file")
-                    ParseEngine.parseConfig(bytes, name)
-                }
-                UiState.Loaded(name, cfg, prettyJson.encodeToString(JsonObject.serializer(), cfg))
-            } catch (e: Exception) {
-                UiState.Failed(name, e.message ?: e.toString())
-            }
-        }
     }
 
     Scaffold(
@@ -137,19 +119,52 @@ private fun InjectXApp() {
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { pad ->
-        Box(Modifier.fillMaxSize().padding(pad)) {
-            when (val s = state) {
-                is UiState.Idle -> EmptyState { picker.launch(arrayOf("*/*")) }
-                is UiState.Loading -> LoadingState(s.name)
-                is UiState.Failed -> ErrorState(s.name, s.message) { picker.launch(arrayOf("*/*")) }
-                is UiState.Loaded -> ResultView(s, onPickAnother = { picker.launch(arrayOf("*/*")) },
-                    onExport = { shareText(ctx, it) }, onCopy = ::copy)
+        Column(Modifier.fillMaxSize().padding(pad)) {
+            SegmentedTabs(tab, listOf("Decode", "SNI Hunter"), Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) { tab = it }
+            Box(Modifier.weight(1f)) {
+                when (tab) {
+                    0 -> DecodeScreen(onCopy = ::copy, onExport = { shareText(ctx, it) })
+                    else -> SniScreen(onExport = { shareText(ctx, it) })
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DecodeScreen(onCopy: (String, String) -> Unit, onExport: (String) -> Unit) {
+    val prettyJson = remember { Json { prettyPrint = true } }
+    var state by remember { mutableStateOf<Decode>(Decode.Idle) }
+    val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
+
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val name = displayName(ctx, uri)
+        state = Decode.Loading(name)
+        scope.launch {
+            state = try {
+                val cfg = withContext(Dispatchers.IO) {
+                    val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("could not read file")
+                    ParseEngine.parseConfig(bytes, name)
+                }
+                Decode.Loaded(name, cfg, prettyJson.encodeToString(JsonObject.serializer(), cfg))
+            } catch (e: Exception) {
+                Decode.Failed(name, e.message ?: e.toString())
+            }
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        when (val s = state) {
+            is Decode.Idle -> EmptyState { picker.launch(arrayOf("*/*")) }
+            is Decode.Loading -> LoadingState(s.name)
+            is Decode.Failed -> ErrorState(s.name, s.message) { picker.launch(arrayOf("*/*")) }
+            is Decode.Loaded -> ResultView(s, onPickAnother = { picker.launch(arrayOf("*/*")) }, onExport = onExport, onCopy = onCopy)
+        }
+    }
+}
+
 @Composable
 private fun EmptyState(onPick: () -> Unit) {
     Column(
@@ -161,20 +176,19 @@ private fun EmptyState(onPick: () -> Unit) {
         Spacer(Modifier.height(20.dp))
         Text("InjectX", style = MaterialTheme.typography.headlineMedium, fontFamily = FontFamily.Monospace)
         Spacer(Modifier.height(6.dp))
-        Text(
-            "Detect, decrypt and inspect VPN tunnel configs",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Text("Detect, decrypt and inspect VPN tunnel configs",
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(28.dp))
-        Button(onClick = onPick, modifier = Modifier.fillMaxWidth()) {
-            Text("Open a config file")
-        }
+        Button(onClick = onPick, modifier = Modifier.fillMaxWidth()) { Text("Open a config file") }
         Spacer(Modifier.height(24.dp))
         Text("SUPPORTED", style = MaterialTheme.typography.labelMedium)
         Spacer(Modifier.height(10.dp))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SUPPORTED.forEach { Pill(it.uppercase(), formatColor(it)) }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SUPPORTED.take(5).forEach { Pill(it.uppercase(), formatColor(it)) }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SUPPORTED.drop(5).forEach { Pill(it.uppercase(), formatColor(it)) }
         }
     }
 }
@@ -204,7 +218,7 @@ private fun ErrorState(name: String, message: String, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun ResultView(s: UiState.Loaded, onPickAnother: () -> Unit, onExport: (String) -> Unit, onCopy: (String, String) -> Unit) {
+private fun ResultView(s: Decode.Loaded, onPickAnother: () -> Unit, onExport: (String) -> Unit, onCopy: (String, String) -> Unit) {
     val n = s.config
     fun f(key: String): String? {
         val e = n[key]
@@ -215,7 +229,6 @@ private fun ResultView(s: UiState.Loaded, onPickAnother: () -> Unit, onExport: (
     val warnings = (n["warnings"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.content } ?: emptyList()
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-        // Header
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
             Column(Modifier.padding(16.dp)) {
                 Text(s.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -229,7 +242,6 @@ private fun ResultView(s: UiState.Loaded, onPickAnother: () -> Unit, onExport: (
         }
         Spacer(Modifier.height(12.dp))
 
-        // Connection details
         val rows = listOf(
             "Host" to f("host"), "Port" to f("port"), "Protocol" to f("protocol"),
             "SNI / bug host" to (f("sni") ?: f("bug_host")),
@@ -240,10 +252,7 @@ private fun ResultView(s: UiState.Loaded, onPickAnother: () -> Unit, onExport: (
         ).filter { it.second != null }
         if (rows.isNotEmpty()) {
             SectionCard("CONNECTION") {
-                rows.forEachIndexed { i, (label, value) ->
-                    FieldRow(label, value!!) { onCopy(label, value) }
-                    if (i < rows.lastIndex) Spacer(Modifier.height(2.dp))
-                }
+                rows.forEach { (label, value) -> FieldRow(label, value!!) { onCopy(label, value) } }
             }
             Spacer(Modifier.height(12.dp))
         }
@@ -258,7 +267,6 @@ private fun ResultView(s: UiState.Loaded, onPickAnother: () -> Unit, onExport: (
             Spacer(Modifier.height(12.dp))
         }
 
-        // Raw JSON (expandable)
         var expanded by remember { mutableStateOf(false) }
         SectionCard("NORMALIZED CONFIG") {
             TextButton(onClick = { expanded = !expanded }, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
@@ -278,31 +286,6 @@ private fun ResultView(s: UiState.Loaded, onPickAnother: () -> Unit, onExport: (
             OutlinedButton(onClick = onPickAnother, modifier = Modifier.weight(1f)) { Text("Open another") }
         }
         Spacer(Modifier.height(24.dp))
-    }
-}
-
-// ── small reusable pieces ──────────────────────────────────────────────────
-@Composable
-private fun Pill(text: String, color: Color) {
-    Surface(
-        color = color.copy(alpha = 0.14f),
-        contentColor = color,
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
-    ) {
-        Text(text, style = MaterialTheme.typography.labelMedium.copy(color = color),
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
-    }
-}
-
-@Composable
-private fun SectionCard(title: String, accent: Color = MaterialTheme.colorScheme.primary, content: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.labelMedium.copy(color = accent, letterSpacing = 1.5.sp))
-            Spacer(Modifier.height(10.dp))
-            content()
-        }
     }
 }
 
@@ -330,8 +313,8 @@ private fun displayName(ctx: android.content.Context, uri: Uri): String {
 
 private fun shareText(ctx: android.content.Context, text: String) {
     val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "application/json"
+        type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, text)
     }
-    ctx.startActivity(Intent.createChooser(intent, "Export config"))
+    ctx.startActivity(Intent.createChooser(intent, "Export"))
 }
