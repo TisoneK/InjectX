@@ -65,11 +65,13 @@ and is deliberately not part of the parity contract.
 - [ ] Audit-trace view + per-field niceties (follow-up)
 
 ## Phase 7 — SNI Host Hunter
-- [ ] Discovery (crt.sh + bundled seedlists), OkHttp
-- [ ] TLS/HTTP/DNS prober; ECH via dnsjava (RFC 9848 HTTPS-RR)
-- [ ] Reverse-IP, port check
+- [x] Discovery (crt.sh parse + bundled seedlists) — `CrtSh.kt`, `Seedlist.kt` (+ bundled resources); pure parsing unit-tested
+- [x] TLS/HTTP/DNS prober — `SniNetwork.kt` (OkHttp + JSSE SNI cert capture); verdict logic (`SniProbe.kt`) unit-tested, I/O compile-verified
+- [x] Export (txt/csv/json) — `Export.kt`, tested
+- [ ] ECH via dnsjava (RFC 9848 HTTPS-RR), reverse-IP, port check
 - [ ] Defensive fronting probe (ADR-9: single-target, read-only, non-exploitative)
-- [ ] Results UI. Inherits ADR-6 caps.
+- [ ] CertStream watch
+- [ ] Results UI in :app. Inherits ADR-6 caps.
 
 ## Phase 8 — package
 - [x] Debug APK builds (`:app:assembleDebug` → app-debug.apk, 13MB) on user-level JDK17 + Android SDK (API 34, build-tools 34.0.0)
