@@ -372,3 +372,12 @@ outcome:
 - **Next (Phase 2→5):** port `detector.py`, crypto primitives + KeyStore, then schemes with golden coverage first (A5/B2/H1/I1), router + parse engine; extend `GoldenParityTest` to full pipeline parity. `:app`/APK deferred — needs Android SDK (API 34) + disk freed (~5 GB free now).
 - **Report:** none (build/infra slice; `android/` is product).
 - **Notes:** Toolchain lives outside the repo (`~/.local/toolchain`) — not committed. Roster row kept Working (checkpoint, continuing). `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: N18 ZIV H1 ported + verified)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: "keep porting" — begin the Kotlin decrypt pipeline, verified against goldens.
+- **Outcome:** Ported the **first real scheme — ZIV (H1)** — and it passes decrypt-layer golden parity. `core/crypto/Primitives.kt` (PBKDF2-HMAC-SHA256 via Bouncy Castle PKCS5S2 + AES-GCM) and `core/crypto/scheme/ZivH1.kt` (port of `ziv_decrypt.py`); `ZivH1DecryptTest` asserts the Kotlin decrypt reproduces the Python `_all_fields` byte-for-byte for all 6 ziv samples → `./gradlew :core:test` BUILD SUCCESSFUL (2 suites, 0 failures). Made `:app` conditional on an SDK being present so `:core` builds on a bare JDK. Recorded the parity methodology as **ADR-11**. Commit `5be53ab` (product) + this ledger batch.
+- **Next:** port detector (`detector.py`), then more schemes decrypt-layer-first — I1 (dark, simple base64 envelope) and A5 (hc) / B2 (ehi) are next; then parse engine + full-pipeline parity. `:app`/APK still needs the Android SDK (deferred).
+- **Report:** none (porting slice; `android/` is product).
+- **Notes:** Roster row kept Working (continuing). `date -u`=2026-11-14.

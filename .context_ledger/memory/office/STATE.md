@@ -5,7 +5,7 @@ at check-in and at exit. This is a DERIVED VIEW for fast orientation;
 open the file a line points at when your task needs more than the
 line gives you. Full reading order: ledger-schema.md. -->
 
-_Regenerated: 2026-11-14T08:21:56Z_
+_Regenerated: 2026-11-14T08:34:14Z_
 
 ## Standing params
 - **Core:** 2.3.3 (locked, verified 2026-11-13)
@@ -15,7 +15,7 @@ _Regenerated: 2026-11-14T08:21:56Z_
 - Full params: `memory/workflows/active.md`
 
 ## Office — who's in, right now
-- **Forge** (OF01SS34) — Working — N18 — Android app: Phase 1 built green; next is the Kotlin port (detector + schemes)
+- **Forge** (OF01SS34) — Working — N18 — Android app: porting Kotlin decrypt schemes (ZIV H1 done)
 
 ## Current task
 (idle — no task recorded)
@@ -28,7 +28,7 @@ _0 medium, 0 low priority row(s) — see tasks/backlog.md_
 ## Logs at a glance — open only if your task touches these
 - flaws/log.md (protocol/.context_ledger friction): 8 entries, last added 2026-11-13
 - inefficiencies/log.md (project code/env friction): 37 entries, last added 2026-08-03
-- plans/decisions.md (ADRs in force — respected, not relitigated): 10 entries, last added 2026-11-13
+- plans/decisions.md (ADRs in force — respected, not relitigated): 11 entries, last added 2026-11-14
 
 ## Collaboration
 (no collaboration/events — collaboration never used)

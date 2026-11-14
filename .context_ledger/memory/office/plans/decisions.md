@@ -133,3 +133,17 @@ relitigating them. To reverse one, append a new ADR that supersedes it.
   - Monetization ("pay per decryption" etc.) is **out of scope** by the user's decision this session; do not build metering/paywall/billing without a new user instruction. Legal/app-store/payment-processor risks of that model are noted in the Session 34 entry.
   - TLS scheme F1 ports but stays non-functional (upstream rotated-key block, README/Session 16) — expected, not a porting bug.
   - A future agent may change architecture (e.g. revert to Chaquopy) or scope only via a new superseding ADR, never silently.
+
+---
+## ADR-11: Golden parity contract — decrypt-layer first; full parity excludes decrypt_trace (2026-11-14)
+
+- **Status:** accepted (Session 34 — governs the Android Kotlin port, N18 / `features/android-app.md`)
+- **Context:** The golden fixtures capture the full `NormalizedConfig`, which includes `decrypt_trace` — an audit trail of every decrypt attempt with implementation-specific confidences, key labels, result strings and attempt ordering. Requiring a Kotlin reimplementation to reproduce the trace byte-for-byte would couple the port to the Python's exact internal control flow (how many passwords it tried, in what order), which is not the meaningful contract. The meaningful contract is the decrypted configuration data.
+- **Decision:**
+  1. **Decrypt-layer parity first, per scheme:** assert the Kotlin decryptor reproduces the backend's decrypted field map (`raw_data._all_fields`) byte-for-byte. This pins the crypto — the error-prone part — before any parse-engine work. (ZIV H1 is the first, verified in `ZivH1DecryptTest`.)
+  2. **Full-pipeline parity later:** once the detector + parse engine are ported, assert `pipeline(source) == fixture.normalized` **excluding `decrypt_trace`**. The trace stays in fixtures for debugging but is out of the parity contract.
+  3. Timestamps and `elapsed_ms` are already scrubbed from fixtures (generator) for determinism.
+- **Consequences:**
+  - A scheme is "verified" when its decrypt-layer test is green; "fully verified" when full-pipeline parity (minus trace) is green.
+  - If the audit trace itself ever needs porting/validation, that is a separate, explicitly-scoped effort — not implied by parity.
+  - Schemes without sample configs (hat/npv/nsh/vhd/legacy hc-ehi) have no goldens → cannot be parity-verified until samples are added (N3); port them only with that caveat noted.
