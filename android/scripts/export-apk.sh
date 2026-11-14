@@ -40,9 +40,11 @@ else
   cp "$APK" "dist/$NAME"
   echo "archived : android/dist/$NAME"
 fi
-# Desktop carries ONLY the latest (one file, no clutter). Version history lives
-# in android/dist/ (git-tracked), not on the Desktop.
-cp "$APK" "$HOME/Desktop/injectx-debug.apk"
-echo "desktop  : ~/Desktop/injectx-debug.apk (latest; history in android/dist/)"
+# Desktop carries exactly ONE apk — the latest, VERSIONED by name so you can
+# tell which build it is. Each run removes the prior Desktop copy and drops the
+# new one. Full history stays git-tracked in android/dist/.
+rm -f "$HOME"/Desktop/injectx-debug-v*.apk "$HOME/Desktop/injectx-debug.apk"
+cp "$APK" "$HOME/Desktop/$NAME"
+echo "desktop  : ~/Desktop/$NAME (latest; history in android/dist/)"
 echo "signed   :"
 "$APKSIGNER" verify --min-sdk-version 19 -v "$APK" 2>/dev/null | grep -E 'Verified using' || true
