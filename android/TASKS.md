@@ -49,7 +49,7 @@ and is deliberately not part of the parity contract.
 - [ ] A5 (hc v2.7+: XOR + ChaCha20 + RST AES-ECB + per-field) — golden ✅
 - [ ] B2 (ehi v2: AES-CBC ×2 + XXTEA + Argon2id + ChaCha20-Poly1305) — golden ✅
 - [x] H1 (ziv: PBKDF2 + AES-128-GCM) — **decrypt-layer parity PASSES** (`ZivH1.kt`, `ZivH1DecryptTest` vs all 6 ziv goldens). Full-pipeline parity pending parse engine.
-- [ ] I1 (dark: base64 JSON envelope; inner stays locked) — golden ✅ partial
+- [x] I1 (dark: base64 JSON envelope; inner stays locked) — **decrypt-layer parity PASSES** (`DarkI1.kt`, `DarkI1DecryptTest`: type/name/locked/status vs all 4 dark goldens; `transport` is parse-engine-derived, deferred)
 - [ ] F1 (tls: AES-256-GCM) — golden ✅ (expected FAILED; port for completeness)
 - [ ] A1–A4 (hc legacy), B1 (ehi legacy), C1 (npv), D1 (nsh), E1 (hat), G1 (vhd) — **need samples first (N3)**
 - [ ] `SchemeRouter.kt` — dispatch + confidence selection (port `decrypt/router.py`)
