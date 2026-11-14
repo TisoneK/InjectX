@@ -147,3 +147,14 @@ relitigating them. To reverse one, append a new ADR that supersedes it.
   - A scheme is "verified" when its decrypt-layer test is green; "fully verified" when full-pipeline parity (minus trace) is green.
   - If the audit trace itself ever needs porting/validation, that is a separate, explicitly-scoped effort — not implied by parity.
   - Schemes without sample configs (hat/npv/nsh/vhd/legacy hc-ehi) have no goldens → cannot be parity-verified until samples are added (N3); port them only with that caveat noted.
+
+---
+## ADR-12: Android app navigation is a Home hub-and-spoke (not peer tabs) (2026-11-14)
+
+- **Status:** accepted + built (Session 34 — user approved "Build it" from `features/android-ui.md`'s proposal)
+- **Context:** The app opened straight into Decode with a top `Decode | SNI Hunter` segmented tab bar — Decode was the de-facto home, the tabs read flat, and the pattern wouldn't scale past two tools. User: the UI "needs real work and creativity… home/main screen instead of treating decode as main".
+- **Decision:** A **Home hub** is the start screen (`HomeScreen.kt`): brand hero (pulsing hex logo + wordmark), a monospace HUD status line, and the tools as tappable "module" cards. Navigation is **hub-and-spoke** — a `Screen { Home, Decode, Sni }` state in `MainActivity`; entering a tool shows a back chevron + title, `BackHandler`/system-back returns to Home. The top segmented tabs are gone. No Navigation-Compose dependency (a `when(screen)` state machine suffices for 3 screens).
+- **Consequences:**
+  - New tools are added as Home modules + a `Screen` entry — the pattern scales.
+  - Future: a recents strip on Home (needs on-device history persistence), and a "use this host as SNI" bridge from SNI results into Decode.
+  - UI runtime is still unverified on this host (no device/emulator) — compile-verified + shown via mockup.

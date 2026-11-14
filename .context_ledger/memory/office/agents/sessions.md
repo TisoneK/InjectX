@@ -483,3 +483,12 @@ outcome:
   - **UI/UX design spec written to the ledger:** `features/android-ui.md` — the problem (Decode-as-home, flat top tabs), goals, a Home hub-and-spoke IA, Home-screen spec, tool-screen reframing, "outside the box" ideas (console/HUD, drag-drop decode, decrypt reveal), and the open decisions (nav pattern, HUD intensity, home content) that need the user's taste before building.
 - **Next:** get the user's pick on §7 of the UI spec → build the Home screen + nav (record the nav choice as an ADR). Then SNI remainder + "use as SNI". Runtime still unverified (no device).
 - **Report:** none. Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: Home hub navigation built)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: "Build it" — build the Home hub + hub-and-spoke nav from `features/android-ui.md`.
+- **Outcome:** Built `HomeScreen.kt` (pulsing hex hero, INJECTX wordmark, monospace HUD status line, Decode/SNI "module" cards with accent bar + LED + chevron, responsible-use footer). `MainActivity` now routes a `Screen{Home,Decode,Sni}` state — Home is the start, tools have a back chevron + title, `BackHandler` returns Home; removed the top segmented tabs. `:app:assembleDebug` green. Decision recorded as **ADR-12**. APK re-signed (v1+v2+v3), archived `dist/injectx-debug-v0.1.0-e8a7b4f.apk`, versioned + latest on the Desktop. Commits e8a7b4f (UI), 8280c3d (APK). Showed the user a mockup of the new Home.
+- **Honest limit:** no device/emulator → compile-verified + mockup only.
+- **Next:** iterate on Home to taste (recents strip needs history persistence; HUD intensity); then SNI remainder (fronting/ECH/"use as SNI").
+- **Report:** none. Roster kept Working. `date -u`=2026-11-14.
