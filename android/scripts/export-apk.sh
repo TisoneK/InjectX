@@ -33,8 +33,6 @@ git diff --quiet -- app core 2>/dev/null || DIRTY="-dirty"
 NAME="injectx-debug-v${VER}-${SHA}${DIRTY}.apk"
 
 mkdir -p dist
-DESKTOP="$HOME/Desktop/injectx-debug.apk"
-cp "$APK" "$DESKTOP"
 echo ""
 if [ -f "dist/$NAME" ] && [ -z "$DIRTY" ]; then
   echo "archive  : android/dist/$NAME (up to date — app unchanged, not duplicated)"
@@ -42,6 +40,11 @@ else
   cp "$APK" "dist/$NAME"
   echo "archived : android/dist/$NAME"
 fi
-echo "desktop  : $DESKTOP (latest)"
+# Desktop gets the VERSIONED name (never overwritten → old builds survive) plus
+# a stable 'injectx-debug.apk' pointer to the latest, for convenience.
+cp "$APK" "$HOME/Desktop/$NAME"
+cp "$APK" "$HOME/Desktop/injectx-debug.apk"
+echo "desktop  : ~/Desktop/$NAME"
+echo "desktop  : ~/Desktop/injectx-debug.apk (latest)"
 echo "signed   :"
 "$APKSIGNER" verify --min-sdk-version 19 -v "$APK" 2>/dev/null | grep -E 'Verified using' || true
