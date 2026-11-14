@@ -61,6 +61,7 @@ is your stable session tag.
 
 | Name | Codename | Model | Doing | Status | Status detail |
 |------|----------|-------|-------|--------|---------------|
+| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app, Phase 1 (scaffold + golden vectors) | Working | Building golden-vector harness + android/ scaffold; Kotlin compile/APK blocked — no JVM/Android toolchain on this host |
 
 **Keep your Status cells current — that is what the board is for.** The
 next live worker reads it to know at a glance what a peer has finished,
