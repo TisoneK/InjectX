@@ -39,14 +39,15 @@ and is deliberately not part of the parity contract.
 
 ## Phase 3 — crypto primitives + KeyStore
 - [x] PBKDF2-HMAC-SHA256 (Bouncy Castle PKCS5S2) + AES-GCM decrypt — `core/crypto/Primitives.kt`
-- [ ] AES-ECB/CBC wrappers (javax.crypto)
+- [x] AES-ECB (javax.crypto) + ChaCha20 8-byte-nonce/seek (Bouncy Castle) — `Primitives.kt`
+- [ ] AES-CBC wrapper (javax.crypto) — for EHI/VHD
 - [ ] ChaCha20 + Argon2id (Bouncy Castle)
 - [ ] XXTEA, NPV subtraction cipher, HC XOR layers (hand-port)
 - [ ] EHI custom base64 alphabet (non-standard — port carefully)
 - [ ] `KeyStore.kt` + bundle the 76+ keys from `backend/decrypt/keys.py` as a resource
 
 ## Phase 4 — decrypt schemes + router (assert each vs its golden)
-- [ ] A5 (hc v2.7+: XOR + ChaCha20 + RST AES-ECB + per-field) — golden ✅
+- [x] A5 (hc v2.7+: XOR + ChaCha20 + RST AES-ECB + per-field JKL/braille/z3a) — **decrypt-layer parity PASSES** (`HcA5.kt`, `HcA5DecryptTest` vs all 13 hc goldens, new + legacy formats)
 - [ ] B2 (ehi v2: AES-CBC ×2 + XXTEA + Argon2id + ChaCha20-Poly1305) — golden ✅
 - [x] H1 (ziv: PBKDF2 + AES-128-GCM) — **decrypt-layer parity PASSES** (`ZivH1.kt`, `ZivH1DecryptTest` vs all 6 ziv goldens). Full-pipeline parity pending parse engine.
 - [x] I1 (dark: base64 JSON envelope; inner stays locked) — **decrypt-layer parity PASSES** (`DarkI1.kt`, `DarkI1DecryptTest`: type/name/locked/status vs all 4 dark goldens; `transport` is parse-engine-derived, deferred)
