@@ -78,3 +78,12 @@ Friction caused by the `.context/` system or the protocol itself. See
 - **Root cause:** Session 31 updated the vendored core and lock but did not refresh the standing workflow's human-readable protocol-location line.
 - **Suggested fix:** Treat `memory/workflows/active.md`'s protocol-location/version line as a required post-`context-sync update` refresh, and add a consistency check comparing it with `core/VERSION` during kickoff.
 - **Status:** open
+
+---
+## 2026-11-13 — Forge (local macOS) / claude-opus-4-8 (Session 34)
+
+- **Flaw:** `ledger-sync rename` (the one-time 0.18 `.context/` → `.context_ledger/` migration) produces a single commit that `ledger-guard push-check` then rejects as "touches both surfaces." push-check classifies every path outside the current `$LEDGER_NAME` (`.context_ledger/`) as product, so the rename's delete side (`.context/…`) is product and its add side (`.context_ledger/…`) is ledger → two surfaces in one unavoidable commit. The same commit also sweeps root `AGENTS.md`/`CLAUDE.md`, reinforcing the mix.
+- **Symptom:** On a combined 0.5.0 → 2.3.3 upgrade (rename + 2.1 hook install in one session), `git push` was blocked by the pre-push hook: "VIOLATION … touches both surfaces … split it into two commits." The rename cannot be split — `git mv` of the ledger directory is atomic across the surface pair.
+- **Root cause:** push-check's surface model knows only the current `$LEDGER_NAME`; it has no concept of the legacy `.context/` name or of a one-time directory rename. Historically 0.18 shipped and was pushed long before the 2.1 hooks existed, so the rename commit never met the hook. Applying the whole 0.18→2.1 span in one batch collides them.
+- **Suggested fix:** push-check should treat `.context/` as a ledger-surface alias (both legacy and current names → "ledger") so a pure rename commit is ledger-only; and/or `cmd_rename` should print that, when hooks are already installed, the rename commit must be pushed with `LEDGER_GUARD_SKIP=1`. Note this in the 0.18/2.1 migration docs for combined upgrades.
+- **Resolution / Status:** open. This session pushed the migration range with `LEDGER_GUARD_SKIP=1` (loud + logged to `.git/ledger-guard.log`); every commit after the rename is single-surface and passes push-check normally.
