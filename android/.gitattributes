@@ -3,3 +3,6 @@
 gradlew        -whitespace
 gradlew.bat    -whitespace text eol=crlf
 gradle/wrapper/gradle-wrapper.jar binary
+
+# Debug APK archive — binary
+*.apk binary

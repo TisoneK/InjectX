@@ -12,11 +12,15 @@ android {
 
     defaultConfig {
         applicationId = "com.injectx.app"
-        minSdk = 26
+        minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
     }
+    // NOTE: AGP/`apksigner` drop v1 (JAR) signing at minSdk >= 24. Some sideload
+    // installers (notably budget OEM ROMs) reject v2-only APKs with "package
+    // appears invalid", so scripts/export-apk.sh re-signs the built APK with
+    // v1 + v2 + v3 before it ships.
 
     buildFeatures {
         compose = true
