@@ -1,0 +1,30 @@
+# Airtel (Kenya) — SNI bug-host SEED list
+#
+# Publicly documented zero-rated / Free-Basics / operator-portal hostnames for
+# Airtel Kenya. CANDIDATES to probe, not guaranteed working hosts — `sni scan`
+# is what verifies them. Curated from the public sources in the design doc
+# §3.4/§11.5 (Global Voices Advox Free-Basics report, aimtuto, snihost.com).
+#
+# Responsible use: see README.md "Responsible Use".
+# One hostname per line. `#` starts a comment. Blank lines ignored.
+
+# Free Basics / internet.org (Airtel offers Free Basics to all subscribers)
+free.facebook.com
+0.facebook.com
+m.facebook.com
+static.xx.fbcdn.net
+
+# Wikimedia
+en.wikipedia.org
+en.m.wikipedia.org
+
+# Airtel operator + self-care portals
+www.airtel.co.ke
+airtel.co.ke
+airtelmoney.airtel.co.ke
+selfcare.airtel.co.ke
+
+# Common CDN edges often on the same zero-rated ranges
+cdn.jsdelivr.net
+fonts.gstatic.com
+ajax.googleapis.com

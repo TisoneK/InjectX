@@ -1,0 +1,28 @@
+# Captive-portal redirect indicators for SNI Host Hunter.
+#
+# When a probed host returns a 3xx redirect whose Location URL contains any of
+# these substrings, the verdict is "blocked" (an ISP captive / top-up / no-
+# balance portal) rather than "redirect". A working bug host reaches the real
+# server; a dead one bounces to one of these.
+#
+# Add your ISP's captive-portal pattern here — no code change needed.
+# One substring per line, case-insensitive. `#` starts a comment.
+
+captive
+portal
+no-balance
+nobalance
+topup
+top-up
+data.bundles
+databundles
+internetsuppressed
+suppressed
+outofbundle
+out-of-bundle
+selfcare
+recharge
+unsubscribed
+buy-bundle
+buybundles
+insufficient
