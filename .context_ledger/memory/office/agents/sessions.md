@@ -492,3 +492,12 @@ outcome:
 - **Honest limit:** no device/emulator → compile-verified + mockup only.
 - **Next:** iterate on Home to taste (recents strip needs history persistence; HUD intensity); then SNI remainder (fronting/ECH/"use as SNI").
 - **Report:** none. Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: calm/non-neon visual pass)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User design feedback: the UI "looks ai generated… it should feel natural" (not the structure — the component craft).
+- **Outcome:** Reworked the visual language toward calm/natural: new restrained palette (soft near-black + one muted sage-green accent, neutral text), natural type (no ALL-CAPS/wide tracking), flat single-tone logo, quiet tags; removed the neon, glows, LED dots, accent bars, pulse and fake HUD line. Home is now a modest header + plain divider tool list (not a splash). `:app:assembleDebug` green; APK archived d0acf4c, on Desktop. Revised direction + the "neon = AI tell" lesson written to `features/android-ui.md` §9. Commits d0acf4c (UI), 3317508 (APK).
+- **Honest note:** this is a CALIBRATION pass — visual taste is my weakest area and I can't see it render (no device). A reference app from the user would anchor it far better than my guesses. Decode/SNI screen components still need the same de-decoration pass.
+- **Next:** user reaction → iterate; de-decorate Decode/SNI result components to match; then SNI remainder.
+- **Report:** none. Roster kept Working. `date -u`=2026-11-14.

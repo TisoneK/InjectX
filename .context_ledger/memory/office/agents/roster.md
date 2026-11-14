@@ -61,7 +61,7 @@ is your stable session tag.
 
 | Name | Codename | Model | Doing | Status | Status detail |
 |------|----------|-------|-------|--------|---------------|
-| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: built Home hub + hub-and-spoke nav | Working | Home-first UI shipped (ADR-12); APK v1+v2+v3, archived e8a7b4f, versioned on Desktop. :core 7 green. Next: Home iterate (recents/HUD), SNI remainder. Not device-verified |
+| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: calm/non-neon visual pass (anti-AI-look) | Working | Reworked palette/components to calm+natural per feedback; APK archived d0acf4c, on Desktop. :core 7 green. Awaiting user reaction; de-decorate Decode/SNI next. Not device-verified |
 
 **Keep your Status cells current — that is what the board is for.** The
 next live worker reads it to know at a glance what a peer has finished,

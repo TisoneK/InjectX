@@ -92,3 +92,22 @@ Home (hub)
   `var screen by remember { mutableStateOf(Screen.Home) }`; system-back handled
   via `BackHandler`.
 - When the pattern is chosen, record it as an ADR in `plans/decisions.md`.
+
+## 9. Visual direction — REVISED (2026-11-14, after "looks AI-generated")
+The first built pass (neon green/cyan on black, glowing borders, LED dots,
+accent bars, a pulsing hex logo + a fake HUD status line) read as the generic
+AI "hacker template" — the user's words: "vibe coded website", "looks ai
+generated… it should feel natural". Corrected toward a calm, crafted feel:
+- **Palette:** soft near-black (#15161A), ONE muted sage-green accent (#74B995),
+  neutral text. No second neon accent; status uses muted tones only.
+- **No decoration:** removed glows, LED dots, accent bars, pulse, HUD line,
+  pill-spam, ALL-CAPS and wide tracking. Format tags are neutral; only status
+  carries a muted colour. Flat single-tone logo.
+- **Home:** modest left-aligned header (flat logo + name + one line) and a plain
+  divider-separated tool list (title + subtitle + quiet chevron). Utility, not
+  splash. (`app/ui/theme/*`, `ui/Brand.kt`, `ui/Components.kt`, `HomeScreen.kt`.)
+- **Lesson:** the neon-cyber + decoration look is the AI-UI tell; craft comes
+  from restraint, type hierarchy and intentional spacing — not more colour.
+  Shipped as a CALIBRATION pass; a reference app from the user would anchor it
+  best. Decode/SNI screens inherit the new theme; their components still get a
+  de-decoration pass next.
