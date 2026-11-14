@@ -61,7 +61,7 @@ is your stable session tag.
 
 | Name | Codename | Model | Doing | Status | Status detail |
 |------|----------|-------|-------|--------|---------------|
-| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: porting Kotlin decrypt schemes (ZIV H1 done) | Working | Toolchain in; :core green; ZIV H1 ported + decrypt-layer parity passes (5be53ab). Next: detector + I1/A5/B2. :app/APK deferred (Android SDK; ~5GB disk) |
+| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: all 4 golden-covered schemes ported (ZIV/DARK/HC/EHI) | Working | :core 5 green suites; H1/I1/A5/B2 decrypt-layer parity passes (…4c0d976). Next: detector + parse engine (full-pipeline parity); sample-less schemes blocked on N3; :app/APK needs Android SDK |
 
 **Keep your Status cells current — that is what the board is for.** The
 next live worker reads it to know at a glance what a peer has finished,

@@ -381,3 +381,18 @@ outcome:
 - **Next:** port detector (`detector.py`), then more schemes decrypt-layer-first — I1 (dark, simple base64 envelope) and A5 (hc) / B2 (ehi) are next; then parse engine + full-pipeline parity. `:app`/APK still needs the Android SDK (deferred).
 - **Report:** none (porting slice; `android/` is product).
 - **Notes:** Roster row kept Working (continuing). `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: all 4 golden-covered schemes ported)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: "keep going one after the other pushing each without pausing" — port the remaining golden-covered decrypt schemes to Kotlin, verify + push each.
+- **Outcome:** All four schemes with sample coverage now ported and decrypt-layer-verified against the Python backend:
+  - **DARK I1** (`DarkI1.kt`, commit 128db9a) — base64 envelope, type/name/locked.
+  - **HC A5** (`HcA5.kt`, 5be466c) — initial XOR → ChaCha20 seek64 → RST/AES-ECB or ChaCha → token split → per-field JKL/braille/z3a. Fixed two parity bugs: strict-UTF8 JKL fallback, z3a floor-division + 64-bit shift. 13/13.
+  - **EHI B2** (`EhiB2.kt`, 4c0d976) — AES-CBC×2 → XXTEA → Argon2id → XChaCha20-Poly1305 (HChaCha20 hand-rolled; BC lacks XChaCha) → inner-field XOR/EHIMSG decode + nested JSON. 6/6, passed first run.
+  - (ZIV H1 done earlier: 5be53ab.)
+  - Primitives.kt now has: PBKDF2, AES-GCM/ECB/CBC, ChaCha20(8-byte nonce/seek), Argon2id, XChaCha20-Poly1305.
+  - `:core` has **5 green test suites**; each scheme asserted vs its golden `_all_fields`.
+- **Next:** schemes WITHOUT samples (hat E1, npv C1, nsh D1, vhd G1, legacy hc A1-A4, ehi B1, tls F1) have no goldens → **blocked on N3** (add samples) before they can be parity-verified. Then detector + parse_engine ports unlock full-pipeline parity (ADR-11). `:app` UI/APK still needs the Android SDK.
+- **Report:** none (porting; `android/` is product).
+- **Notes:** Roster kept Working. `date -u`=2026-11-14.
