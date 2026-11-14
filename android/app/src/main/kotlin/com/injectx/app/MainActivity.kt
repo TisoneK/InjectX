@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +28,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -70,6 +72,8 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
+enum class Screen { Home, Decode, Sni }
+
 private sealed interface Decode {
     data object Idle : Decode
     data class Loading(val name: String) : Decode
@@ -89,7 +93,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InjectXApp() {
-    var tab by remember { mutableIntStateOf(0) }
+    var screen by remember { mutableStateOf(Screen.Home) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val clipboard = LocalClipboardManager.current
@@ -100,32 +104,47 @@ private fun InjectXApp() {
         scope.launch { snackbar.showSnackbar("Copied $label") }
     }
 
+    BackHandler(enabled = screen != Screen.Home) { screen = Screen.Home }
+
     Scaffold(
         topBar = {
             TopAppBar(
+                navigationIcon = {
+                    if (screen != Screen.Home) {
+                        IconButton(onClick = { screen = Screen.Home }) {
+                            Text("‹", fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
+                        }
+                    }
+                },
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        HexLogo(Modifier.size(28.dp))
-                        Spacer(Modifier.width(10.dp))
-                        Text("InjectX", fontFamily = FontFamily.Monospace, letterSpacing = 2.sp)
+                    if (screen == Screen.Home) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            HexLogo(Modifier.size(28.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text("InjectX", fontFamily = FontFamily.Monospace, letterSpacing = 2.sp)
+                        }
+                    } else {
+                        Text(
+                            if (screen == Screen.Decode) "Decode" else "SNI Hunter",
+                            fontFamily = FontFamily.Monospace, letterSpacing = 1.sp,
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
                 ),
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { pad ->
-        Column(Modifier.fillMaxSize().padding(pad)) {
-            SegmentedTabs(tab, listOf("Decode", "SNI Hunter"), Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) { tab = it }
-            Box(Modifier.weight(1f)) {
-                when (tab) {
-                    0 -> DecodeScreen(onCopy = ::copy, onExport = { shareText(ctx, it) })
-                    else -> SniScreen(onExport = { shareText(ctx, it) })
-                }
+        Box(Modifier.fillMaxSize().padding(pad)) {
+            when (screen) {
+                Screen.Home -> HomeScreen(onOpen = { screen = it })
+                Screen.Decode -> DecodeScreen(onCopy = ::copy, onExport = { shareText(ctx, it) })
+                Screen.Sni -> SniScreen(onExport = { shareText(ctx, it) })
             }
         }
     }
