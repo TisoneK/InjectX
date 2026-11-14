@@ -14,6 +14,9 @@ node_modules/
 dist/
 build/
 
+# ...but the Android debug-APK archive IS version-controlled (see android/dist/)
+!android/dist/
+
 # OS/editor junk
 .DS_Store
 Thumbs.db
