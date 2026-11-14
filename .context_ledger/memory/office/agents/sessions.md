@@ -436,3 +436,16 @@ outcome:
 - **Not ported (follow-ups):** defensive fronting probe (ADR-9), ECH/reverse-IP/port-check, CertStream, and an `:app` UI surface for SNI.
 - **Report:** none (porting/build; `android/` is product).
 - **Notes:** Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: UI redesign)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: "the UI needs some real work and creativity."
+- **Outcome:** Redesigned the `:app` UI around the InjectX brand (viewed the icon → near-black ground, neon-green X, cyan circuit accents).
+  - `ui/theme/` — `InjectXTheme` (dark color scheme + shapes + type) + `MonoValue` terminal style.
+  - `ui/Brand.kt` — Canvas-drawn glowing hex+X logo; per-format accent + per-status pill colours.
+  - `MainActivity` — empty state (hero logo, CTA, supported-format chips), loading, error, and a result screen: header card (format badge + status pill + scheme), CONNECTION card of copyable mono rows, WARNINGS card, expandable normalized-JSON, Export/Open-another; clipboard copy + snackbar.
+  - `:app:assembleDebug` green; updated APK re-exported to `~/Desktop/`. Showed the user a device-frame mockup of the design. Commit 4d4b5cb.
+- **Honest limit:** still no runtime verification (no device/emulator) — compiles + links only; visual intent shown via mockup.
+- **Next:** runtime test (user's device); SNI remainder (fronting/ECH/UI); release signing; N3 schemes.
+- **Report:** none. Roster kept Working. `date -u`=2026-11-14.
