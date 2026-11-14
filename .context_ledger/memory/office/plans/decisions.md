@@ -115,3 +115,21 @@ relitigating them. To reverse one, append a new ADR that supersedes it.
 - **Consequences:**
   - Future agents MUST NOT turn the defensive probe into a bulk/list operation or a traffic relay without a new superseding ADR — the "detector not exploiter" line is what keeps Phase 3 on the research/defensive side of the dual-use framing (§7).
   - The probe's raw-HTTP-over-TLS helper lives in `backend/snihunter/defensive.py`; treat changes to it as security-sensitive (it is the one place that deliberately decouples SNI from Host).
+
+---
+## ADR-10: Android app is a native Kotlin rewrite; decrypt + SNI Hunter both in v1 (2026-11-13)
+
+- **Status:** accepted (Session 34 — choices made by the USER; governs `features/android-app.md`)
+- **Context:** User wants InjectX as a complete Android app. The core value is ~5,800 lines of Python crypto/parsing (13 decrypt schemes + detector + 745-line parse engine) plus the SNI Host Hunter. Electron + FastAPI run on neither Android surface, so the UI is rebuilt regardless; the open question was how the Python core reaches the phone. Two options were put to the user: (a) **Chaquopy** — embed the existing Python, reuse ~all of it, fastest, larger APK, native-dep checks; (b) **native Kotlin rewrite** — reimplement the schemes in Kotlin/Bouncy Castle, smallest/cleanest APK, weeks of re-implementing+re-testing crypto. Scope options offered: decrypt-only v1, or decrypt + SNI Hunter.
+- **Decision:**
+  1. **Native Kotlin rewrite** (option b). Chaquopy was explicitly rejected by the user.
+  2. **v1 scope = decrypt/read + SNI Host Hunter** (not decrypt-only).
+  3. New Gradle module **`android/`** in this repo (monorepo), so the Python stays in-tree as the reference implementation.
+  4. A **golden-vector parity harness** (Python output → fixtures → Kotlin asserts byte-identical) is built in Phase 1 before any scheme is ported. Crypto correctness is verified against the Python, not by eye.
+  5. Crypto: `javax.crypto` (AES/PBKDF2) + Bouncy Castle (ChaCha20/Argon2id) + hand-ported XXTEA/XOR/subtraction; Jetpack Compose UI, min SDK 26.
+- **Consequences:**
+  - Full plan, module mapping, phases, risks: `features/android-app.md`. Backlog item **N18** tracks the initiative.
+  - SNI Hunter on mobile inherits **ADR-6** (loopback/no-scanning caps) and **ADR-9** (defensive probe single-target, read-only, non-exploitative) — binding on the port.
+  - Monetization ("pay per decryption" etc.) is **out of scope** by the user's decision this session; do not build metering/paywall/billing without a new user instruction. Legal/app-store/payment-processor risks of that model are noted in the Session 34 entry.
+  - TLS scheme F1 ports but stays non-functional (upstream rotated-key block, README/Session 16) — expected, not a porting bug.
+  - A future agent may change architecture (e.g. revert to Chaquopy) or scope only via a new superseding ADR, never silently.

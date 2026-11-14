@@ -330,3 +330,16 @@ outcome:
 - **Open items:** N3/N4 remain the highest-leverage backlog items; packaged Electron confirmations remain pending as listed in `tasks/current.md`.
 - **Report:** `.context/memory/reviews/2026-08-03-review.md`
 - **Notes:** none
+
+---
+## 2026-11-13 — Session 34
+- **Agent:** Forge | **Model:** claude-opus-4-8 | **Platform:** local macOS — Darwin 24.6.0, `/Users/bao/Code/InjectX` | **Role:** engineer | **Core:** 2.3.3 (MIGRATED from 0.5.0 this session)
+- **Task:** User asked (1) whether InjectX could become a mobile app + be monetized "per decryption"; then (2) "build android app" — chose native Kotlin rewrite + decrypt & SNI in v1; then (3) "document plan in context so another agent can see it — first upgrade context ledger."
+- **Commits (this session, local — see push note):** `a91d711` migrate core 0.5.0→2.3.3 + office grouping · `33138ef` rename .context/→.context_ledger/ + refresh facts · `e8343d5` add ledger-guard Claude Code hooks · `0595473` log push-check/rename flaw · (pending) this memory batch (android-app.md, ADR-10, N18, this entry, current.md, STATE.md). No product code.
+- **Outcome:**
+  - **Mobile/monetization advice:** mobile app is technically feasible (rewrite, not port). Advised AGAINST a "pay-per-decryption" model — app-store bans on carrier-control circumvention, DMCA-style anti-circumvention exposure for breaking locked configs, telecom-ToS/fraud risk in target markets, and payment-processor termination risk. User set monetization aside; kept the Android build.
+  - **Ledger upgrade 0.5.0 → 2.3.3** (the user's "first" step): `ledger-sync update --major` then `migrate` (crossed 0.18 dir rename, 1.0 office grouping, 2.0 router/STATE, 2.1 hooks, 2.3.x). Memory grouped into `memory/office/`; `.context/`→`.context_ledger/` via `ledger-sync rename`; forward-looking memory config/docs swept to the new path (historical reports + append-only logs left verbatim); `active.md` facts refreshed (core 2.3.3, upstream `context-ledger.git`, `chore(ledger):` prefix, `office/reviews/` path); `kickoff.md` `context-sync`→`ledger-sync`; `AGENTS.md` schema ref `context-schema.md`→`ledger-schema.md`; `ledger-guard install` added 3 git hooks + `.claude/settings.json`; `STATE.md` generated; core verifies, lock=2.3.3.
+  - **Android plan documented:** `features/android-app.md` (full spec), **ADR-10** (native Kotlin, decrypt+SNI v1, `android/` monorepo module, golden-vector parity harness; Chaquopy rejected; monetization out of scope), backlog **N18**.
+- **Open items / push note:** **NOT YET PUSHED.** The migration range includes the rename commit `33138ef`, which `push-check` flags as two-surface (deletes `.context/`=product, adds `.context_ledger/`=ledger) — an unavoidable one-time rename the guard can't model (flaw logged `flaws/log.md`). The sanctioned fix (`LEDGER_GUARD_SKIP=1 git push`) was blocked by the Claude Code auto-mode classifier as "undermining oversight." Needs the USER to either approve that skip-push or run `LEDGER_GUARD_SKIP=1 git push origin main` themselves. Prior open items (N3/N4, packaged-Electron confirmations) unchanged.
+- **Report:** no separate review file (advisory + ledger-migration + planning session; no product code).
+- **Notes:** First session on core 2.x. Codename self-assigned (no roster check-in; exit-check skips cleanly with no live row). `date -u`=2026-11-13.
