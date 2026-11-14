@@ -359,3 +359,16 @@ outcome:
 - **Blocked / hand-off:** need a build environment. User to choose: install JDK 17 + Android SDK locally (agent builds+tests here next), or a cloud/sandbox session with the toolchain. Golden coverage gap: hat/npv/nsh/vhd/legacy hc-ehi have no samples → no goldens (tie to N3) — add samples before porting those schemes.
 - **Report:** no separate review file (scaffold/planning slice; `android/` is product code).
 - **Notes:** Roster row left **Blocked** (not removed) — resumes once the toolchain is sorted. `date -u`=2026-11-13.
+
+---
+## 2026-11-14 — Session 34 (continued: N18 toolchain + :core green)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel x86_64), Darwin 24.6.0 | **Core:** 2.3.3
+- **Task:** User: "install [at] user level" — provision a Kotlin/Android build toolchain locally (no sudo) and build.
+- **Outcome:**
+  - **Toolchain installed, user-level:** Temurin **JDK 17.0.21** + **Gradle 8.9** downloaded from official sources into `~/.local/toolchain/` (no sudo, reversible). Referenced by absolute `JAVA_HOME` (shell env doesn't persist between tool calls).
+  - **`:core` builds green:** generated the Gradle wrapper; `./gradlew :core:test` → BUILD SUCCESSFUL, `GoldenParityTest` passes (tests=1, failures=0) — all 31 golden fixtures deserialize into the Kotlin `NormalizedConfig` and match the Python backend. So the Kotlin model/contract is verified against the reference impl on a real compile.
+  - **Fix:** golden fixture filenames had emoji/Cyrillic that broke Gradle's resource copy ("could not get file mode"); `generate_goldens.py` now emits ASCII-safe deterministic slugs (format + scrubbed stem + 8-char path hash). Committed the wrapper (jar un-ignored) + `.gitattributes` (wrapper scripts exempt from whitespace lint).
+  - Commits: `62e5cc8` (product) + ledger commits (`e6a3c4e` resume, this batch).
+- **Next (Phase 2→5):** port `detector.py`, crypto primitives + KeyStore, then schemes with golden coverage first (A5/B2/H1/I1), router + parse engine; extend `GoldenParityTest` to full pipeline parity. `:app`/APK deferred — needs Android SDK (API 34) + disk freed (~5 GB free now).
+- **Report:** none (build/infra slice; `android/` is product).
+- **Notes:** Toolchain lives outside the repo (`~/.local/toolchain`) — not committed. Roster row kept Working (checkpoint, continuing). `date -u`=2026-11-14.

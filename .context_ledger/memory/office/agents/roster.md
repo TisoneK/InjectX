@@ -61,7 +61,7 @@ is your stable session tag.
 
 | Name | Codename | Model | Doing | Status | Status detail |
 |------|----------|-------|-------|--------|---------------|
-| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: installing user-level JDK17+Gradle, then build/test :core | Working | Phase 1 shipped (1f78661). Installing toolchain at user level (~/.local/toolchain) to compile :core + run golden tests; full Android SDK for :app deferred (only 5GB disk free) |
+| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: Phase 1 built green; next is the Kotlin port (detector + schemes) | Working | Toolchain installed (JDK17+Gradle8.9, ~/.local/toolchain); :core compiles + GoldenParityTest passes (62e5cc8). Checkpoint before porting detector/schemes. :app/APK deferred (needs Android SDK; ~5GB disk free) |
 
 **Keep your Status cells current — that is what the board is for.** The
 next live worker reads it to know at a glance what a peer has finished,
