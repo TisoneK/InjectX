@@ -2,23 +2,24 @@ package com.injectx.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// A calm, restrained dark palette — soft near-black (not pure black), one muted
-// accent, neutral text. Deliberately NOT the neon-on-black "hacker" look.
-val Bg = Color(0xFF15161A)         // app background (soft near-black)
-val Surface1 = Color(0xFF1D1F24)   // cards / sections
-val Surface2 = Color(0xFF272A31)   // inputs / elevated
-val Outline = Color(0xFF32363F)
-val Divider = Color(0xFF23262C)
+// Neon identity palette — near-black green-tinted ground, neon green + cyan, the
+// look that makes InjectX read as a security tool (matches the app icon).
+val Bg = Color(0xFF080C0B)         // near-black, green-tinted
+val Surface1 = Color(0xFF121A18)   // cards / sections
+val Surface2 = Color(0xFF1A2420)   // inputs / elevated
+val Outline = Color(0xFF26332E)
+val Divider = Color(0xFF1A211E)
 
-val Accent = Color(0xFF74B995)     // the single accent — a muted sage green
-val AccentDim = Color(0xFF4C7A63)
+val Accent = Color(0xFF32E39B)     // neon green — primary / focal actions
+val AccentDim = Color(0xFF1E8F67)
+val Cyan = Color(0xFF45D6E8)       // secondary accent (circuit lines)
 
-val TextHi = Color(0xFFEAEBEE)
-val TextMid = Color(0xFFB7BBC2)
-val TextLo = Color(0xFF888D96)
+val TextHi = Color(0xFFE7F3EF)
+val TextMid = Color(0xFFAFC0B9)
+val TextLo = Color(0xFF8CA69D)
 
-// Muted status/verdict tones (never neon).
+// Status / verdict tones.
 val OkGreen = Accent
-val WarnAmber = Color(0xFFD8A861)
-val BadRed = Color(0xFFD97A72)
-val InfoBlue = Color(0xFF7FA8C9)
+val WarnAmber = Color(0xFFF2B84B)
+val BadRed = Color(0xFFFF5566)
+val InfoBlue = Cyan

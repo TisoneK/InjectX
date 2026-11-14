@@ -29,14 +29,7 @@ import com.injectx.app.ui.theme.TextMid
 fun HomeScreen(onOpen: (Screen) -> Unit) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(20.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HexLogo(Modifier.size(30.dp))
-            Spacer(Modifier.width(14.dp))
-            Column {
-                Text("InjectX", style = MaterialTheme.typography.titleLarge)
-                Text("VPN tunnel config toolkit", style = MaterialTheme.typography.bodyMedium, color = TextMid)
-            }
-        }
+        Text("VPN tunnel config toolkit", style = MaterialTheme.typography.titleMedium, color = TextMid)
 
         Spacer(Modifier.height(28.dp))
         Text("Tools", style = MaterialTheme.typography.labelMedium, color = TextLo)
