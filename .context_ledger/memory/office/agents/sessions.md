@@ -473,3 +473,13 @@ outcome:
 - **DEFERRED (next):** design rework — a Home/landing screen instead of Decode-as-default, and a more creative navigation than the top segmented tabs. Awaiting direction/taste.
 - **Honest limit:** install fix is reasoned from signing/minSdk, not device-verified (no device here). If it still fails, likely transfer corruption or device < API 24 — need the phone's Android version + transfer method.
 - **Report:** none. Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: Desktop-versioned APK + UI design spec)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: versioned APK wasn't on the Desktop (only the stable name was); + "write the design in ledger".
+- **Outcome:**
+  - **export-apk.sh** now copies the **versioned** `injectx-debug-v<ver>-<sha>.apk` to the Desktop too (not just the stable `injectx-debug.apk`), so Desktop builds survive overwrites. Copied the current versioned build to the Desktop. Commit be7c47f. (Earlier this session: archive named by last CODE commit to skip doc/ledger dups — 1995149.)
+  - **UI/UX design spec written to the ledger:** `features/android-ui.md` — the problem (Decode-as-home, flat top tabs), goals, a Home hub-and-spoke IA, Home-screen spec, tool-screen reframing, "outside the box" ideas (console/HUD, drag-drop decode, decrypt reveal), and the open decisions (nav pattern, HUD intensity, home content) that need the user's taste before building.
+- **Next:** get the user's pick on §7 of the UI spec → build the Home screen + nav (record the nav choice as an ADR). Then SNI remainder + "use as SNI". Runtime still unverified (no device).
+- **Report:** none. Roster kept Working. `date -u`=2026-11-14.
