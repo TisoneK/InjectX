@@ -40,11 +40,9 @@ else
   cp "$APK" "dist/$NAME"
   echo "archived : android/dist/$NAME"
 fi
-# Desktop gets the VERSIONED name (never overwritten → old builds survive) plus
-# a stable 'injectx-debug.apk' pointer to the latest, for convenience.
-cp "$APK" "$HOME/Desktop/$NAME"
+# Desktop carries ONLY the latest (one file, no clutter). Version history lives
+# in android/dist/ (git-tracked), not on the Desktop.
 cp "$APK" "$HOME/Desktop/injectx-debug.apk"
-echo "desktop  : ~/Desktop/$NAME"
-echo "desktop  : ~/Desktop/injectx-debug.apk (latest)"
+echo "desktop  : ~/Desktop/injectx-debug.apk (latest; history in android/dist/)"
 echo "signed   :"
 "$APKSIGNER" verify --min-sdk-version 19 -v "$APK" 2>/dev/null | grep -E 'Verified using' || true
