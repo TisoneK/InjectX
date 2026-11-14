@@ -1,0 +1,298 @@
+{
+  "normalized": {
+    "bug_host": null,
+    "connection_type": null,
+    "custom_headers": {},
+    "decrypt_trace": {
+      "attempts": [
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        }
+      ],
+      "filename": "Trojan Airtel 🥶.ehi",
+      "filepath": "/Users/bao/Code/InjectX/assets/configs/ehi/Trojan Airtel 🥶.ehi",
+      "format": "ehi",
+      "winning_key_label": null,
+      "winning_scheme": null
+    },
+    "decryption_status": "success",
+    "dns": null,
+    "errors": [],
+    "filename": "Trojan Airtel 🥶.ehi",
+    "filepath": "assets/configs/ehi/Trojan Airtel 🥶.ehi",
+    "format": "ehi",
+    "host": null,
+    "hysteria": null,
+    "inject_type": null,
+    "internal_ip": null,
+    "ir_version": "1.0",
+    "is_encrypted": false,
+    "payload": null,
+    "payload_parsed": [],
+    "port": null,
+    "protocol": "v2ray",
+    "proxy_host": null,
+    "proxy_port": null,
+    "raw_data": {
+      "_all_fields": {
+        "configExpiryTimestamp": 0,
+        "configLockMobileOperatorId": "",
+        "configMessage": "<><font color=\\\"#ff0092\\\"> FROM THE ASHES<\\/font><small><font color=\\\"#f800a8\\\"> «« <\\/font><big><font  color=\\\"#f000be\\\">✦‌ <\\/font><font color=\\\"#e900d3\\\">Romeo🥶<\\/font><br><small><small><small><small><\\/i><\\/u><FONT EL BICHO    ⣴⣿⣦        \n          ⢻⣿⣿⠂        \n         ⢀⣴⣿⣿⣀        \n       ⢠⣾⣿⣿⣿⣿⣿⣿⣦ \n      ⣴⣿⢿⣷⠒⠲⣾⣾⣿⣿\n    ⣴⣿⠟⠁ ⢿⣿⠁⣿⣿⣿⠻⣿⣄    \n  ⣠⡾⠟⠁   ⢸⣿⣸⣿⣿⣿⣆⠙⢿⣷⡀  \n⣰⡿⠋      ⢸⣿⣿⣿⣿⣿⣿  ⠉⠻⣿⡀\n         ⣾⣿⣿⣿⣿⣿⣿⣆⠂ \n        ⣼⣿⣿⣿⡿⣿⣿⣿⣿⡄   \n       ⢠⣿⣿⠿⠟  ⠻⣿⣿⡇    \n      ⢀⣾⡿⠃     ⠘⢿⣿⡀   \n     ⣰⣿⡟        ⢸⣿⣷⡀  \n    ⢠⣿⠟          ⠻⣿⣧  \n   ⢀⣿⠃            ⠘⣿⣆ \n  ⠠⢾⠇              ⢸⣿⣷⡤⠄<br><big><i><big><\\/font><u><font color=\\\"#ff0575\\\">✤✦‌ FROM THE ASHES ON TELEGRAM<\\/font> <font color=\\\"#ff0575\\\"><br><big> ☞ <small><\\/font>\nJoin us on:-\nchannel:https://whatsapp.com/channel/0029VaaTBWh2phHOcjWOi92N \n\ntelegram:\n\nhttps://t.me/ashesvpn\n\nFor modded apps join :\n\nhttps://t.me/otc_xtra\n\nWhatsApp 1:https://chat.whatsapp.com/GX3lBjAyyKi8P4qQ74OQYQ\n\nWhatsApp 2:https://chat.whatsapp.com/FVcHOs606rH0RjKsoIH6XE\nWhatsApp 3:\nhttps://chat.whatsapp.com/FDOexeWZj1D6ffSzSt7L7N\nWhatsApp 4:\nhttps://chat.whatsapp.com/KMLMps4pQIHBq8AMtusALO\nWhatsApp 5:\nhttps://chat.whatsapp.com/HA9kDGQuMffK6n8sMMYy9o\nWhatsApp 6: https://chat.whatsapp.com/IqYSLpC8AkxDH70x3QFhKx\nWhatsApp 7: https://chat.whatsapp.com/GcK3IXPtBvmJG5HPC9tyfh\nIf you find those 7 WhatsApp groups full,,join our telegram channel 👇\n\nhttps://t.me/ashesvpn\n\n\nhttps://t.me/otc_xtra\n\n<\\/font><font color=\\\"#ff0575\\\">✧✤<BR>",
+        "configSalt": "",
+        "configTimestamp": 0,
+        "configVersionCode": 0,
+        "customDns1": "",
+        "customDns2": "",
+        "dnsType": 3,
+        "isConfigLock": true,
+        "isDefaultRoute": true,
+        "v2rCoreType": "xray",
+        "v2rFlowType": "none",
+        "v2rFragmentEnabled": false,
+        "v2rFragmentPackets": "tlshello",
+        "v2rHost": "panel-3.irul-tun.my.id",
+        "v2rIsGuiMode": true,
+        "v2rKcpHeaderType": "none",
+        "v2rMuxEnabled": false,
+        "v2rNetwork": "ws",
+        "v2rPassword": "a5e1bdc0-54da-428b-bd12-b95657818705",
+        "v2rPort": "443",
+        "v2rProtocol": "trojan",
+        "v2rQuicHeaderType": "none",
+        "v2rQuicSecurity": "none",
+        "v2rRoutingRules": "proxy_all",
+        "v2rRoutingStrategy": "AsIs",
+        "v2rSsSecurity": "none",
+        "v2rTcpHeaderType": "none",
+        "v2rTleFingerprintType": "random",
+        "v2rTleSecurityType": "none",
+        "v2rTlsAllowInsecure": true,
+        "v2rVlessSecurity": "none",
+        "v2rVmessSecurity": "none",
+        "v2rWsHeader": "h.facebook.com",
+        "v2rWsPath": "/trojan-ws"
+      }
+    },
+    "remote_dns": null,
+    "scheme_used": "B2",
+    "shadowsocks": null,
+    "sni": null,
+    "ssh_key": null,
+    "ssh_pass": null,
+    "ssh_port": null,
+    "ssh_server": null,
+    "ssh_user": null,
+    "ssl_enabled": null,
+    "tls_version": null,
+    "tunnel_mode": null,
+    "tunnel_type": null,
+    "v2ray": null,
+    "vless_config": null,
+    "vmess_config": null,
+    "warnings": [],
+    "websocket": null,
+    "wireguard": null,
+    "xray": null
+  },
+  "source": "assets/configs/ehi/Trojan Airtel 🥶.ehi"
+}

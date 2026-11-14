@@ -1,0 +1,223 @@
+{
+  "count": 31,
+  "errors": 0,
+  "fixtures": [
+    {
+      "decryption_status": "partial",
+      "fixture": "dark__YouTube 4hrs.dark.json",
+      "format": "dark",
+      "scheme_used": "I1",
+      "source": "assets/configs/dark/YouTube 4hrs.dark"
+    },
+    {
+      "decryption_status": "partial",
+      "fixture": "dark__Youtube Gcp 5h.dark.json",
+      "format": "dark",
+      "scheme_used": "I1",
+      "source": "assets/configs/dark/Youtube Gcp 5h.dark"
+    },
+    {
+      "decryption_status": "partial",
+      "fixture": "dark__airtel unlimited Trojan🥶.dark.json",
+      "format": "dark",
+      "scheme_used": "I1",
+      "source": "assets/configs/dark/airtel unlimited Trojan🥶.dark"
+    },
+    {
+      "decryption_status": "partial",
+      "fixture": "dark__vmess bullet speeds stable 🥶🔥.dark.json",
+      "format": "dark",
+      "scheme_used": "I1",
+      "source": "assets/configs/dark/vmess bullet speeds stable 🥶🔥.dark"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ehi__TelkomNet.ehi.json",
+      "format": "ehi",
+      "scheme_used": "B2",
+      "source": "assets/configs/ehi/TelkomNet.ehi"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ehi__Trojan Airtel 🥶.ehi.json",
+      "format": "ehi",
+      "scheme_used": "B2",
+      "source": "assets/configs/ehi/Trojan Airtel 🥶.ehi"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ehi__ethiotelecom.ehi.json",
+      "format": "ehi",
+      "scheme_used": "B2",
+      "source": "assets/configs/ehi/ethiotelecom.ehi"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ehi__ssl UK🥶.ehi.json",
+      "format": "ehi",
+      "scheme_used": "B2",
+      "source": "assets/configs/ehi/ssl UK🥶.ehi"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ehi__vmess bullet stable.ehi.json",
+      "format": "ehi",
+      "scheme_used": "B2",
+      "source": "assets/configs/ehi/vmess bullet stable.ehi"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ehi__🐾™AIRTEL.ehi.json",
+      "format": "ehi",
+      "scheme_used": "B2",
+      "source": "assets/configs/ehi/🐾™AIRTEL.ehi"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__Airtelke (3).hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/Airtelke (3).hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__SSH UDP CUSTOM ✓ (4).hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/SSH UDP CUSTOM ✓ (4).hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__Saf Tiktok bypass.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/Saf Tiktok bypass.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__Snapchat & Tiktok bypass.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/Snapchat & Tiktok bypass.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__WIFI BP & YT BP.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/WIFI BP & YT BP.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__bypass.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/bypass.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__saf cap 1 new v2🥶.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/saf cap 1 new v2🥶.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__saf cap 2 new v2🥶.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/saf cap 2 new v2🥶.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__saf cap 3 new v2🥶.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/saf cap 3 new v2🥶.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__saf cap 4 new v2🥶.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/saf cap 4 new v2🥶.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__saf cap 5new v2🥶.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/saf cap 5new v2🥶.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__saf cap 6 new v2🥶.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/saf cap 6 new v2🥶.hc"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "hc__saf cap 7 new v2🥶.hc.json",
+      "format": "hc",
+      "scheme_used": "A5",
+      "source": "assets/configs/hc/saf cap 7 new v2🥶.hc"
+    },
+    {
+      "decryption_status": "failed",
+      "fixture": "tls__airtel unlimited ❤️🥶 6516665 (2).tls.json",
+      "format": "tls",
+      "scheme_used": "F1",
+      "source": "assets/configs/tls/airtel unlimited ❤️🥶 6516665 (2).tls"
+    },
+    {
+      "decryption_status": "failed",
+      "fixture": "tls__airtel unlimited ❤️🥶 6516665.tls.json",
+      "format": "tls",
+      "scheme_used": "F1",
+      "source": "assets/configs/tls/airtel unlimited ❤️🥶 6516665.tls"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ziv__safпет ² цdp.ziv.json",
+      "format": "ziv",
+      "scheme_used": "H1",
+      "source": "assets/configs/ziv/safпет ² цdp.ziv"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ziv__safпет цdp (2).ziv.json",
+      "format": "ziv",
+      "scheme_used": "H1",
+      "source": "assets/configs/ziv/safпет цdp (2).ziv"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ziv__safпет цdp ² (2).ziv.json",
+      "format": "ziv",
+      "scheme_used": "H1",
+      "source": "assets/configs/ziv/safпет цdp ² (2).ziv"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ziv__safпет цdp ².ziv.json",
+      "format": "ziv",
+      "scheme_used": "H1",
+      "source": "assets/configs/ziv/safпет цdp ².ziv"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ziv__safпет цdp ¹.ziv.json",
+      "format": "ziv",
+      "scheme_used": "H1",
+      "source": "assets/configs/ziv/safпет цdp ¹.ziv"
+    },
+    {
+      "decryption_status": "success",
+      "fixture": "ziv__safпет цdp.ziv.json",
+      "format": "ziv",
+      "scheme_used": "H1",
+      "source": "assets/configs/ziv/safпет цdp.ziv"
+    }
+  ]
+}

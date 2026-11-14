@@ -1,0 +1,1727 @@
+{
+  "normalized": {
+    "bug_host": null,
+    "connection_type": "1",
+    "custom_headers": {},
+    "decrypt_trace": {
+      "attempts": [
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "hc_v27",
+          "result": "info",
+          "scheme": "A5"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "hc_v27",
+          "result": "info",
+          "scheme": "A5"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "hc_v27",
+          "result": "info",
+          "scheme": "A5"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "hc_v27",
+          "result": "info",
+          "scheme": "A5"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "hc_v27",
+          "result": "info",
+          "scheme": "A5"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "hc_v27",
+          "result": "info",
+          "scheme": "A5"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "ApkCusT0m_K3y",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0-T34m",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0@T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0:T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V^3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V(3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V(3Pr0)T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0_T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-ePr0_T3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-ePr0_t3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v-ePr0_t3@M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v-ePr0-t34M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t34M",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t3aM",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t3am",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_bl4th",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "no1_ePr0_bl4th",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn1",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn2",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn3",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn4",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn5",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn6",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc1",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc2",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_2",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn7",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn8",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn9",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn10",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z9",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z10",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z11",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te54",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3Y_ePro",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3Y_ePr0_3NcRypT",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3y_ePr0_3NcRypT",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_e",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr0",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr1",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr2",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr3",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr4",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_1",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_2",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_3",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_4",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_5",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_6",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_7",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_8",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_9",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_10",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn___7",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_1",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_2",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_3",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_4",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_5",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_6",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_7",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_8",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_9",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_for_you",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_easypro_7",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc35_easypro_8",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc37_easypro@2020",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc38_345yPr0@2020",
+          "result": "fail",
+          "scheme": "A1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "ApkCusT0m_K3y",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0-T34m",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0@T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0:T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V^3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V(3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V(3Pr0)T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0_T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-ePr0_T3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-ePr0_t3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v-ePr0_t3@M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v-ePr0-t34M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t34M",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t3aM",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t3am",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_bl4th",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "no1_ePr0_bl4th",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn1",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn2",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn3",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn4",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn5",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn6",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc1",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc2",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_2",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn7",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn8",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn9",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn10",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z9",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z10",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z11",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te54",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3Y_ePro",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3Y_ePr0_3NcRypT",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3y_ePr0_3NcRypT",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_e",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr0",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr1",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr2",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr3",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr4",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_1",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_2",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_3",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_4",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_5",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_6",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_7",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_8",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_9",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_10",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn___7",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_1",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_2",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_3",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_4",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_5",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_6",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_7",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_8",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_9",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_for_you",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_easypro_7",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc35_easypro_8",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc37_easypro@2020",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc38_345yPr0@2020",
+          "result": "fail",
+          "scheme": "A2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "HTTP_Custom_v233_hc_easypro_7",
+          "result": "fail",
+          "scheme": "A3"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "HTTP_Custom_v233_hc35_easypro_8",
+          "result": "fail",
+          "scheme": "A3"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "ApkCusT0m_K3y",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0-T34m",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0@T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0:T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V:3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V^3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V(3Pr0-T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V(3Pr0)T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-3Pr0_T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-ePr0_T3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3V-ePr0_t3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v-ePr0_t3@M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v-ePr0-t34M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t34M",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t3aM",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_t3am",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "d3v_ePr0_bl4th",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "no1_ePr0_bl4th",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn1",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn2",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn3",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn4",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn5",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_reborn6",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc1",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc2",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_hc_2",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn7",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn8",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn9",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn10",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z9",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z10",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te4Z11",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_te54",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3Y_ePro",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3Y_ePr0_3NcRypT",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "s3cr3T_k3y_ePr0_3NcRypT",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_e",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr0",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr1",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr2",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr3",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "keY_secReaT_ePr4",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_1",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_2",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_3",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_4",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_5",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_6",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_7",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_8",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_9",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_10",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn___7",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_1",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_2",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_3",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_4",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_5",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_6",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_7",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_8",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_tester_9",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_reborn_for_you",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc_easypro_7",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc35_easypro_8",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc37_easypro@2020",
+          "result": "fail",
+          "scheme": "A4"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "hc38_345yPr0@2020",
+          "result": "fail",
+          "scheme": "A4"
+        }
+      ],
+      "filename": "saf cap 3 new v2🥶.hc",
+      "filepath": "/Users/bao/Code/InjectX/assets/configs/hc/saf cap 3 new v2🥶.hc",
+      "format": "hc",
+      "winning_key_label": null,
+      "winning_scheme": null
+    },
+    "decryption_status": "success",
+    "dns": null,
+    "errors": [],
+    "filename": "saf cap 3 new v2🥶.hc",
+    "filepath": "assets/configs/hc/saf cap 3 new v2🥶.hc",
+    "format": "hc",
+    "host": "sg3.wstunnel.biz.id",
+    "hysteria": null,
+    "inject_type": null,
+    "internal_ip": null,
+    "ir_version": "1.0",
+    "is_encrypted": true,
+    "payload": "GET /cdn-cgi/trace HTTP/1.1[crlf]Host: [proxy][crlf][crlf][split]UNLOCK /? HTTP/1.1[crlf]Host: [host][crlf]Connection: upgrade[crlf]User-Agent: [ua][crlf]Upgrade: websocket[crlf][crlf][split]UNLOCK /? HTTP/1.1[crlf]Host: [proxy][crlf]Content-Length:999999999999[crlf]",
+    "payload_parsed": [
+      {
+        "method": "GET",
+        "path": "/cdn-cgi/trace",
+        "type": "method",
+        "version": "HTTP/1.1[crlf]Host:"
+      }
+    ],
+    "port": 80,
+    "protocol": "ssh",
+    "proxy_host": "6chcdn-res.6chcdn.feednews.com",
+    "proxy_port": null,
+    "raw_data": {
+      "_all_fields": {
+        "block_area": "false",
+        "blocked_by_hwid": "false",
+        "blocked_by_password": "false",
+        "blocked_by_root": "true",
+        "cloud_config": "false",
+        "connection_mode": "1",
+        "expiry_time": "lifeTime",
+        "extra_sniffer": "false",
+        "lock_all_config": "true",
+        "mobile_data_lock": "true",
+        "note_enabled": "true",
+        "notes": "<h1 style=\"text-align: center\"><u><small></i><span style=\"bac/kground-color: #000000\"><font color=\"#e61e47\"><big>亗<small></font><font color=\"#ffc400\"></font><font color=\"#ffb200\"> → </font><font color=\"#16fb38\"></font><font color=\"#16fb38\"><big>☆ <small>°</font><big><big><font color=\"#e61e47\"> R</font><font color=\"#d2157b\">O</font><font color=\"#d2157b\">m</font><font color=\"#fb3a0c\">e</font><font color=\"#fb6408\">o</font><font color=\"#fe4 color=\"#06fdff\"><big>☆<small></font><font color=\"#ff0092\"></font><font color=\"#f800a8\"></font><font  color=\"#f000be\"> ←</font></font color=\"#e900d3\"></font><font color=\"#9500ff\"><big> 亗<small></span></br>\n</font></font><><><small><span style=\"bac/kground-color:#000000\"</font><big><i></u><small><small><small><small><small><small></u></u></i><><font color=\"#06fdff\">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n\n\n </ font><u><font color=\"#ffc200\">»»»» 🇰🇪</font></i><font color=\"#ff0000\"> ⏤‌‌ 𝙑𝙋𝙉 </font></font><><font color=\"#ff0000\"> : </font><font color=\"#06fdff\"></font><font color=\"#ffc200\">KE</font><font color=\"#1b75fc\">NY</font><font color=\"#ff0000\">𝘼 🇰🇪 ««««<font><><i><u><br></u></u><small><u><big><big><span  >━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </font></font><big><big></span></span><big><big></u><font></span><font color=\"#fe5107\"><><big><><small>\n☆→→🔰   TELEGRAM  channel ⇶<small><big>\n\n [ < \"https://t.me/ashesvpn\" > \n\n\nfutures trading channel: https://t.me/pie_xtra\n\nE football serious gamers only group: \n\nhttps://chat.whatsapp.com/LsPWmcJbjJN5Pe0rfC8mqc?s=cl&p=a&ilr=2\n\n\n🔰 Whatsapp groups LINK ⇶<small><big> \n\n  \"Whatsapp group 1. https://chat.whatsapp.com/GX3lBjAyyKi8P4qQ74OQYQ?mode=gi_t\n\nWhatsapp group 2. https://chat.whatsapp.com/FVcHOs606rH0RjKsoIH6XE?mode=hqctcla\n\nWhatsapp group 3. https://chat.whatsapp.com/FDOexeWZj1D6ffSzSt7L7N?mode=gi_t\n\nWhatsapp group 4. https://chat.whatsapp.com/KMLMps4pQIHBq8AMtusALO?mode=gi_t\n\nWhatsapp group 5. https://chat.whatsapp.com/HA9kDGQuMffK6n8sMMYy9o?mode=gi_t\n\nWhatsapp group 6. https://chat.whatsapp.com/IqYSLpC8AkxDH70x3QFhKx?mode=gi_t\n\nWhatsapp group 7. https://chat.whatsapp.com/GcK3IXPtBvmJG5HPC9tyfh?mode=gi_t\n\nWhatsapp channel: https://whatsapp.com/channel/0029VaaTBWh2phHOcjWOi92N\"",
+        "openvpn_creds": ":",
+        "payload": "GET /cdn-cgi/trace HTTP/1.1[crlf]Host: [proxy][crlf][crlf][split]UNLOCK /? HTTP/1.1[crlf]Host: [host][crlf]Connection: upgrade[crlf]User-Agent: [ua][crlf]Upgrade: websocket[crlf][crlf][split]UNLOCK /? HTTP/1.1[crlf]Host: [proxy][crlf]Content-Length:999999999999[crlf]",
+        "proxy_host": "6chcdn-res.6chcdn.feednews.com",
+        "slowdns_enabled": "false",
+        "ssh_server": "sg3.wstunnel.biz.id:80@wahyust:1",
+        "unlock_user_pass": "false",
+        "unlock_user_pass_2": "true",
+        "v2ray_enabled": "false",
+        "version": "645"
+      },
+      "blocks_hwid": false,
+      "blocks_password": false,
+      "blocks_root": true,
+      "expiry": "lifeTime",
+      "hc_version": "645",
+      "locked": true,
+      "protections": {
+        "area": "ke"
+      }
+    },
+    "remote_dns": null,
+    "scheme_used": "A5",
+    "shadowsocks": null,
+    "sni": null,
+    "ssh_key": null,
+    "ssh_pass": "1",
+    "ssh_port": 80,
+    "ssh_server": "sg3.wstunnel.biz.id",
+    "ssh_user": "wahyust",
+    "ssl_enabled": null,
+    "tls_version": null,
+    "tunnel_mode": null,
+    "tunnel_type": null,
+    "v2ray": null,
+    "vless_config": null,
+    "vmess_config": null,
+    "warnings": [],
+    "websocket": null,
+    "wireguard": null,
+    "xray": null
+  },
+  "source": "assets/configs/hc/saf cap 3 new v2🥶.hc"
+}

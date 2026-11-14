@@ -1,0 +1,320 @@
+{
+  "normalized": {
+    "bug_host": null,
+    "connection_type": null,
+    "custom_headers": {},
+    "decrypt_trace": {
+      "attempts": [
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        }
+      ],
+      "filename": "TelkomNet.ehi",
+      "filepath": "/Users/bao/Code/InjectX/assets/configs/ehi/TelkomNet.ehi",
+      "format": "ehi",
+      "winning_key_label": null,
+      "winning_scheme": null
+    },
+    "decryption_status": "success",
+    "dns": null,
+    "errors": [],
+    "filename": "TelkomNet.ehi",
+    "filepath": "assets/configs/ehi/TelkomNet.ehi",
+    "format": "ehi",
+    "host": null,
+    "hysteria": null,
+    "inject_type": null,
+    "internal_ip": null,
+    "ir_version": "1.0",
+    "is_encrypted": true,
+    "payload": null,
+    "payload_parsed": [],
+    "port": null,
+    "protocol": null,
+    "proxy_host": null,
+    "proxy_port": null,
+    "raw_data": {
+      "_all_fields": {
+        "configExpiryTimestamp": 0,
+        "configLockMobileOperatorId": "",
+        "configMessage": "<font color=white><big><big><big><big> SERver</><font color=yellow> MAINTAINED</><font color=cyan> 𝐁𝐘</>  <font color=green>⏤‌Mⱥs‌te‌r‌miήd⏤‌\n\n\n<div style=\"text-align:center\"><p style=\"color:;\"><font color=\"cyan\"><big>█ ✪ █▓▓▓▓▓▓▓▓▓▓▓█ ✪ █</font></>\n<big><font color=\"green\"><big>⏤‌TECHLABS™</font></big>\n<font color=\"cyan\">█ ✪ █▓▓▓▓▓▓▓▓▓▓▓█ ✪ █\n</font>\n<div style=\"text-align:center\"><p style=\"color:;\"><font color=\"\"><font color=\"yellow\">⃟𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐓𝐈𝐎𝐍</font><font color=\"cyan\"> 𝐈𝐍𝐅𝐎𝐑𝐌𝐀𝐓𝐈𝐎𝐍⃠ </font> </></> </></>\n<h3><font color=\"white\">IP: Airplane mode on then off & Reconnect\n</font><font\n<h3><font color=\"green\">𝒫𝑅♡𝒱𝐼𝒟𝐸𝒟 𝐵𝒴: </font><font color=\"mangenta\">https://t.me/Techlabs254</font><br><font color=yellow>[‌‌R][‌‌u][‌‌l][‌‌e][‌‌s]: </><font color=\"red\">No torrent!! No spamming!! </font><h3><font color=magenta> 𝓢𝓔𝓡𝓥𝓔𝓡: </><font color=green>SSH</></></>\n<div style=\"text-align:center\"><p style=\"color:;\"><font color=\"red\"> <big><big><big><big>🦋👽💣 𝔼ภנ𝔬Ƴ 🐺♪🦋</></>",
+        "configSalt": "",
+        "configTimestamp": 0,
+        "configVersionCode": 0,
+        "customDns1": "",
+        "customDns2": "",
+        "dnsType": 3,
+        "isConfigLock": true,
+        "isDefaultRoute": true,
+        "isPublicKey": false,
+        "isSshPrivateKey": false,
+        "localPort": 1080,
+        "overwriteServerData": {
+          "city": "Los Angeles",
+          "country": "US",
+          "dnsttNs": "3a",
+          "dnsttPubKey": "a9ca156deb58885961cce7088ac73cfdeacbe8d0169569ebe1b519823f6b7e4a",
+          "id": "us-la-03",
+          "ip": "208.87.241.145",
+          "key": "1e6106a456476cf07a288e3d170879f8",
+          "name": "US 3 [ws]",
+          "proxyIp": "208.87.241.145",
+          "proxyPort": "80,8080",
+          "sshPassword": "8NvHrjsPkshn6woOoiep0BgXIPOdkHVX",
+          "sshPort": "22",
+          "sshSslPort": "443",
+          "sshUsername": "PCHohemiC3FWBrzlauYTUtz3NSvPT5Sp",
+          "supportedFeatures": "proxy,ssh,ssl,dnstt",
+          "supportedProtocol": "proxy,ssh,ssl_ssh,dnstt_ssh",
+          "tier": 1
+        },
+        "overwriteServerProxyPort": "",
+        "overwriteServerType": 4,
+        "port": 0,
+        "remoteProxyAuth": false,
+        "sniHostname": "myaccount.telkom.co.ke",
+        "tlsVersion": "Default"
+      },
+      "overwrite_server": {
+        "city": "Los Angeles",
+        "country": "US",
+        "dnsttNs": "3a",
+        "dnsttPubKey": "a9ca156deb58885961cce7088ac73cfdeacbe8d0169569ebe1b519823f6b7e4a",
+        "id": "us-la-03",
+        "ip": "208.87.241.145",
+        "key": "1e6106a456476cf07a288e3d170879f8",
+        "name": "US 3 [ws]",
+        "proxyIp": "208.87.241.145",
+        "proxyPort": "80,8080",
+        "sshPassword": "8NvHrjsPkshn6woOoiep0BgXIPOdkHVX",
+        "sshPort": "22",
+        "sshSslPort": "443",
+        "sshUsername": "PCHohemiC3FWBrzlauYTUtz3NSvPT5Sp",
+        "supportedFeatures": "proxy,ssh,ssl,dnstt",
+        "supportedProtocol": "proxy,ssh,ssl_ssh,dnstt_ssh",
+        "tier": 1
+      }
+    },
+    "remote_dns": null,
+    "scheme_used": "B2",
+    "shadowsocks": null,
+    "sni": "myaccount.telkom.co.ke",
+    "ssh_key": null,
+    "ssh_pass": null,
+    "ssh_port": null,
+    "ssh_server": null,
+    "ssh_user": null,
+    "ssl_enabled": null,
+    "tls_version": null,
+    "tunnel_mode": null,
+    "tunnel_type": null,
+    "v2ray": null,
+    "vless_config": null,
+    "vmess_config": null,
+    "warnings": [],
+    "websocket": null,
+    "wireguard": null,
+    "xray": null
+  },
+  "source": "assets/configs/ehi/TelkomNet.ehi"
+}

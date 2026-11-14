@@ -1,0 +1,70 @@
+{
+  "normalized": {
+    "bug_host": null,
+    "connection_type": null,
+    "custom_headers": {},
+    "decrypt_trace": {
+      "attempts": [
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "dark_envelope",
+          "result": "success",
+          "scheme": "I1"
+        }
+      ],
+      "filename": "Youtube Gcp 5h.dark",
+      "filepath": "/Users/bao/Code/InjectX/assets/configs/dark/Youtube Gcp 5h.dark",
+      "format": "dark",
+      "winning_key_label": "dark_envelope",
+      "winning_scheme": "I1"
+    },
+    "decryption_status": "partial",
+    "dns": null,
+    "errors": [],
+    "filename": "Youtube Gcp 5h.dark",
+    "filepath": "assets/configs/dark/Youtube Gcp 5h.dark",
+    "format": "dark",
+    "host": null,
+    "hysteria": null,
+    "inject_type": null,
+    "internal_ip": null,
+    "ir_version": "1.0",
+    "is_encrypted": true,
+    "payload": null,
+    "payload_parsed": [],
+    "port": null,
+    "protocol": "vless",
+    "proxy_host": null,
+    "proxy_port": null,
+    "raw_data": {
+      "locked": true,
+      "name": "Youtube Gcp 5h",
+      "transport": null,
+      "type": "VLESS"
+    },
+    "remote_dns": null,
+    "scheme_used": "I1",
+    "shadowsocks": null,
+    "sni": null,
+    "ssh_key": null,
+    "ssh_pass": null,
+    "ssh_port": null,
+    "ssh_server": null,
+    "ssh_user": null,
+    "ssl_enabled": null,
+    "tls_version": null,
+    "tunnel_mode": null,
+    "tunnel_type": null,
+    "v2ray": null,
+    "vless_config": null,
+    "vmess_config": null,
+    "warnings": [
+      "This DARK Tunnel config is LOCKED by its author: the server/credentials are sealed in an encrypted 'encryptedLockedConfig' blob with a key that is not in the file, so only type and name are recoverable."
+    ],
+    "websocket": null,
+    "wireguard": null,
+    "xray": null
+  },
+  "source": "assets/configs/dark/Youtube Gcp 5h.dark"
+}

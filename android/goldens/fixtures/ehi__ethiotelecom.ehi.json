@@ -1,0 +1,333 @@
+{
+  "normalized": {
+    "bug_host": null,
+    "connection_type": null,
+    "custom_headers": {},
+    "decrypt_trace": {
+      "attempts": [
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ehi_v2",
+          "result": "info",
+          "scheme": "B2"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:fhIQ96q5Vvem…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:Rnjg9Slfyas+…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:CFHSIHTTPINISSCF",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:V5HSIHTTPINISS20",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:V5HSIHTTPINISS21",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:SBHSIHTTPINISSLS",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:OBHSIHTTPINIOCTO",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:AYJZIHTTPINIECKC",
+          "result": "fail",
+          "scheme": "B1"
+        },
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "S1:MiUQFV2nMl1k…+IV:SBHSIHTTPINILITE",
+          "result": "fail",
+          "scheme": "B1"
+        }
+      ],
+      "filename": "ethiotelecom.ehi",
+      "filepath": "/Users/bao/Code/InjectX/assets/configs/ehi/ethiotelecom.ehi",
+      "format": "ehi",
+      "winning_key_label": null,
+      "winning_scheme": null
+    },
+    "decryption_status": "success",
+    "dns": null,
+    "errors": [],
+    "filename": "ethiotelecom.ehi",
+    "filepath": "assets/configs/ehi/ethiotelecom.ehi",
+    "format": "ehi",
+    "host": null,
+    "hysteria": null,
+    "inject_type": null,
+    "internal_ip": null,
+    "ir_version": "1.0",
+    "is_encrypted": true,
+    "payload": "GET /cdn-cgi/trace HTTP/1.1[crlf]Host: batkhonecta.ke:80[crlf][crlf][split]UNLOCK /? HTTP/1.1[crlf]Host: [host][crlf]Connection: upgrade[crlf]User-Agent: [ua][crlf]Upgrade: websocket[crlf][crlf][split]UNLOCK /? HTTP/1.1[crlf]Host: batkhonecta.ke:80[crlf]Content-Length:999999999999[crlf]",
+    "payload_parsed": [
+      {
+        "method": "GET",
+        "path": "/cdn-cgi/trace",
+        "type": "method",
+        "version": "HTTP/1.1[crlf]Host:"
+      }
+    ],
+    "port": null,
+    "protocol": null,
+    "proxy_host": "batkhonecta.ke:80",
+    "proxy_port": null,
+    "raw_data": {
+      "_all_fields": {
+        "configExpiryTimestamp": 0,
+        "configLockMobileOperatorId": "",
+        "configMessage": "<font color=white><big><big><big><big> SERver</><font color=yellow> MAINTAINED</><font color=cyan> 𝐁𝐘</>  <font color=green>⏤‌Mⱥs‌te‌r‌miήd⏤‌\n\n\n<div style=\"text-align:center\"><p style=\"color:;\"><font color=\"cyan\"><big>█ ✪ █▓▓▓▓▓▓▓▓▓▓▓█ ✪ █</font></>\n<big><font color=\"green\"><big>⏤‌TECHLABS™</font></big>\n<font color=\"cyan\">█ ✪ █▓▓▓▓▓▓▓▓▓▓▓█ ✪ █\n</font>\n<div style=\"text-align:center\"><p style=\"color:;\"><font color=\"\"><font color=\"yellow\">⃟𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐓𝐈𝐎𝐍</font><font color=\"cyan\"> 𝐈𝐍𝐅𝐎𝐑𝐌𝐀𝐓𝐈𝐎𝐍⃠ </font> </></> </></>\n<h3><font color=\"white\">EthioTelecom Ips: 10.85;10.45;10.205;10.130;10.129\n</font><font\n<h3><font color=\"green\">𝒫𝑅♡𝒱𝐼𝒟𝐸𝒟 𝐵𝒴: </font><font color=\"mangenta\">https://t.me/Techlabs254</font><br><font color=yellow>[‌‌R][‌‌u][‌‌l][‌‌e][‌‌s]: </><font color=\"red\">No torrent!! No spamming!! </font><h3><font color=magenta> 𝓢𝓔𝓡𝓥𝓔𝓡: </><font color=green>SSH</></></>\n<div style=\"text-align:center\"><p style=\"color:;\"><font color=\"red\"> <big><big><big><big>🦋👽💣 𝔼ภנ𝔬Ƴ 🐺♪🦋</></>",
+        "configSalt": "",
+        "configTimestamp": 1774334082,
+        "configVersionCode": 0,
+        "customDns1": "",
+        "customDns2": "",
+        "dnsType": 3,
+        "dnsttDnsResolverAddr": "8.8.4.4",
+        "dnsttNameserver": "newca.dozapp.xyz",
+        "dnsttPublicKey": "b4e0dccf98092689d5c81fe4cf37b85f545ed5a770c35f004af99d749fda9e79",
+        "isConfigLock": true,
+        "isDefaultRoute": true,
+        "isPublicKey": false,
+        "isSshPrivateKey": false,
+        "localPort": 1080,
+        "overwriteServerData": {
+          "city": "Egypt",
+          "country": "EG",
+          "dnsttNs": "1e",
+          "dnsttPubKey": "0353c1d5d9e9bdef69f5ac978164425a74b65829fe19719b02a47ebf08663772",
+          "id": "eg01",
+          "ip": "188.214.122.14",
+          "key": "ad2dfeb84cf1a3ed430889f384bdf993",
+          "name": "EG 1 [ws]",
+          "proxyIp": "188.214.122.14",
+          "proxyPort": "80,8080",
+          "sshPassword": "mVdcVDHdXeYKDRTH5ToHuoS67MXgnA1L",
+          "sshPort": "22",
+          "sshSslPort": "443",
+          "sshUsername": "laUrzcrMHMFVlx5KTTGJPG6W4wXi7Jct",
+          "supportedFeatures": "proxy,ssh,ssl,dnstt",
+          "supportedProtocol": "proxy,ssh,ssl_ssh,dnstt_ssh",
+          "tier": 1
+        },
+        "overwriteServerType": 4,
+        "password": "doingsedozlite",
+        "payload": "GET /cdn-cgi/trace HTTP/1.1[crlf]Host: batkhonecta.ke:80[crlf][crlf][split]UNLOCK /? HTTP/1.1[crlf]Host: [host][crlf]Connection: upgrade[crlf]User-Agent: [ua][crlf]Upgrade: websocket[crlf][crlf][split]UNLOCK /? HTTP/1.1[crlf]Host: batkhonecta.ke:80[crlf]Content-Length:999999999999[crlf]",
+        "port": 0,
+        "remoteProxy": "batkhonecta.ke:80",
+        "remoteProxyAuth": false,
+        "sniHostname": "Auth.udacity.com",
+        "tlsVersion": "Default",
+        "user": "edozlitedoings"
+      },
+      "overwrite_server": {
+        "city": "Egypt",
+        "country": "EG",
+        "dnsttNs": "1e",
+        "dnsttPubKey": "0353c1d5d9e9bdef69f5ac978164425a74b65829fe19719b02a47ebf08663772",
+        "id": "eg01",
+        "ip": "188.214.122.14",
+        "key": "ad2dfeb84cf1a3ed430889f384bdf993",
+        "name": "EG 1 [ws]",
+        "proxyIp": "188.214.122.14",
+        "proxyPort": "80,8080",
+        "sshPassword": "mVdcVDHdXeYKDRTH5ToHuoS67MXgnA1L",
+        "sshPort": "22",
+        "sshSslPort": "443",
+        "sshUsername": "laUrzcrMHMFVlx5KTTGJPG6W4wXi7Jct",
+        "supportedFeatures": "proxy,ssh,ssl,dnstt",
+        "supportedProtocol": "proxy,ssh,ssl_ssh,dnstt_ssh",
+        "tier": 1
+      }
+    },
+    "remote_dns": null,
+    "scheme_used": "B2",
+    "shadowsocks": null,
+    "sni": "Auth.udacity.com",
+    "ssh_key": null,
+    "ssh_pass": null,
+    "ssh_port": null,
+    "ssh_server": null,
+    "ssh_user": null,
+    "ssl_enabled": null,
+    "tls_version": null,
+    "tunnel_mode": null,
+    "tunnel_type": null,
+    "v2ray": null,
+    "vless_config": null,
+    "vmess_config": null,
+    "warnings": [],
+    "websocket": null,
+    "wireguard": null,
+    "xray": null
+  },
+  "source": "assets/configs/ehi/ethiotelecom.ehi"
+}

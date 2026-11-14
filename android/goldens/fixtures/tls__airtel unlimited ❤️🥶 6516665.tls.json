@@ -1,0 +1,74 @@
+{
+  "normalized": {
+    "bug_host": null,
+    "connection_type": null,
+    "custom_headers": {},
+    "decrypt_trace": {
+      "attempts": [
+        {
+          "confidence": 0.0,
+          "error_message": "",
+          "key_label": "VCTCp8KqOl7CumzMicS4…",
+          "result": "fail",
+          "scheme": "F1"
+        }
+      ],
+      "filename": "airtel unlimited ❤️🥶 6516665.tls",
+      "filepath": "/Users/bao/Code/InjectX/assets/configs/tls/airtel unlimited ❤️🥶 6516665.tls",
+      "format": "tls",
+      "winning_key_label": null,
+      "winning_scheme": null
+    },
+    "decryption_status": "failed",
+    "dns": null,
+    "errors": [],
+    "filename": "airtel unlimited ❤️🥶 6516665.tls",
+    "filepath": "assets/configs/tls/airtel unlimited ❤️🥶 6516665.tls",
+    "format": "tls",
+    "host": null,
+    "hysteria": null,
+    "inject_type": null,
+    "internal_ip": null,
+    "ir_version": "1.0",
+    "is_encrypted": true,
+    "payload": null,
+    "payload_parsed": [],
+    "port": null,
+    "protocol": null,
+    "proxy_host": null,
+    "proxy_port": null,
+    "raw_data": {
+      "features": {
+        "ascii_ratio": 1.0,
+        "base64_likelihood": 1.0,
+        "byte_distribution_skew": 0.2612,
+        "entropy": 5.9107,
+        "is_zip": false,
+        "null_byte_ratio": 0.0
+      },
+      "file_size": 3479,
+      "hex_preview": "776c4138476e3247665842354e477a644370613452656258376775416248434d58784a35583832414a367039397a774a506b4f564c6d576536594d5041544e6c"
+    },
+    "remote_dns": null,
+    "scheme_used": "F1",
+    "shadowsocks": null,
+    "sni": null,
+    "ssh_key": null,
+    "ssh_pass": null,
+    "ssh_port": null,
+    "ssh_server": null,
+    "ssh_user": null,
+    "ssl_enabled": null,
+    "tls_version": null,
+    "tunnel_mode": null,
+    "tunnel_type": null,
+    "v2ray": null,
+    "vless_config": null,
+    "vmess_config": null,
+    "warnings": [],
+    "websocket": null,
+    "wireguard": null,
+    "xray": null
+  },
+  "source": "assets/configs/tls/airtel unlimited ❤️🥶 6516665.tls"
+}

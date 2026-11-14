@@ -1,0 +1,111 @@
+{
+  "normalized": {
+    "bug_host": null,
+    "connection_type": null,
+    "custom_headers": {},
+    "decrypt_trace": {
+      "attempts": [
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ziv",
+          "result": "info",
+          "scheme": "H1"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ziv",
+          "result": "info",
+          "scheme": "H1"
+        },
+        {
+          "confidence": 0.5,
+          "error_message": "",
+          "key_label": "ziv",
+          "result": "info",
+          "scheme": "H1"
+        },
+        {
+          "confidence": 0.9,
+          "error_message": "",
+          "key_label": "ziv:SecurePart1SecurePart2SecurePart3SecurePart4SecurePart5",
+          "result": "success",
+          "scheme": "H1"
+        }
+      ],
+      "filename": "safпет цdp ² (2).ziv",
+      "filepath": "/Users/bao/Code/InjectX/assets/configs/ziv/safпет цdp ² (2).ziv",
+      "format": "ziv",
+      "winning_key_label": "ziv:SecurePart1SecurePart2SecurePart3SecurePart4SecurePart5",
+      "winning_scheme": "H1"
+    },
+    "decryption_status": "success",
+    "dns": null,
+    "errors": [],
+    "filename": "safпет цdp ² (2).ziv",
+    "filepath": "assets/configs/ziv/safпет цdp ² (2).ziv",
+    "format": "ziv",
+    "host": "udpsg3.zivpn.com",
+    "hysteria": null,
+    "inject_type": null,
+    "internal_ip": null,
+    "ir_version": "1.0",
+    "is_encrypted": false,
+    "payload": null,
+    "payload_parsed": [],
+    "port": null,
+    "protocol": "unknown",
+    "proxy_host": null,
+    "proxy_port": null,
+    "raw_data": {
+      "_all_fields": {
+        "alpha": "0",
+        "beta": "1784424819684",
+        "boostslowdns": "0",
+        "currentpsiprotocol": "0",
+        "customdns": "0",
+        "dnsForward": "0",
+        "file.appVersionCode": "24",
+        "file.askHwid": "0",
+        "file.askHwidLocal": "0",
+        "file.askLogin": "0",
+        "file.askUser": "0",
+        "file.msg": "&lt;!DOCTYPE html&gt;\n&lt;html&gt;&lt;body style=\"text-align:center\"&gt;\n    &lt;div style=\"text-align:center;\"&gt;\n        &lt;h2&gt; SSH254&lt;big&gt;&#55357;&#56370;&lt;/big&gt;&lt;/h2&gt;\n    &lt;/div&gt;\n&lt;div style=\"text-align:center;\"&gt;\n    &lt;span style=\"color:#00edff;\"&gt;&lt;small&gt;\n\n    &lt;/span&gt;&lt;/small&gt;\n&lt;/div&gt;\n&lt;div style=\"text-align:center\"&gt;\n&lt;span style=\"color:#00edff;\"&gt;&lt;/span&gt;&lt;span style=\"color:#00edff;\"&gt; SAF UDP \n&lt;/span&gt;\n&lt;h5&gt;\n&lt;small&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt; &lt;small&gt;&lt;small&gt;&lt;span style=\"color:#00edff; text-align:center;\"&gt;⠀⠀⠀⠀\n&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;\n&lt;/h5&gt;\n&lt;/div&gt;\n&lt;div style=\"text-align:center\"&gt;\n    &lt;span style=\"color: #ffff00\"&gt;\n         \n&lt;/span&gt;\n&lt;/div&gt;\n&lt;div style=\"text-align:center\"&gt;\n&lt;h7&gt; &lt;span style=\"color:#ffff00\"&gt;\n\n&lt;/h7&gt;\n    &lt;div style=\"text-align:center\"&gt;\n         &lt;span style=\"color:#ffffff\"&gt;\n          \n         &lt;/span&gt;\n    &lt;/div&gt;\n    &lt;div style=\"text-align:center\"&gt;\n     &lt;span style=\"color:#7b01ff;\"&gt;ZOEZI KILA TIME&lt;/span&gt;\n    &lt;/div&gt;\n&lt;/div&gt;\n   &lt;/div&gt;\n&lt;/body&gt;\n&lt;/html&gt;",
+        "gamma": "1",
+        "injectionmode": "1",
+        "psibuiltin": "0",
+        "sshPortaLocal": "1080",
+        "tcpnodelay": "0",
+        "tunnelType": "4",
+        "udpForward": "0",
+        "udpResolver": "127.0.0.1:7300",
+        "udpcustomserver": "0",
+        "udpserver": "udpsg3.zivpn.com",
+        "usarDefaultPayload": "0",
+        "vpnshare": "0"
+      }
+    },
+    "remote_dns": "127.0.0.1:7300",
+    "scheme_used": "H1",
+    "shadowsocks": null,
+    "sni": null,
+    "ssh_key": null,
+    "ssh_pass": null,
+    "ssh_port": null,
+    "ssh_server": null,
+    "ssh_user": null,
+    "ssl_enabled": null,
+    "tls_version": null,
+    "tunnel_mode": null,
+    "tunnel_type": null,
+    "v2ray": null,
+    "vless_config": null,
+    "vmess_config": null,
+    "warnings": [],
+    "websocket": null,
+    "wireguard": null,
+    "xray": null
+  },
+  "source": "assets/configs/ziv/safпет цdp ² (2).ziv"
+}
