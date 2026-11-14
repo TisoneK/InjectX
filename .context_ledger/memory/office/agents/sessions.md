@@ -396,3 +396,16 @@ outcome:
 - **Next:** schemes WITHOUT samples (hat E1, npv C1, nsh D1, vhd G1, legacy hc A1-A4, ehi B1, tls F1) have no goldens → **blocked on N3** (add samples) before they can be parity-verified. Then detector + parse_engine ports unlock full-pipeline parity (ADR-11). `:app` UI/APK still needs the Android SDK.
 - **Report:** none (porting; `android/` is product).
 - **Notes:** Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: detector + parse engine, full-pipeline parity)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: "Detector + parse engine" — port them and upgrade to full-pipeline parity.
+- **Outcome:** Both ported and the whole decode pipeline is verified end-to-end.
+  - `core/detect/Detector.kt` (port of detector.py): extension + validation, feature vector (entropy/skew/ascii/base64/null/zip, HALF_EVEN round to 4dp), encrypted classifier. Matches Python incl. the failed-TLS feature vector.
+  - `core/ParseEngine.kt` (port of parse_engine.py): detect → scheme dispatch → per-format json_data builders (ziv/hc/ehi) → normalizers (ziv/dark/hc/ehi) with universal field map, protocol detection, HTTP payload parsing. Output mirrors pydantic model_dump (all IR fields, enums as values) + the hasattr guard.
+  - **`FullPipelineTest` PASSES**: `parseConfig(file) == NormalizedConfig` for all 31 samples (ziv success / dark partial / hc success / ehi success / tls failed), minus decrypt_trace + machine-specific filepath (ADR-11). Commit 6617220.
+  - `:core` has **6 green suites**. Three small divergences found+fixed while reaching parity: machine-specific filepath excluded; `notes`/`openvpn_config`/`ssh_host` aren't IR fields (added a settable-fields guard mirroring Python hasattr); payload_parsed needed `_parse_payload`.
+- **Next:** sample-less schemes (hat/npv/nsh/vhd/legacy hc-ehi/tls) still blocked on **N3** (no goldens); `:app` UI (Phase 6) + APK (Phase 8) need the **Android SDK**.
+- **Report:** none (porting; `android/` is product).
+- **Notes:** Roster kept Working. `date -u`=2026-11-14.
