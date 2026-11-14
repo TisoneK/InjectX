@@ -31,6 +31,22 @@ object Export {
 
     fun toJson(job: SniScanJob): String = prettyJson.encodeToString(SniScanJob.serializer(), job)
 
+    /**
+     * Working-only export for a two-phase hunt (§11.11), tagged with the test
+     * network's label so a host that works on one network is never mistaken
+     * for working everywhere. One host per line; a `#` header records the
+     * network and date for the person reading the file later.
+     */
+    fun working(session: HuntSession): String {
+        val sb = StringBuilder()
+        session.testLabel?.takeIf { it.isNotBlank() }?.let { sb.append("# network: ").append(it).append('\n') }
+        sb.append("# working SNI hosts (").append(session.working().size).append(")\n")
+        for (r in session.working()) sb.append(r.hostname).append('\n')
+        return sb.toString()
+    }
+
+    fun toJson(session: HuntSession): String = prettyJson.encodeToString(HuntSession.serializer(), session)
+
     private fun csvCell(v: String): String =
         if (v.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) "\"" + v.replace("\"", "\"\"") + "\"" else v
 }

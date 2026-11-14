@@ -43,7 +43,7 @@ fun HomeScreen(onOpen: (Screen) -> Unit) {
         HorizontalDivider(color = Divider)
         ToolRow(
             title = "SNI Hunter",
-            subtitle = "Discover and probe bug hosts, then export the ones that work.",
+            subtitle = "Two steps: discover candidate hosts on your normal network, then test which ones work on the dataless one.",
             onClick = { onOpen(Screen.Sni) },
         )
         HorizontalDivider(color = Divider)

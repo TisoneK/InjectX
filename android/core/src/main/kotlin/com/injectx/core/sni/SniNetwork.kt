@@ -66,6 +66,9 @@ object SniNetwork {
                 val peer = sock.session.peerCertificates.firstOrNull() as? X509Certificate
                 if (peer != null) { certCn = cn(peer); certSans = sans(peer) }
             }
+        } catch (e: java.net.SocketTimeoutException) {
+            return SniProbeResult(hostname, targetIp = targetIp, port = port, forwardDns = forward,
+                verdict = Verdict.DEAD, notes = listOf("TLS handshake timed out"), elapsedMs = elapsed())
         } catch (e: Exception) {
             return SniProbeResult(hostname, targetIp = targetIp, port = port, forwardDns = forward,
                 verdict = Verdict.DEAD, notes = listOf("TLS handshake failed: ${e.javaClass.simpleName}"), elapsedMs = elapsed())
@@ -84,6 +87,9 @@ object SniNetwork {
             }
             verdict = SniProbe.classifyHttp(status, redirect)
             if (verdict == Verdict.BLOCKED) notes.add("redirect looks like an ISP captive portal")
+        } catch (e: java.net.SocketTimeoutException) {
+            verdict = if (tlsOk) Verdict.REDIRECT else Verdict.DEAD
+            notes.add("HTTP probe timed out")
         } catch (e: Exception) {
             verdict = if (tlsOk) Verdict.REDIRECT else Verdict.DEAD
             notes.add("HTTP probe failed: ${e.javaClass.simpleName}")

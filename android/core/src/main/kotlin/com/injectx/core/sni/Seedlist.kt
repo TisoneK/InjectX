@@ -7,12 +7,14 @@ import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Seed-list loader — port of `backend/snihunter/sources/seedlist.py`.
- * Parses .txt / .csv / .json seedlists into deduped [SniCandidate]s. The
- * bundled per-ISP lists ship as `:core` resources under `sni/seedlists/`.
+ * Parses USER-supplied .txt / .csv / .json seedlists into deduped
+ * [SniCandidate]s. No carrier presets ship with the app (features/
+ * android-ui.md §11.1): a universal tool must not name ISPs, and bug-host
+ * lists are the user's own to supply, name and save. Plain `.txt` / pasted
+ * input now flows through [DomainInput]; this stays for structured csv/json.
  */
 object Seedlist {
 
-    val BUNDLED = listOf("airtel-ke.txt", "safaricom-ke.txt", "telkom-ke.txt")
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     private fun mk(hostname: String): SniCandidate =
@@ -90,14 +92,5 @@ object Seedlist {
             out.add(cand)
         }
         return out
-    }
-
-    /** Load one of the [BUNDLED] seedlists from `:core` resources. */
-    fun loadBundled(name: String, cloudflareOnly: Boolean = false): List<SniCandidate> {
-        val text = javaClass.classLoader?.getResourceAsStream("sni/seedlists/$name")
-            ?.bufferedReader()?.use { it.readText() }
-            ?: throw IllegalArgumentException("no bundled seedlist: $name")
-        val ext = "." + name.substringAfterLast('.', "")
-        return loadSeedlist(text, ext, cloudflareOnly)
     }
 }
