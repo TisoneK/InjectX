@@ -111,3 +111,55 @@ generated… it should feel natural". Corrected toward a calm, crafted feel:
   Shipped as a CALIBRATION pass; a reference app from the user would anchor it
   best. Decode/SNI screens inherit the new theme; their components still get a
   de-decoration pass next.
+
+## 10. Visual direction — v3 (2026-11-14, user reversed the calm pass)
+The calm/non-neon pass (§9) was judged a regression: "cleaner layout but dropped
+most of what made it feel like a product… keep the green/teal identity." Final
+direction = **the neon identity + the calm pass's descriptions & disclaimer**:
+- **Restore** the near-black green-tinted ground + neon-green/cyan identity and
+  the color-coded format chips and a bold accent primary action (focal point).
+- **Keep** from the calm pass: plain-language tool descriptions, the honest
+  responsible-use disclaimer, and ONE navigation pattern throughout
+  (hub-and-spoke; no mixing a menu-list home with tabbed tool screens).
+- **Format list:** show ALL NINE formats (ehi, hc, ziv, dark, tls, npv, nsh,
+  vhd, hat) — the calm pass showed only 5 (content inconsistency).
+- **Empty states:** give a hint of the output (a sample decoded result / a
+  "last scan" card) instead of a logo in a void.
+
+### LOGO — the real fix (critical)
+Every screen currently **hand-draws its own hexagon** (the Canvas `HexLogo`),
+so they drift (thick-glow vs thin-muted). **None uses the real app icon.**
+- Use the actual icon artwork (`assets/icons/icon.png`) as the ONE source for
+  every placement (header, cards, Decode empty state) via a drawable + `Image`
+  — NO Canvas redraws. Scale the same asset; never redraw.
+- Logo appears **once per screen** (not header AND card).
+- Done this session: added `res/drawable/injectx_logo.png` (the real icon) and
+  replaced the Canvas logo with it.
+
+## 11. SNI Hunter — functional rework (NEXT; from user spec 2026-11-14)
+A universal tool must not ship carrier names. Rework:
+1. **Remove hardcoded carriers** (safaricom/airtel/telkom seedlists). Seedlists
+   are USER-supplied, saved + named by the user — no carrier presets.
+2. **Network label:** user names the network they're testing ("Work SIM",
+   "Dataless Airtel"); every result is tagged with it (a host that works on one
+   network isn't assumed to work on another).
+3. **One input** replaces the Seedlist/Domain toggle — accepts: a single domain;
+   several separated by `;` / commas / spaces / newlines; or an imported `.txt`
+   (one per line, rockyou-style, possibly huge).
+4. **Cleanup on parse:** trim, lowercase, dedupe, strip `https://`, paths, ports
+   and `*.` prefixes; ignore blank lines and `#` comments.
+5. **Live count** before scan: "212 valid, 3 skipped", with a way to view the
+   skipped lines. Large files: show line count on import.
+6. **Start disabled** until ≥1 valid domain, and SAY why it's disabled.
+7. **Two phases on two networks** (treat as separate steps, not one button):
+   - **Discover** (real network): fetch subdomains (crt.sh) → candidate list.
+   - **Test** (dataless network): user switches networks, tests which candidates
+     actually work. Handoff copy: "Candidates saved. Switch to your dataless
+     network, then run the test."
+8. **Persist the candidate list** across the network switch, app restart and a
+   dropped connection (filesDir JSON / DataStore).
+9. **Network indicator** on the Test step (connected? which net?).
+10. **Resume** a test from where it stopped if the connection drops.
+11. **Results in 3 states:** works / fails / timed out. Export = working only,
+    tagged with the network label.
+12. SNI Hunter description should mention the two-step flow.

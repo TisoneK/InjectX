@@ -501,3 +501,12 @@ outcome:
 - **Honest note:** this is a CALIBRATION pass — visual taste is my weakest area and I can't see it render (no device). A reference app from the user would anchor it far better than my guesses. Decode/SNI screen components still need the same de-decoration pass.
 - **Next:** user reaction → iterate; de-decorate Decode/SNI result components to match; then SNI remainder.
 - **Report:** none. Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: neon identity restored + real app icon)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User's detailed design critique reversed the calm pass: the neon green/cyan identity is the right direction (calm was a regression), and the real defect was that NO screen used the actual app icon — each hand-drew its own hexagon.
+- **Outcome:** Restored the neon palette in `Color.kt` (near-black green-tinted ground, #32E39B green + #45D6E8 cyan; token names kept so nothing cascades). Added `res/drawable/injectx_logo.png` (the real icon, from `assets/icons/icon.png`) as the ONE logo source; `HexLogo` now renders that asset scaled — never a redraw — everywhere (top bar, Decode empty-state hero). `formatColor` now covers all 9 formats (ehi/hc/ziv/dark/tls/npv/nsh/vhd/hat). Dropped Home's duplicate logo header (top bar carries it); kept the calm pass's plain-language tool descriptions + responsible-use disclaimer. `:app:assembleDebug` green. APK re-signed v1+v2+v3, archived `dist/injectx-debug-v0.1.0-6b3dc06.apk`, versioned on Desktop. Spec in `features/android-ui.md` §10 (neon v3) + §11 (full SNI rework). Commits 6b3dc06 (UI), b598728 (APK).
+- **Honest limit:** compile-verified only — no device/emulator here, so the render (real icon at size, neon on-screen) is still unseen.
+- **Next (major):** SNI Hunter functional rework per `features/android-ui.md` §11 — remove hardcoded carrier seedlists, one flexible input (domain / `;`,`,` separated / `.txt`), cleanup+dedupe+live count, two-phase Discover(real net, crt.sh)→Test(dataless net) with a persistent candidate list surviving network switch, network label on results, 3-state results, export working-only. Then empty-state output previews; de-decorate Decode/SNI to the neon v3 look.
+- **Report:** none. Roster kept Working. `date -u`=2026-11-14.
