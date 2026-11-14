@@ -28,8 +28,18 @@ port without parity coverage (riskier).
 - [ ] Port `backend/parser/detector.py` → `core/detect/Detector.kt` (entropy, ascii ratio, zip magic, base64 likelihood, null-byte ratio; extension + content rules)
 - [ ] Test vs detector's format verdicts for all 31 samples
 
+## Parity methodology (how schemes are verified)
+Two levels. **Decrypt-layer parity** (do this first per scheme): assert the
+Kotlin decryptor reproduces the Python backend's decrypted field map
+(`raw_data._all_fields`) byte-for-byte — this pins the crypto, the risky part.
+**Full-pipeline parity** (after detector + parse engine land): assert
+`pipeline(source) == fixture.normalized` **excluding `decrypt_trace`**, which
+is an implementation-internal audit artifact (exact confidences/attempt order)
+and is deliberately not part of the parity contract.
+
 ## Phase 3 — crypto primitives + KeyStore
-- [ ] AES-ECB/CBC/GCM + PBKDF2 wrappers (javax.crypto)
+- [x] PBKDF2-HMAC-SHA256 (Bouncy Castle PKCS5S2) + AES-GCM decrypt — `core/crypto/Primitives.kt`
+- [ ] AES-ECB/CBC wrappers (javax.crypto)
 - [ ] ChaCha20 + Argon2id (Bouncy Castle)
 - [ ] XXTEA, NPV subtraction cipher, HC XOR layers (hand-port)
 - [ ] EHI custom base64 alphabet (non-standard — port carefully)
@@ -38,7 +48,7 @@ port without parity coverage (riskier).
 ## Phase 4 — decrypt schemes + router (assert each vs its golden)
 - [ ] A5 (hc v2.7+: XOR + ChaCha20 + RST AES-ECB + per-field) — golden ✅
 - [ ] B2 (ehi v2: AES-CBC ×2 + XXTEA + Argon2id + ChaCha20-Poly1305) — golden ✅
-- [ ] H1 (ziv: AES-256-GCM + PBKDF2) — golden ✅
+- [x] H1 (ziv: PBKDF2 + AES-128-GCM) — **decrypt-layer parity PASSES** (`ZivH1.kt`, `ZivH1DecryptTest` vs all 6 ziv goldens). Full-pipeline parity pending parse engine.
 - [ ] I1 (dark: base64 JSON envelope; inner stays locked) — golden ✅ partial
 - [ ] F1 (tls: AES-256-GCM) — golden ✅ (expected FAILED; port for completeness)
 - [ ] A1–A4 (hc legacy), B1 (ehi legacy), C1 (npv), D1 (nsh), E1 (hat), G1 (vhd) — **need samples first (N3)**
