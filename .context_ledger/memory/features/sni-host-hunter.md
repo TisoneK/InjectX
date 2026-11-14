@@ -438,7 +438,7 @@ The feature must respect every standing ADR:
   `POST /api/sni/scan` (mutates state — starts a job),
   `POST /api/sni/stop` (mutates state — stops a job),
   `POST /api/sni/export` (returns a file body — POST is fine).
-- **ADR-4 (two surfaces):** feature code is project surface, `.context/`
+- **ADR-4 (two surfaces):** feature code is project surface, `.context_ledger/`
   is memory surface — never mix in one commit.
 - **New ADR-6 (proposed):** "SNI Host Hunter probes are bound to
   loopback egress only." The prober must not be a network-scanning tool.
@@ -1208,12 +1208,12 @@ The next session that picks this up should:
 1. Read this file in full.
 2. Read §6.5 (phasing checklist) and execute Phase 1.
 3. Ratify ADR-6 (§10) by appending it to
-   `.context/memory/plans/decisions.md`.
+   `.context_ledger/memory/plans/decisions.md`.
 4. Answer the open questions in §9 (or proceed with the proposed
    defaults if the user is silent).
 5. Use the seedlist-provenance question (§9.1) to decide whether to
    ship seedlists in-tree or in a sibling repo.
 6. After Phase 1 ships, log the session in
-   `.context/memory/agents/sessions.md` and update this file's status
+   `.context_ledger/memory/agents/sessions.md` and update this file's status
    line at the top from "research + design" to "Phase 1 shipped,
    Phase 2 open".
