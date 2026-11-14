@@ -13,41 +13,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 private val InjectXColors = darkColorScheme(
-    primary = NeonGreen,
-    onPrimary = Ink,
-    primaryContainer = NeonGreenDim,
+    primary = Accent,
+    onPrimary = Bg,
+    primaryContainer = AccentDim,
     onPrimaryContainer = TextHi,
-    secondary = Cyan,
-    onSecondary = Ink,
-    background = Ink,
+    secondary = InfoBlue,
+    onSecondary = Bg,
+    background = Bg,
     onBackground = TextHi,
     surface = Surface1,
     onSurface = TextHi,
     surfaceVariant = Surface2,
     onSurfaceVariant = TextLo,
     outline = Outline,
-    error = Red,
-    onError = Ink,
+    outlineVariant = Divider,
+    error = BadRed,
+    onError = Bg,
 )
 
 private val InjectXShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(28.dp),
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(24.dp),
 )
 
+// Natural, restrained type: no heavy weights, no wide tracking, sentence case.
 private val base = Typography()
 private val InjectXType = base.copy(
-    headlineMedium = base.headlineMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-    titleLarge = base.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-    titleMedium = base.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-    labelLarge = base.labelLarge.copy(letterSpacing = 0.5.sp),
-    labelMedium = base.labelMedium.copy(color = TextLo, letterSpacing = 0.4.sp),
+    titleLarge = base.titleLarge.copy(fontWeight = FontWeight.Medium),
+    titleMedium = base.titleMedium.copy(fontWeight = FontWeight.Medium),
+    bodyMedium = base.bodyMedium.copy(color = TextMid),
+    labelMedium = base.labelMedium.copy(color = TextLo),
 )
 
-/** Monospace style for config values / code — the "terminal" feel. */
+/** Monospace style for config values / code. */
 val MonoValue = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.sp, color = TextHi)
 
 @Composable
