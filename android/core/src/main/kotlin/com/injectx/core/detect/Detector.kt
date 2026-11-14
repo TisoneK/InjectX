@@ -105,16 +105,19 @@ object Detector {
         }
     } catch (e: Exception) { false }
 
-    fun detect(file: File): DetectResult {
-        val raw = file.readBytes()
-        val ext = "." + file.name.substringAfterLast('.', "").lowercase()
-        var fmt = EXTENSION_MAP[ext]?.takeIf { validateFormat(raw, it) } ?: Format.UNKNOWN
+    fun detect(file: File): DetectResult = detect(file.readBytes(), file.name, file.path)
+
+    /** Bytes-based entry — used on Android where a SAF Uri yields bytes + a
+     *  display name rather than a File. */
+    fun detect(raw: ByteArray, filename: String, filepath: String = filename): DetectResult {
+        val ext = "." + filename.substringAfterLast('.', "").lowercase()
+        val fmt = EXTENSION_MAP[ext]?.takeIf { validateFormat(raw, it) } ?: Format.UNKNOWN
         // (content-based fallback omitted — the sample set is all extension-typed)
         val features = extractFeatures(raw)
         var encrypted = classifyEncrypted(features)
         if (fmt in ENCRYPTED_FORMATS) encrypted = true
         return DetectResult(
-            filepath = file.path, filename = file.name, format = fmt,
+            filepath = filepath, filename = filename, format = fmt,
             features = features, isEncrypted = encrypted,
         )
     }

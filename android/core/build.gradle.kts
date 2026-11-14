@@ -15,7 +15,9 @@ dependencies {
     // lacks. One dependency covers both (ADR-10 §crypto).
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
     // Normalized-config (de)serialization + loading golden fixtures in tests.
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    // `api`: JsonObject appears in ParseEngine's public return type, so :app
+    // needs it transitively.
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     // SNI Hunter networking (Phase 7).
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("dnsjava:dnsjava:3.6.1")

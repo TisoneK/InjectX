@@ -60,8 +60,9 @@ and is deliberately not part of the parity contract.
 - [x] **Full-pipeline parity PASSES** (`FullPipelineTest`: parseConfig(file) == fixture.normalized for all 31 samples, minus decrypt_trace + machine-specific filepath per ADR-11)
 
 ## Phase 6 — UI (`:app`)
-- [ ] SAF file pick → detect → decrypt → render normalized config + audit trace
-- [ ] Export normalized config
+- [x] SAF file pick → `ParseEngine.parseConfig` → render key fields + full normalized JSON (`MainActivity.kt`, Compose/Material3 dark)
+- [x] Export normalized config (share-sheet JSON)
+- [ ] Audit-trace view + per-field niceties (follow-up)
 
 ## Phase 7 — SNI Host Hunter
 - [ ] Discovery (crt.sh + bundled seedlists), OkHttp
@@ -71,4 +72,6 @@ and is deliberately not part of the parity contract.
 - [ ] Results UI. Inherits ADR-6 caps.
 
 ## Phase 8 — package
-- [ ] Signing config, release APK
+- [x] Debug APK builds (`:app:assembleDebug` → app-debug.apk, 13MB) on user-level JDK17 + Android SDK (API 34, build-tools 34.0.0)
+- [ ] Release signing config + release APK
+- [ ] Runtime verification (needs a device/emulator — not available on this host)

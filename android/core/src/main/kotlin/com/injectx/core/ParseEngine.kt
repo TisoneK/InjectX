@@ -357,9 +357,11 @@ object ParseEngine {
     }
 
     // ── pipeline ─────────────────────────────────────────────────────────────
-    fun parseConfig(file: File): JsonObject {
-        val det = Detector.detect(file)
-        val raw = file.readBytes()
+    fun parseConfig(file: File): JsonObject = parseConfig(file.readBytes(), file.name, file.path)
+
+    /** Bytes-based entry — for Android SAF (Uri → bytes + display name). */
+    fun parseConfig(raw: ByteArray, filename: String, filepath: String = filename): JsonObject {
+        val det = Detector.detect(raw, filename, filepath)
         val fmt = det.format
 
         var jsonData: JsonObject? = null
