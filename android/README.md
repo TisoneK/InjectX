@@ -5,20 +5,27 @@ decrypt → show the normalized config; plus the SNI Host Hunter. Build plan,
 architecture and scope are fixed by **ADR-10** and
 `.context_ledger/memory/features/android-app.md`; tracked as backlog **N18**.
 
-## ⚠️ Status — Phase 1, partially built
+## Status — Phase 1 built & green (`:core`)
 
-This scaffold was authored on a host with **no JVM / Gradle / Kotlin / Android
-SDK**, so **no Kotlin here has been compiled, tested, or built into an APK.**
-What IS verified: the golden-vector fixtures (`goldens/`), produced by running
-the real Python backend. Treat all `.kt` / `.gradle.kts` as written-but-unbuilt
-until a toolchain-equipped session (or Android Studio) compiles them.
+A user-level JDK 17 + Gradle 8.9 toolchain is installed (`~/.local/toolchain`),
+and **`:core` compiles and `:core:test` passes** — the golden harness verifies
+all 31 fixtures deserialize into the Kotlin model and match the Python backend.
+The `:app` (Android/Compose) module is **not yet built**: it needs the Android
+SDK (API 34), which this host lacks the disk headroom for (~5 GB free).
 
 Done so far:
-- ✅ **Golden-vector fixtures** — `goldens/generate_goldens.py` + `goldens/fixtures/*.json` (31 fixtures, generated and verified against the Python backend).
-- ✅ **Gradle project scaffold** — `:core` (pure Kotlin/JVM lib) + `:app` (Android/Compose).
-- ✅ **Shared model** — `core/.../model/Models.kt`, a faithful port of `backend/ir/models.py`.
-- ✅ **Golden parity test harness** — `core/.../GoldenParityTest.kt` (loads fixtures; contract check now, full parity once the pipeline lands).
+- ✅ **Golden-vector fixtures** — `goldens/generate_goldens.py` + `goldens/fixtures/*.json` (31 fixtures, generated and verified against the Python backend; ASCII-safe names).
+- ✅ **Gradle project** — `:core` (pure Kotlin/JVM lib) + `:app` (Android/Compose). Wrapper committed (`./gradlew` works on a fresh clone).
+- ✅ **Shared model** — `core/.../model/Models.kt`, faithful port of `backend/ir/models.py`. **Compiles.**
+- ✅ **Golden parity test** — `core/.../GoldenParityTest.kt`, **passing** (contract check now; full pipeline-vs-golden parity once the pipeline lands).
 - ⏳ **Not yet ported:** Detector, the 13 decrypt schemes, KeyStore, parse engine, SNI Hunter, the UI. See `TASKS.md`.
+
+Build & test `:core` (no Android SDK needed):
+
+```bash
+cd android
+JAVA_HOME="$HOME/.local/toolchain/jdk-17.0.21+9/Contents/Home" ./gradlew :core:test
+```
 
 ## Module layout
 

@@ -20,8 +20,10 @@ or any Python with the backend deps installed:
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 import sys
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -71,7 +73,12 @@ def main() -> int:
     for path in sorted(_sample_files()):
         rel = _rel(path)
         fmt_dir = os.path.basename(os.path.dirname(path))
-        slug = fmt_dir + "__" + os.path.basename(path).replace(os.sep, "_")
+        # ASCII-only, collision-free fixture names: sample names carry emoji /
+        # Cyrillic / super-subscripts that break Gradle's resource copy and are
+        # not portable, so slug = fmt + ASCII-scrubbed stem + short path hash.
+        stem = re.sub(r"[^A-Za-z0-9.]+", "_", os.path.basename(path)).strip("_")
+        digest = hashlib.sha1(rel.encode("utf-8")).hexdigest()[:8]
+        slug = f"{fmt_dir}__{stem}__{digest}"
         try:
             cfg = parse_config(path)
             data = cfg.model_dump(mode="json")

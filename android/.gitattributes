@@ -1,0 +1,5 @@
+# Gradle wrapper files are generated with fixed content/line-endings — don't
+# whitespace-lint them (gradlew.bat is CRLF) and treat the jar as binary.
+gradlew        -whitespace
+gradlew.bat    -whitespace text eol=crlf
+gradle/wrapper/gradle-wrapper.jar binary

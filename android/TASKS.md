@@ -21,8 +21,8 @@ port without parity coverage (riskier).
 - [x] Golden-vector generator + 31 fixtures (verified vs Python)
 - [x] Shared model `Models.kt` (port of `ir/models.py`)
 - [x] Golden parity test harness (contract check)
-- [ ] Compile `:core` + green `:core:test` on a real JDK (needs toolchain)
-- [ ] `gradle wrapper` committed from a toolchain host
+- [x] Compile `:core` + green `:core:test` on a real JDK (JDK 17 + Gradle 8.9 installed user-level; `GoldenParityTest` passes)
+- [x] `gradle wrapper` committed (`./gradlew` runs on a fresh clone)
 
 ## Phase 2 — detector
 - [ ] Port `backend/parser/detector.py` → `core/detect/Detector.kt` (entropy, ascii ratio, zip magic, base64 likelihood, null-byte ratio; extension + content rules)
