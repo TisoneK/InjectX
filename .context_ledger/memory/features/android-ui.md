@@ -136,7 +136,7 @@ so they drift (thick-glow vs thin-muted). **None uses the real app icon.**
 - Done this session: added `res/drawable/injectx_logo.png` (the real icon) and
   replaced the Canvas logo with it.
 
-## 11. SNI Hunter — functional rework (NEXT; from user spec 2026-11-14)
+## 11. SNI Hunter — functional rework (DONE 2026-11-14, commit aecaa96)
 A universal tool must not ship carrier names. Rework:
 1. **Remove hardcoded carriers** (safaricom/airtel/telkom seedlists). Seedlists
    are USER-supplied, saved + named by the user — no carrier presets.
@@ -163,3 +163,23 @@ A universal tool must not ship carrier names. Rework:
 11. **Results in 3 states:** works / fails / timed out. Export = working only,
     tagged with the network label.
 12. SNI Hunter description should mention the two-step flow.
+
+**Implementation (aecaa96).** All 12 points shipped:
+- Core (pure, `SniHunterTest` 12 green): `DomainInput` (one flexible input →
+  clean/dedupe/count + reasoned skips), `HuntSession`+`HuntCodec` (two-phase
+  state, 3-state results, network labels, `pending()` resume frontier, JSON
+  round-trip), carriers + `Seedlist.loadBundled`/`BUNDLED` + the bundled
+  resource lists removed, `SniNetwork.probeOne` tags socket timeouts so results
+  are 3-state, `Export.working(session)` = working-only tagged with the label.
+- App: `HuntStore` (filesDir JSON after every probe — survives switch/restart/
+  drop), `NetworkStatus`/`rememberNetworkInfo` (live Wi-Fi/Cellular/Offline
+  chip), `SniScreen` rewritten as Step 1 Discover (input + `.txt` import + live
+  count + skipped viewer + optional crt.sh) / handoff / Step 2 Test (network
+  chip + label + start/pause/resume + 3-state rows + export). Start disabled
+  until ≥1 valid host, with reason. Home subtitle mentions the two steps.
+- **Honest limit:** network probing + persistence are compile-verified only
+  (no device here). The pure logic is unit-tested. Deferred niceties: a saved,
+  user-named seedlist *library* (§11.1 "saved + named") — currently a list is
+  entered/imported per hunt, not persisted as a named library; and concurrency
+  (probes run sequentially). Next: de-decorate Decode/SNI to neon v3; empty-state
+  output previews; device run.
