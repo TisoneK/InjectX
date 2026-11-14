@@ -424,3 +424,15 @@ outcome:
 - **Next:** runtime test on a device/emulator; release signing (Phase 8); SNI Hunter (Phase 7); sample-less schemes (N3).
 - **Report:** none (porting/build; `android/` is product).
 - **Notes:** `local.properties` is gitignored (machine-specific sdk.dir). Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: launcher icon + SNI Hunter core)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: "Copy the apk on desktop then continue with Porting SNI Hunter"; mid-turn: "export the icon also" → clarified "the apk to use the icon also".
+- **Outcome:**
+  - Copied `app-debug.apk` + `injectx-icon.png/.ico` to `~/Desktop/`.
+  - **Launcher icon in the APK**: generated `ic_launcher.png` at 5 densities (sips from assets/icons/icon.png) + `android:icon` in the manifest; aapt confirms it's packaged at every density. Updated APK re-copied to Desktop. (Source 545x614 → squared; a proper adaptive icon is a follow-up.)
+  - **SNI Hunter core ported to `:core`** (`sni/` package): Models, `SniProbe` (classifyHttp/portal/dedupe/cap), `Seedlist` (txt/csv/json + bundled per-ISP lists as resources), `CrtSh` (parse), `Export` (txt/csv/json), `SniNetwork` (live DNS→TLS-SNI→HTTP→reverse-DNS probe + crt.sh discovery via OkHttp/JSSE — I/O, compile-verified only). `SniHunterTest` (6 tests) verifies the pure logic vs Python (classify cases, seedlist counts airtel 13/safaricom 19/telkom 10, crt.sh parse, export). **:core now has 7 green suites.** Commits e0836f3 (+846d58f TASKS).
+- **Not ported (follow-ups):** defensive fronting probe (ADR-9), ECH/reverse-IP/port-check, CertStream, and an `:app` UI surface for SNI.
+- **Report:** none (porting/build; `android/` is product).
+- **Notes:** Roster kept Working. `date -u`=2026-11-14.
