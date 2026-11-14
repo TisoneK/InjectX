@@ -74,7 +74,11 @@ object HcA5 {
     private val RST_XOR_KEY = ByteArray(20) { (it + 2).toByte() }
     private val INITIAL_XOR_KEY = "e382e4b8adc386f09f9293".hexToBytes()
 
-    data class Result(val success: Boolean, val fields: Map<String, Any?>)
+    data class Result(
+        val success: Boolean,
+        val fields: Map<String, Any?>,
+        val protections: Map<String, String> = emptyMap(),
+    )
 
     // ── helpers ────────────────────────────────────────────────────────────
 
@@ -355,7 +359,7 @@ object HcA5 {
                 }
             } catch (e: Exception) {}
         }
-        return Result(true, configData)
+        return Result(true, configData, protections)
     }
 
     private fun kotlinx.serialization.json.JsonElement.strOrNull(): String? =

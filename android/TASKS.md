@@ -25,8 +25,7 @@ port without parity coverage (riskier).
 - [x] `gradle wrapper` committed (`./gradlew` runs on a fresh clone)
 
 ## Phase 2 — detector
-- [ ] Port `backend/parser/detector.py` → `core/detect/Detector.kt` (entropy, ascii ratio, zip magic, base64 likelihood, null-byte ratio; extension + content rules)
-- [ ] Test vs detector's format verdicts for all 31 samples
+- [x] Port `detector.py` → `core/detect/Detector.kt` (extension + validation, feature vector: entropy/skew/ascii/base64/null/zip, encrypted classifier) — verified via full-pipeline parity (format + is_encrypted + the failed-case feature vector all match)
 
 ## Parity methodology (how schemes are verified)
 Two levels. **Decrypt-layer parity** (do this first per scheme): assert the
@@ -54,11 +53,11 @@ and is deliberately not part of the parity contract.
 - [x] I1 (dark: base64 JSON envelope; inner stays locked) — **decrypt-layer parity PASSES** (`DarkI1.kt`, `DarkI1DecryptTest`: type/name/locked/status vs all 4 dark goldens; `transport` is parse-engine-derived, deferred)
 - [ ] F1 (tls: AES-256-GCM) — golden ✅ (expected FAILED; port for completeness)
 - [ ] A1–A4 (hc legacy), B1 (ehi legacy), C1 (npv), D1 (nsh), E1 (hat), G1 (vhd) — **need samples first (N3)**
-- [ ] `SchemeRouter.kt` — dispatch + confidence selection (port `decrypt/router.py`)
+- [x] Scheme dispatch in `ParseEngine.parseConfig` (format → decryptor → status/scheme); standalone confidence-scoring router not needed for parity
 
 ## Phase 5 — parse engine
-- [ ] Port `parser/parse_engine.py` + per-format parsers → `NormalizedConfig`
-- [ ] Full golden parity: pipeline(source) == fixture.normalized for all 31
+- [x] Port `parse_engine.py` → `core/ParseEngine.kt` (detect → dispatch → json_data builders → per-format normalizers → NormalizedConfig; field map, protocol detect, payload parse)
+- [x] **Full-pipeline parity PASSES** (`FullPipelineTest`: parseConfig(file) == fixture.normalized for all 31 samples, minus decrypt_trace + machine-specific filepath per ADR-11)
 
 ## Phase 6 — UI (`:app`)
 - [ ] SAF file pick → detect → decrypt → render normalized config + audit trace
