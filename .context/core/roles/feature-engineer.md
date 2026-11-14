@@ -21,10 +21,10 @@
   still applies: a safe one-liner you're already staring at gets fixed,
   not backlogged.
 - **Deliverable:** feature report in
-  `.context/memory/reviews/YYYY-MM-DD-feature-review.md` + chat summary
+  `.context_ledger/memory/office/reviews/YYYY-MM-DD-feature-review.md` + chat summary
 - **Allowed commits:** `feat(<area>):` for the feature (plus `fix:`/
   `test:`/`docs:` where a touched-code fix, test, or doc change stands
-  alone), `docs(review):` for the report, `chore(context):` for memory.
+  alone), `docs(review):` for the report, `chore(ledger):` for memory.
 
 ## Execution changes vs the base edition
 
@@ -36,7 +36,7 @@
 - **Phase 2 (Step 9) becomes DESIGN, not review.** Before writing any
   code: enumerate the decisions the feature forces (topology, data model,
   API shape, dependency choices), pick, and record each nontrivial one as
-  an ADR entry in `.context/memory/plans/decisions.md` — decision, alternatives
+  an ADR entry in `.context_ledger/memory/office/plans/decisions.md` — decision, alternatives
   considered, consequences. Respect existing entries there (Pitfall:
   don't "fix" the codebase into violating a prior decision). Small
   features may have exactly one decision; record it anyway — the next
@@ -50,13 +50,13 @@
   is not verification. If the environment can't run the real thing
   (no Docker, no external service), verify what you can, say exactly
   what you couldn't, and tell the user what to run where.
-- **Step 13 — the report is a FEATURE report**, structured as:
-  1. Executive Summary (what was requested, what shipped)
-  2. Design Decisions (the ADRs, summarized, linked to `plans/decisions.md`)
-  3. What Was Built (per-commit map)
-  4. What Was Verified (and how — commands, tests, evidence)
-  5. What Was NOT Verified (and what the user should check)
-  6. Open Items / Backlogged findings
+- **Step 13 — the report is a FEATURE report.** Same voice as every
+  report — plain sentences for the project's owner, what happened
+  first, no form-speak headings. Cover: what was requested and what
+  shipped; the design decisions (summarized, linked to
+  `plans/decisions.md`); what was built (per-commit map); what was
+  verified and how (commands, tests, evidence); what was NOT verified
+  (and what the user should check); what is still open or backlogged.
 - **Step 14 (changelog) runs as written** — a feature is exactly what a
   changelog is for.
 - **Steps 15–19 run as written.**

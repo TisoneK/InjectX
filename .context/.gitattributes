@@ -1,0 +1,42 @@
+# Line-ending policy for this project's .context_ledger/ directory.
+#
+# Installed by 'ledger-sync bootstrap'. The vendored core under core/ is
+# integrity-checked byte-for-byte against core/MANIFEST.sha256 (LF-computed).
+# On Windows with core.autocrlf=true, a CRLF checkout makes every hash
+# mismatch and kills the sh manifest parser on '\r'-suffixed filenames.
+# Forcing eol=lf keeps the working tree byte-identical to
+# the manifest on every platform. Collaboration event files are parsed line by
+# line by the sh helpers, so they must stay LF too.
+#
+# Paths are relative to this .context_ledger/ directory.
+
+# The vendored core: LF, always. Integrity depends on it.
+core/**              text eol=lf
+core/MANIFEST.sha256 text eol=lf
+core/bin/*           text eol=lf
+
+# Project-owned memory: markdown + configs the sh helpers parse.
+memory/**            text eol=lf
+
+# Scripts and structured text anywhere under .context_ledger/.
+*.sh   text eol=lf
+*.ps1  text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.conf text eol=lf
+*.lock text eol=lf
+
+# --- Append-only ledger logs: union-merge on conflict --------------------
+# These files are append-only — new entries go at the end, past entries are
+# never edited — so concurrent sessions and sibling cohorts ALWAYS conflict
+# on them at merge time (each branch appended its own rows). git's built-in
+# union driver keeps BOTH sides' appended entries and drops the conflict
+# markers: the hand recipe ("union the logs") made automatic and identical on
+# every platform, so sibling branches merge clean with no per-file surgery.
+# After the merge, regenerate the derived digest with `ledger-state reconcile`
+# — STATE.md is a derived view and is NOT union-merged (union would corrupt
+# it); reconcile regenerates it from the now-merged sources.
+memory/office/agents/sessions.md     merge=union
+memory/office/flaws/log.md           merge=union
+memory/office/inefficiencies/log.md  merge=union
+memory/office/plans/decisions.md     merge=union

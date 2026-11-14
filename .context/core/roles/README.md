@@ -12,7 +12,7 @@
 
 The two base editions differ by **platform** — how the agent reaches the
 repo (clone + PAT vs. already-on-disk). Roles differ by **mission** — what
-the session is for. Keeping roles as overlays means the `.context/` spec,
+the session is for. Keeping roles as overlays means the `.context_ledger/` spec,
 git workflow, and quality gates live in exactly one place per platform;
 a role file is ~80 lines, not another 790-line document to keep aligned.
 
@@ -42,8 +42,8 @@ a role file is ~80 lines, not another 790-line document to keep aligned.
 
 ## What a role file may NEVER override
 
-- **The `.context/` rules** — append-only logs, no secrets, entry
-  templates, `chore(context):` prefix.
+- **The `.context_ledger/` rules** — append-only logs, no secrets, entry
+  templates, `chore(ledger):` prefix.
 - **Phase 5 (Steps 15–17)** — the memory update is mandatory for every
   role, every session, including sessions with no findings.
 - **Quality gates** — gates that concern code changes are simply vacuous
@@ -53,7 +53,7 @@ a role file is ~80 lines, not another 790-line document to keep aligned.
 
 ## Session entries record the role
 
-Whatever the role, the session entry in `.context/memory/agents/sessions.md`
+Whatever the role, the session entry in `.context_ledger/memory/office/agents/sessions.md`
 fills in its **Role** field — the next agent needs to know which lens
 produced which findings (a reviewer's "no security issues found" after a
 docs-only session would be a lie of omission).
@@ -69,4 +69,4 @@ Copy the structure of an existing role file:
 4. **Role checklist** — what this role hunts for.
 5. **What this role does NOT do** — explicit boundaries.
 6. Add a row to the table above and to the reviews naming note in
-   `core/templates/memory/reviews/README.md` if the role has its own filename.
+   `core/templates/memory/office/reviews/README.md` if the role has its own filename.
