@@ -343,3 +343,19 @@ outcome:
 - **Open items / push note:** **NOT YET PUSHED.** The migration range includes the rename commit `33138ef`, which `push-check` flags as two-surface (deletes `.context/`=product, adds `.context_ledger/`=ledger) — an unavoidable one-time rename the guard can't model (flaw logged `flaws/log.md`). The sanctioned fix (`LEDGER_GUARD_SKIP=1 git push`) was blocked by the Claude Code auto-mode classifier as "undermining oversight." Needs the USER to either approve that skip-push or run `LEDGER_GUARD_SKIP=1 git push origin main` themselves. Prior open items (N3/N4, packaged-Electron confirmations) unchanged.
 - **Report:** no separate review file (advisory + ledger-migration + planning session; no product code).
 - **Notes:** First session on core 2.x. Codename self-assigned (no roster check-in; exit-check skips cleanly with no live row). `date -u`=2026-11-13.
+
+---
+## 2026-11-13 — Session 34 (continued: N18 Android build, Phase 1)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS — Darwin 24.6.0, `/Users/bao/Code/InjectX` | **Role:** engineer | **Core:** 2.3.3
+- **Task:** User: "build it yourself" — start building backlog N18 (the Android app) per ADR-10.
+- **Environment blocker (found first):** this host has **no JVM, Gradle, Kotlin, or Android SDK** (only Python 3.9.6). So Kotlin cannot be compiled/tested and no APK can be built here. Chose to deliver the fully-verifiable foundation + a buildable scaffold rather than hand-write ~5,800 lines of unverifiable crypto.
+- **Commits:** `5ad93c2` chore(ledger) roster check-in · `1f78661` feat(android) Phase-1 scaffold (product) · (pending) this ledger batch (current.md, roster→Blocked, this entry, STATE).
+- **Outcome (N18 Phase 1, partial):**
+  - ✅ **Golden-vector harness** — `android/goldens/generate_goldens.py` runs the real backend over the 31 bundled samples → `android/goldens/fixtures/*.json` (verified: hc→A5, ehi→B2, ziv→H1 success; dark→I1 partial; tls→F1 known-failed). This is the parity oracle for the whole port.
+  - ✅ **Gradle scaffold** — `:core` pure Kotlin/JVM lib (crypto/parse/SNI, testable on a plain JDK — no emulator) + `:app` Android/Compose. Pinned versions (AGP 8.5.2, Kotlin 2.0.21, Compose BOM 2024.09.03, Bouncy Castle 1.78.1, kotlinx-serialization 1.7.3, OkHttp 4.12.0, dnsjava 3.6.1).
+  - ✅ **Model** `core/.../model/Models.kt` — faithful port of `ir/models.py`; **golden parity test harness** `GoldenParityTest.kt`.
+  - ✅ **Docs** `android/README.md` + `android/TASKS.md` (phase/scheme checklist tied to golden coverage).
+  - ⏳ **Not built/compiled; not ported:** detector, 13 decrypt schemes, KeyStore, parse engine, SNI Hunter, UI — all need a Kotlin toolchain to do responsibly.
+- **Blocked / hand-off:** need a build environment. User to choose: install JDK 17 + Android SDK locally (agent builds+tests here next), or a cloud/sandbox session with the toolchain. Golden coverage gap: hat/npv/nsh/vhd/legacy hc-ehi have no samples → no goldens (tie to N3) — add samples before porting those schemes.
+- **Report:** no separate review file (scaffold/planning slice; `android/` is product code).
+- **Notes:** Roster row left **Blocked** (not removed) — resumes once the toolchain is sorted. `date -u`=2026-11-13.
