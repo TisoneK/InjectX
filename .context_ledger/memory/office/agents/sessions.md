@@ -461,3 +461,15 @@ outcome:
 - **Honest limit:** the SNI network probing is compile-verified only (no device here, and it hits live network at runtime); the SNI logic it calls IS unit-tested (`:core` 7 suites). UI runtime unverified.
 - **Next (SNI remainder):** defensive fronting probe (ADR-9), ECH/reverse-IP/port-check, CertStream; "use this host as SNI" bridge into a decoded config. Plus runtime test, release signing, N3 schemes.
 - **Report:** none. Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: fix uninstallable APK + APK version control)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: APK says "package appears invalid"; version-control debug APKs (lost the first one by overwriting); + design feedback (home/main screen, rethink tabs) — deferred.
+- **Outcome:**
+  - **Install fix.** Diagnosed: APK was valid but minSdk 26 (excludes Android 7.0/7.1) and v2-only (AGP drops v1 at minSdk>=24; budget-OEM installers — common on Transsion/Tecno/Infinix in the KE market — reject v2-only with "package invalid"). Lowered minSdk → 24; `scripts/export-apk.sh` re-signs the built APK **v1+v2+v3** (`apksigner --min-sdk-version 21` forces the v1 JAR sig). Desktop APK now verifies v1+v2+v3. AGP's `enableV1Signing` is ignored at minSdk>=24, hence the apksigner re-sign.
+  - **APK version control.** `android/dist/` is now git-tracked (un-ignored the root `.gitignore` node `dist/`); builds archive as `injectx-debug-v<ver>-<sha>.apk` via `export-apk.sh` (build → re-sign → archive → copy latest to Desktop). First build committed. No build lost to overwrite again.
+  - Commits ca233c3 (source/fix), 6d41297 (archive + .gitignore). `:core` 7 suites unaffected.
+- **DEFERRED (next):** design rework — a Home/landing screen instead of Decode-as-default, and a more creative navigation than the top segmented tabs. Awaiting direction/taste.
+- **Honest limit:** install fix is reasoned from signing/minSdk, not device-verified (no device here). If it still fails, likely transfer corruption or device < API 24 — need the phone's Android version + transfer method.
+- **Report:** none. Roster kept Working. `date -u`=2026-11-14.

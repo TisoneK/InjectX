@@ -5,7 +5,7 @@ at check-in and at exit. This is a DERIVED VIEW for fast orientation;
 open the file a line points at when your task needs more than the
 line gives you. Full reading order: ledger-schema.md. -->
 
-_Regenerated: 2026-11-14T13:10:01Z_
+_Regenerated: 2026-11-14T13:30:33Z_
 
 ## Standing params
 - **Core:** 2.3.3 (locked, verified 2026-11-13)
@@ -15,7 +15,7 @@ _Regenerated: 2026-11-14T13:10:01Z_
 - Full params: `memory/workflows/active.md`
 
 ## Office — who's in, right now
-- **Forge** (OF01SS34) — Working — N18 — Android app: SNI Hunter screen + Decode/SNI tabs
+- **Forge** (OF01SS34) — Working — N18 — Android app: fixed uninstallable APK + versioned APK archive
 
 ## Current task
 (idle — no task recorded)
