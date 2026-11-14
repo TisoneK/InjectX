@@ -25,18 +25,23 @@ KS="$HOME/.android/debug.keystore"
   "$APK"
 
 VER="$(sed -n 's/.*versionName *= *"\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n1)"
-SHA="$(git rev-parse --short HEAD 2>/dev/null || echo nogit)"
+# Name the archive by the last commit that changed the APK's CODE (app/core),
+# so doc/ledger-only commits don't spawn duplicate 13MB blobs.
+SHA="$(git log -1 --format=%h -- app core 2>/dev/null || echo nogit)"
 DIRTY=""
-git diff --quiet 2>/dev/null || DIRTY="-dirty"
+git diff --quiet -- app core 2>/dev/null || DIRTY="-dirty"
 NAME="injectx-debug-v${VER}-${SHA}${DIRTY}.apk"
 
 mkdir -p dist
-cp "$APK" "dist/$NAME"
 DESKTOP="$HOME/Desktop/injectx-debug.apk"
 cp "$APK" "$DESKTOP"
-
 echo ""
-echo "archived : android/dist/$NAME"
+if [ -f "dist/$NAME" ] && [ -z "$DIRTY" ]; then
+  echo "archive  : android/dist/$NAME (up to date — app unchanged, not duplicated)"
+else
+  cp "$APK" "dist/$NAME"
+  echo "archived : android/dist/$NAME"
+fi
 echo "desktop  : $DESKTOP (latest)"
 echo "signed   :"
 "$APKSIGNER" verify --min-sdk-version 19 -v "$APK" 2>/dev/null | grep -E 'Verified using' || true
