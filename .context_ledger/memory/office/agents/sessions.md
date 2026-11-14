@@ -449,3 +449,15 @@ outcome:
 - **Honest limit:** still no runtime verification (no device/emulator) — compiles + links only; visual intent shown via mockup.
 - **Next:** runtime test (user's device); SNI remainder (fronting/ECH/UI); release signing; N3 schemes.
 - **Report:** none. Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-14 — Session 34 (continued: SNI Hunter screen + tab nav)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: "Replace the desktop apk with current then continue with SNI."
+- **Outcome:**
+  - Replaced `~/Desktop/injectx-debug.apk` with the current build (later re-exported again after the SNI UI).
+  - **SNI Hunter screen wired into the app.** New `ui/Components.kt` (shared Pill/SectionCard + custom `SegmentedTabs` + `verdictColor`). New `SniScreen.kt`: Discover card with a Seedlist|Domain segmented input (bundled per-ISP seedlists or a domain for crt.sh discovery) → Start scan → live incremental rows (hostname/IP/HTTP/server + colour-coded verdict pill), working/total counter, Stop, and Export-working (txt share). Probing off `Dispatchers.IO`, deduped (ADR-6). `MainActivity` now has a top Decode | SNI Hunter tab bar; Decode flow extracted into its own composable.
+  - `:app:assembleDebug` green; APK re-exported. Commit 673e22d.
+- **Honest limit:** the SNI network probing is compile-verified only (no device here, and it hits live network at runtime); the SNI logic it calls IS unit-tested (`:core` 7 suites). UI runtime unverified.
+- **Next (SNI remainder):** defensive fronting probe (ADR-9), ECH/reverse-IP/port-check, CertStream; "use this host as SNI" bridge into a decoded config. Plus runtime test, release signing, N3 schemes.
+- **Report:** none. Roster kept Working. `date -u`=2026-11-14.

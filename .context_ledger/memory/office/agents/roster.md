@@ -61,7 +61,7 @@ is your stable session tag.
 
 | Name | Codename | Model | Doing | Status | Status detail |
 |------|----------|-------|-------|--------|---------------|
-| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: UI redesign (branded), icon, SNI core | Working | :core 7 green; redesigned Compose UI + launcher icon; APK builds (…4d4b5cb), APK+icon on Desktop. UI runtime UNVERIFIED (no device). Next: runtime test, SNI remainder, release signing, N3 |
+| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: SNI Hunter screen + Decode/SNI tabs | Working | :core 7 green; app has Decode + SNI screens, APK builds (…673e22d), on Desktop. SNI network + UI compile-verified (no device). Next: SNI remainder (fronting/ECH/use-as-SNI), runtime test, release, N3 |
 
 **Keep your Status cells current — that is what the board is for.** The
 next live worker reads it to know at a glance what a peer has finished,
