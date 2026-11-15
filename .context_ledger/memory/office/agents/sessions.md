@@ -519,3 +519,12 @@ outcome:
 - **Honest limit:** network probing + persistence are compile-verified only (no device/emulator here); the pure logic IS unit-tested. Deferred: a saved/named seedlist *library* (§11.1 — currently per-hunt entry/import, not a persisted named library); probe concurrency (sequential for now).
 - **Next:** device run; de-decorate Decode/SNI result components to neon v3; empty-state output previews.
 - **Report:** none. Roster kept Working. `date -u`=2026-11-14.
+
+---
+## 2026-11-15 — Session 34 (continued: finished Home screen)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User sent a Home-screen concept screenshot + critique: the plain tool-list Home feels unfinished (empty space, weak hierarchy, plain rows, no status). Rebuild to a finished VPN-toolkit home, keep the neon/teal identity; **network status + recent activity must be REAL data, not placeholders** (user's explicit rule). The screenshot is a visual concept (confirmed by the user), NOT our current build.
+- **Outcome:** Rebuilt `HomeScreen`: `HeroBanner` (welcome + real icon + teal gradient), `ToolCard` (Decode/SNI as bordered cards with tinted icon tiles via material-icons-extended + chevron), `NetworkPanel` (REAL `rememberNetworkInfo`), recent activity (REAL — new `:core` `ActivityLog` [ActivityEvent/Kind + codec + prepend/cap, `ActivityLogTest` 3 green] + app `ActivityStore` filesDir; rows only on real decode/scan-complete; system relative time; honest empty state). Added bottom nav Home/Tools/Settings — Settings is real (version, clear activity, clear hunt, disclaimer); Decode/SNI pushed full-screen with back. Decode/SNI now report completion to the log. `:core` 8 suites green; `:app:assembleDebug` green. APK re-signed v1+v2+v3, archived `dist/injectx-debug-v0.1.0-492232f.apk` (~20M), on Desktop. Spec + concept image in `features/android-ui.md` §12 / `features/home-concept.webp`. Commits 492232f (UI), ee1c829 (APK).
+- **Honest limit:** material-icons-extended bloats the DEBUG apk ~13M→20M (unshrunk; release minify strips it). Compile-verified only — layout/network/activity need a device.
+- **Next:** device run to react to the real render; de-decorate Decode result view + SNI to match; empty-state output previews.
+- **Report:** none. Roster kept Working. `date -u`=2026-11-15.

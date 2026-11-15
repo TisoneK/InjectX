@@ -183,3 +183,35 @@ A universal tool must not ship carrier names. Rework:
   entered/imported per hunt, not persisted as a named library; and concurrency
   (probes run sequentially). Next: de-decorate Decode/SNI to neon v3; empty-state
   output previews; device run.
+
+## 12. Home screen — finished product (DONE 2026-11-15, commit 492232f)
+From a user concept screenshot + critique (the plain tool-list Home "feels
+unfinished"): too much empty space, weak hierarchy, plain text rows, no
+status/context. Target = a finished VPN-toolkit home, **keeping** the neon/
+teal identity. Concept image kept at `features/home-concept.webp` (it is a
+*visual concept*, not a spec to trace).
+
+**Hard rule (user):** the network status and recent activity must show REAL
+application data, never decorative placeholders.
+
+**Shipped:**
+- `HeroBanner` — "Your VPN toolkit" welcome, real app icon, subtle teal gradient.
+- `ToolCard` — Decode / SNI Hunter as individual bordered cards: tinted icon
+  tile (material-icons-extended: Description / CellTower) + description +
+  chevron. Reused on the Tools tab.
+- `NetworkPanel` — REAL connectivity (`rememberNetworkInfo`: Wi-Fi / Cellular /
+  Offline), colored, Wi-Fi/cell/off icon, Check action.
+- Recent activity — REAL: `:core` `ActivityLog` (ActivityEvent/Kind + codec +
+  prepend/cap, `ActivityLogTest` 3 green) + app `ActivityStore` (filesDir).
+  Rows written only on a real decode or finished SNI test; system relative time
+  ("2 hours ago"); honest empty state.
+- Bottom nav Home / Tools / Settings. Settings is real: version, Clear recent
+  activity, Clear saved SNI hunt, responsible-use statement. Decode/SNI are
+  pushed full screens (back returns to the tab).
+- Decode + SNI report completion → the log reflects real use.
+
+**Cost / limits:** material-icons-extended (BOM-versioned) bloats the DEBUG APK
+~13M→20M (unshrunk); a release build with minifying strips unused icons.
+Compile-verified only — the layout, network panel and activity need a device.
+Next: device run to react to the real render; then de-decorate Decode result
+view + SNI to match; empty-state output previews.

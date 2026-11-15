@@ -61,7 +61,7 @@ is your stable session tag.
 
 | Name | Codename | Model | Doing | Status | Status detail |
 |------|----------|-------|-------|--------|---------------|
-| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: SNI Hunter two-phase rework | Working | Shipped §11 SNI rework (aecaa96): no carriers, one flexible input, persisted two-phase Discover/Test, 3-state results. :core 7 green (SniHunter 12). APK v0.1.0-aecaa96 on Desktop. Next: device run + de-decorate Decode. Compile-verified only |
+| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: finished Home screen | Working | Shipped §12 Home (492232f): hero + tool cards + REAL network panel + REAL recent activity (ActivityLog/Store) + bottom nav Home/Tools/Settings. :core 8 green. APK v0.1.0-492232f (~20M) on Desktop. Next: device run; de-decorate Decode/SNI. Compile-verified only |
 
 **Keep your Status cells current — that is what the board is for.** The
 next live worker reads it to know at a glance what a peer has finished,
