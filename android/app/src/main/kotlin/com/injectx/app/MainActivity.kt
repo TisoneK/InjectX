@@ -23,12 +23,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -64,6 +71,7 @@ import com.injectx.app.ui.statusColor
 import com.injectx.app.ui.theme.InjectXTheme
 import com.injectx.app.ui.theme.MonoValue
 import com.injectx.core.ParseEngine
+import com.injectx.core.history.ActivityKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -72,7 +80,11 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-enum class Screen { Home, Decode, Sni }
+/** Pushed tool destinations (full-screen, back returns to the active tab). */
+enum class Screen { Decode, Sni }
+
+/** Bottom-navigation tabs. */
+enum class Tab { Home, Tools, Settings }
 
 private sealed interface Decode {
     data object Idle : Decode
@@ -93,7 +105,8 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InjectXApp() {
-    var screen by remember { mutableStateOf(Screen.Home) }
+    var tab by remember { mutableStateOf(Tab.Home) }
+    var tool by remember { mutableStateOf<Screen?>(null) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val clipboard = LocalClipboardManager.current
@@ -104,30 +117,28 @@ private fun InjectXApp() {
         scope.launch { snackbar.showSnackbar("Copied $label") }
     }
 
-    BackHandler(enabled = screen != Screen.Home) { screen = Screen.Home }
+    BackHandler(enabled = tool != null) { tool = null }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    if (screen != Screen.Home) {
-                        IconButton(onClick = { screen = Screen.Home }) {
+                    if (tool != null) {
+                        IconButton(onClick = { tool = null }) {
                             Text("‹", fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
                         }
                     }
                 },
                 title = {
-                    if (screen == Screen.Home) {
+                    if (tool != null) {
+                        Text(if (tool == Screen.Decode) "Decode" else "SNI Hunter",
+                            fontFamily = FontFamily.Monospace, letterSpacing = 1.sp)
+                    } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             HexLogo(Modifier.size(28.dp))
                             Spacer(Modifier.width(10.dp))
                             Text("InjectX", fontFamily = FontFamily.Monospace, letterSpacing = 2.sp)
                         }
-                    } else {
-                        Text(
-                            if (screen == Screen.Decode) "Decode" else "SNI Hunter",
-                            fontFamily = FontFamily.Monospace, letterSpacing = 1.sp,
-                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -137,21 +148,55 @@ private fun InjectXApp() {
                 ),
             )
         },
+        bottomBar = {
+            if (tool == null) {
+                NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+                    NavigationBarItem(
+                        selected = tab == Tab.Home, onClick = { tab = Tab.Home },
+                        icon = { Icon(Icons.Outlined.Home, null) }, label = { Text("Home") },
+                    )
+                    NavigationBarItem(
+                        selected = tab == Tab.Tools, onClick = { tab = Tab.Tools },
+                        icon = { Icon(Icons.Outlined.Build, null) }, label = { Text("Tools") },
+                    )
+                    NavigationBarItem(
+                        selected = tab == Tab.Settings, onClick = { tab = Tab.Settings },
+                        icon = { Icon(Icons.Outlined.Settings, null) }, label = { Text("Settings") },
+                    )
+                }
+            }
+        },
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { pad ->
         Box(Modifier.fillMaxSize().padding(pad)) {
-            when (screen) {
-                Screen.Home -> HomeScreen(onOpen = { screen = it })
-                Screen.Decode -> DecodeScreen(onCopy = ::copy, onExport = { shareText(ctx, it) })
-                Screen.Sni -> SniScreen(onExport = { shareText(ctx, it) })
+            when (tool) {
+                Screen.Decode -> DecodeScreen(
+                    onCopy = ::copy, onExport = { shareText(ctx, it) },
+                    onDecoded = { name, format ->
+                        ActivityStore.record(ctx, ActivityKind.DECODE, "Config decoded",
+                            listOfNotNull(name, format?.uppercase()).joinToString("  ·  "))
+                    },
+                )
+                Screen.Sni -> SniScreen(
+                    onExport = { shareText(ctx, it) },
+                    onScanComplete = { working, label ->
+                        ActivityStore.record(ctx, ActivityKind.SCAN, "SNI test completed",
+                            listOfNotNull("$working working", label).joinToString("  ·  "))
+                    },
+                )
+                null -> when (tab) {
+                    Tab.Home -> HomeScreen(onOpen = { tool = it })
+                    Tab.Tools -> ToolsScreen(onOpen = { tool = it })
+                    Tab.Settings -> SettingsScreen()
+                }
             }
         }
     }
 }
 
 @Composable
-private fun DecodeScreen(onCopy: (String, String) -> Unit, onExport: (String) -> Unit) {
+private fun DecodeScreen(onCopy: (String, String) -> Unit, onExport: (String) -> Unit, onDecoded: (String, String?) -> Unit) {
     val prettyJson = remember { Json { prettyPrint = true } }
     var state by remember { mutableStateOf<Decode>(Decode.Idle) }
     val scope = rememberCoroutineScope()
@@ -167,6 +212,8 @@ private fun DecodeScreen(onCopy: (String, String) -> Unit, onExport: (String) ->
                     val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("could not read file")
                     ParseEngine.parseConfig(bytes, name)
                 }
+                val format = (cfg["format"] as? JsonPrimitive)?.content?.takeIf { it.isNotEmpty() && it != "null" }
+                onDecoded(name, format)
                 Decode.Loaded(name, cfg, prettyJson.encodeToString(JsonObject.serializer(), cfg))
             } catch (e: Exception) {
                 Decode.Failed(name, e.message ?: e.toString())

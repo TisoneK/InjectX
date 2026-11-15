@@ -61,7 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun SniScreen(onExport: (String) -> Unit) {
+fun SniScreen(onExport: (String) -> Unit, onScanComplete: (Int, String?) -> Unit = { _, _ -> }) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val net = rememberNetworkInfo()
@@ -102,7 +102,11 @@ fun SniScreen(onExport: (String) -> Unit) {
                         val r = withContext(Dispatchers.IO) { SniNetwork.probeOne(h) }
                         persist(session.copy(results = session.results + HostResult.from(r)))
                     }
-                    if (session.pending().isEmpty()) persist(session.copy(phase = HuntPhase.DONE))
+                    if (session.pending().isEmpty()) {
+                        val done = session.copy(phase = HuntPhase.DONE)
+                        persist(done)
+                        onScanComplete(done.working().size, done.testLabel)
+                    }
                 }
             },
             onExport = { onExport(Export.working(session)) },
