@@ -528,3 +528,12 @@ outcome:
 - **Honest limit:** material-icons-extended bloats the DEBUG apk ~13M→20M (unshrunk; release minify strips it). Compile-verified only — layout/network/activity need a device.
 - **Next:** device run to react to the real render; de-decorate Decode result view + SNI to match; empty-state output previews.
 - **Report:** none. Roster kept Working. `date -u`=2026-11-15.
+
+---
+## 2026-11-15 — Session 34 (continued: align Decode/SNI to Home card language)
+- **Agent:** Forge | **Codename:** OF01SS34 | **Model:** claude-opus-4-8 | **Platform:** local macOS (Intel) | **Core:** 2.3.3
+- **Task:** User: "Align Decode/SNI" — bring the Decode result view + SNI screens to the card language the finished Home (§12) set.
+- **Outcome:** Added shared `PanelCard` (rounded Surface1 + hairline Outline border) + `IconTile` (the tinted icon tile) to `ui/Components`; restyled `SectionCard` onto `PanelCard` so Decode's CONNECTION/WARNINGS/NORMALIZED CONFIG sections match. Decode result header is now a PanelCard with a format-tinted IconTile + filename + pills. SNI handoff card and result rows take the same Surface1 + Outline border and radius. `:app:assembleDebug` green. APK re-signed v1+v2+v3, archived `dist/injectx-debug-v0.1.0-50b4522.apk`, on Desktop. Commits 50b4522 (UI), 6e826c8 (APK).
+- **Honest limit:** compile-verified only — no device here.
+- **Next:** device run to react to the real render (whole app now shares one card system); empty-state output previews; APK-size cleanup (release minify strips the icon set).
+- **Report:** none. Roster kept Working. `date -u`=2026-11-15.

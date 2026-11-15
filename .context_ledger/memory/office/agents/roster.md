@@ -61,7 +61,7 @@ is your stable session tag.
 
 | Name | Codename | Model | Doing | Status | Status detail |
 |------|----------|-------|-------|--------|---------------|
-| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: finished Home screen | Working | Shipped §12 Home (492232f): hero + tool cards + REAL network panel + REAL recent activity (ActivityLog/Store) + bottom nav Home/Tools/Settings. :core 8 green. APK v0.1.0-492232f (~20M) on Desktop. Next: device run; de-decorate Decode/SNI. Compile-verified only |
+| Forge | OF01SS34 | claude-opus-4-8 | N18 — Android app: unified card language | Working | Home §12 (492232f) + Decode/SNI aligned to it (50b4522): shared PanelCard/IconTile, one card system app-wide. :core 8 green. APK v0.1.0-50b4522 on Desktop. Next: device run to react to real render. Compile-verified only |
 
 **Keep your Status cells current — that is what the board is for.** The
 next live worker reads it to know at a glance what a peer has finished,
