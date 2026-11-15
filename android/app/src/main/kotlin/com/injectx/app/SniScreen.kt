@@ -3,6 +3,7 @@ package com.injectx.app
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.injectx.app.ui.Pill
 import com.injectx.app.ui.theme.Accent
 import com.injectx.app.ui.theme.BadRed
+import com.injectx.app.ui.theme.Outline
 import com.injectx.app.ui.theme.Surface1
 import com.injectx.app.ui.theme.Surface2
 import com.injectx.app.ui.theme.TextLo
@@ -255,7 +257,7 @@ private fun HandoffPhase(session: HuntSession, net: NetInfo, onBack: () -> Unit,
         Spacer(Modifier.height(16.dp))
         StepHeader(2, "Test", "Candidates saved. Switch to your dataless network, then run the test.")
 
-        Surface(color = Surface1, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+        Surface(color = Surface1, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, Outline), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("${session.candidates.size} candidates", style = MaterialTheme.typography.titleMedium, color = Accent)
                 Text("A host that works on one network isn't assumed to work on another — name the network so the results are tagged with it.",
@@ -384,7 +386,7 @@ private fun ResultRow(r: HostResult) {
         TestState.WORKS -> "works"; TestState.FAILS -> "fails"
         TestState.TIMED_OUT -> "timed out"; TestState.UNTESTED -> "—"
     }
-    Surface(color = Surface1, shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth()) {
+    Surface(color = Surface1, shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, Outline), modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(r.hostname, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)

@@ -25,11 +25,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -63,11 +62,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.injectx.app.ui.HexLogo
+import com.injectx.app.ui.IconTile
+import com.injectx.app.ui.PanelCard
 import com.injectx.app.ui.Pill
 import com.injectx.app.ui.SectionCard
-import com.injectx.app.ui.SegmentedTabs
 import com.injectx.app.ui.formatColor
 import com.injectx.app.ui.statusColor
+import com.injectx.app.ui.theme.Cyan
 import com.injectx.app.ui.theme.InjectXTheme
 import com.injectx.app.ui.theme.MonoValue
 import com.injectx.core.ParseEngine
@@ -294,15 +295,19 @@ private fun ResultView(s: Decode.Loaded, onPickAnother: () -> Unit, onExport: (S
     }
     val warnings = (n["warnings"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.content } ?: emptyList()
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-            Column(Modifier.padding(16.dp)) {
-                Text(s.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    f("format")?.let { Pill(it.uppercase(), formatColor(it)) }
-                    f("decryption_status")?.let { Pill(it.replace('_', ' '), statusColor(it)) }
-                    f("scheme_used")?.let { Pill(it, MaterialTheme.colorScheme.secondary) }
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp)) {
+        PanelCard {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconTile(Icons.Outlined.Description, f("format")?.let { formatColor(it) } ?: Cyan)
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(s.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        f("format")?.let { Pill(it.uppercase(), formatColor(it)) }
+                        f("decryption_status")?.let { Pill(it.replace('_', ' '), statusColor(it)) }
+                        f("scheme_used")?.let { Pill(it, MaterialTheme.colorScheme.secondary) }
+                    }
                 }
             }
         }
